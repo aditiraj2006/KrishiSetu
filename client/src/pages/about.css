@@ -1,0 +1,112 @@
+/* pages/About.css */
+
+.about-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+  text-align: left;
+}
+
+h1 {
+  font-size: 15px;
+  color: #4CAF50;
+  margin-bottom: 20px;
+  text-align: center;
+  animation: fadeInUp 1s ease forwards;
+}
+
+h1.fade-in{
+    font-size: 50px;
+}
+
+p {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.about-sections {
+  margin-bottom: 30px;
+}
+
+section {
+  margin-bottom: 20px;
+  animation: fadeInUp 1s ease forwards;
+}
+
+section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #388E3C;
+}
+
+section p {
+  font-size: 1rem;
+  color: #555;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+ul li {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+ul li:hover {
+  color: #4CAF50;
+  transform: translateX(5px);
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #4CAF50;
+  font-weight: bold;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.back-link:hover {
+  color: #388E3C;
+  transform: scale(1.05);
+}
+
+/* Animation classes */
+.fade-in {
+  opacity: 0;
+  animation: fadeInUp 1s forwards;
+}
+
+.fade-in.delay-1 {
+  animation-delay: 0.3s;
+}
+
+.fade-in.delay-2 {
+  animation-delay: 0.6s;
+}
+
+.fade-in.delay-3 {
+  animation-delay: 0.9s;
+}
+
+.fade-in.delay-4 {
+  animation-delay: 1.2s;
+}
+
+/* Keyframes for fadeInUp */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

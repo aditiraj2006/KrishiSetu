@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: KrishiSetu-server
+    env: node
+    plan: free
+    buildCommand: |
+      cd server
+      npm install
+      cd ../client
+      npm install
+      npm run build
+      cd ..
+    startCommand: |
+      cd server
+      node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        sync: false
+      - key: FIREBASE_API_KEY
+        sync: false
+      - key: FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: FIREBASE_APP_ID
+        sync: false
+
+databases:
+  - name: KrishiSetu-mongodb
+    plan: free
+    ipAllowList: []

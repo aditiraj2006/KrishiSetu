@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(120, 20%, 98%);
+  --foreground: hsl(120, 10%, 12%);
+  --card: hsl(120, 20%, 100%);
+  --card-foreground: hsl(120, 10%, 15%);
+  --popover: hsl(120, 20%, 100%);
+  --popover-foreground: hsl(120, 10%, 15%);
+  --primary: hsl(135, 60%, 35%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(30, 35%, 85%);
+  --secondary-foreground: hsl(30, 10%, 25%);
+  --muted: hsl(120, 10%, 92%);
+  --muted-foreground: hsl(120, 5%, 45%);
+  --accent: hsl(200, 90%, 50%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62%, 50%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(120, 15%, 88%);
+  --input: hsl(120, 15%, 92%);
+  --ring: hsl(135, 60%, 35%);
+  --verified: hsl(45, 100%, 55%);
+  --warning: hsl(25, 95%, 53%);
+  --chart-1: hsl(135, 60%, 35%);
+  --chart-2: hsl(200, 90%, 50%);
+  --chart-3: hsl(45, 100%, 55%);
+  --chart-4: hsl(147, 78%, 42%);
+  --chart-5: hsl(341, 75%, 51%);
+  --sidebar: hsl(120, 20%, 100%);
+  --sidebar-foreground: hsl(120, 10%, 15%);
+  --sidebar-primary: hsl(135, 60%, 35%);
+  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-accent: hsl(120, 10%, 92%);
+  --sidebar-accent-foreground: hsl(135, 60%, 35%);
+  --sidebar-border: hsl(120, 15%, 88%);
+  --sidebar-ring: hsl(135, 60%, 35%);
+  --font-sans: "PT Sans", system-ui, sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 1px 2px 0px hsl(0, 0%, 0%, 0.05);
+  --shadow-xs: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow-sm: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow-md: 0px 4px 6px -1px hsl(0, 0%, 0%, 0.1), 0px 2px 4px -1px hsl(0, 0%, 0%, 0.06);
+  --shadow-lg: 0px 10px 15px -3px hsl(0, 0%, 0%, 0.1), 0px 4px 6px -2px hsl(0, 0%, 0%, 0.05);
+  --shadow-xl: 0px 20px 25px -5px hsl(0, 0%, 0%, 0.1), 0px 10px 10px -5px hsl(0, 0%, 0%, 0.04);
+  --shadow-2xl: 0px 25px 50px -12px hsl(0, 0%, 0%, 0.25);
+}
+
+.dark {
+  --background: hsl(120, 10%, 8%);
+  --foreground: hsl(120, 15%, 88%);
+  --card: hsl(120, 10%, 10%);
+  --card-foreground: hsl(120, 15%, 85%);
+  --popover: hsl(120, 10%, 10%);
+  --popover-foreground: hsl(120, 15%, 85%);
+  --primary: hsl(135, 60%, 45%);
+  --primary-foreground: hsl(120, 10%, 8%);
+  --secondary: hsl(30, 20%, 20%);
+  --secondary-foreground: hsl(30, 35%, 85%);
+  --muted: hsl(120, 8%, 15%);
+  --muted-foreground: hsl(120, 5%, 55%);
+  --accent: hsl(200, 90%, 60%);
+  --accent-foreground: hsl(120, 10%, 8%);
+  --destructive: hsl(0, 62%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(120, 8%, 20%);
+  --input: hsl(120, 8%, 18%);
+  --ring: hsl(135, 60%, 45%);
+  --verified: hsl(45, 100%, 65%);
+  --warning: hsl(25, 95%, 63%);
+  --chart-1: hsl(135, 60%, 45%);
+  --chart-2: hsl(200, 90%, 60%);
+  --chart-3: hsl(45, 100%, 65%);
+  --chart-4: hsl(147, 78%, 52%);
+  --chart-5: hsl(341, 75%, 61%);
+  --sidebar: hsl(120, 10%, 10%);
+  --sidebar-foreground: hsl(120, 15%, 85%);
+  --sidebar-primary: hsl(135, 60%, 45%);
+  --sidebar-primary-foreground: hsl(120, 10%, 8%);
+  --sidebar-accent: hsl(120, 8%, 15%);
+  --sidebar-accent-foreground: hsl(135, 60%, 45%);
+  --sidebar-border: hsl(120, 8%, 20%);
+  --sidebar-ring: hsl(135, 60%, 45%);
+}
+
+/* Custom utility classes */
+.gradient-bg {
+  background: linear-gradient(135deg, hsl(120, 20%, 98%) 0%, hsl(135, 15%, 95%) 100%);
+}
+
+.blockchain-pattern {
+  background-image: radial-gradient(circle at 1px 1px, hsl(135, 30%, 88%) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.verified-badge {
+  background: linear-gradient(135deg, var(--verified) 0%, hsl(50, 100%, 60%) 100%);
+}
+
+.map-container {
+  background: linear-gradient(to bottom, hsl(200, 60%, 95%) 0%, hsl(120, 30%, 95%) 100%);
+}
+
+/* Animations */
+.hover-lift {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .7;
+  }
+}
+
+.scan-line {
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  /* Smooth transitions for all elements */
+  * {
+    transition: all 0.2s ease-in-out;
+  }
+}

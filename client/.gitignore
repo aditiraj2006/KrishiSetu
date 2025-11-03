@@ -1,0 +1,40 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+# Node.js dependencies
+/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build output
+/dist/
+/build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Firebase specific files (if any local config or cache exists)
+.firebase/
+
+# Optional: Ignore lock files if you're not using them
+# package-lock.json
+# yarn.lock
+
+# Optional: Ignore coverage reports if you're running tests
+/coverage/
