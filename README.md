@@ -2,7 +2,7 @@
 
 KrishiSetu is a blockchain-powered supply chain traceability application that enables farmers, distributors, and consumers to track agricultural products from farm to table. The platform provides product registration, QR code generation, scanning capabilities, and comprehensive supply chain visualization with blockchain verification.
 
-The application uses a modern full-stack architecture with React frontend, Express.js backend, PostgreSQL database with Drizzle ORM, and Firebase authentication. It's designed to provide transparency and trust in agricultural supply chains through immutable blockchain records and user-friendly interfaces.
+The application uses a modern full-stack architecture with React frontend, Express.js backend, MongoDB database, and Firebase authentication. It's designed to provide transparency and trust in agricultural supply chains through immutable blockchain records and user-friendly interfaces.
 
 # User Preferences
 
@@ -21,8 +21,8 @@ Preferred communication style: Simple, everyday language.
 
 ## Backend Architecture
 - **Framework**: Express.js with TypeScript for RESTful API design
-- **Database ORM**: Drizzle ORM with PostgreSQL for type-safe database operations
-- **Storage Pattern**: Repository pattern with in-memory storage fallback for development
+- **Database**: MongoDB for document-based storage (e.g., product ownership, hashing, and block data)
+- **Storage Pattern**: MongoStorage class for database operations with singleton connection
 - **API Structure**: RESTful endpoints for users, products, transactions, quality checks, and scans
 - **Error Handling**: Centralized error middleware with structured error responses
 
@@ -49,8 +49,8 @@ Preferred communication style: Simple, everyday language.
 # External Dependencies
 
 ## Database & Infrastructure
-- **Neon Database**: Serverless PostgreSQL hosting with connection pooling
-- **Drizzle Kit**: Database migration and schema management tools
+- **MongoDB**: Document database for flexible storage (hosted on Render or similar)
+- **Render**: Deployment platform for web services and databases
 
 ## Authentication & User Management
 - **Firebase**: Authentication, user management, and Google OAuth provider
