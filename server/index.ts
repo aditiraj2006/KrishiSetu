@@ -75,7 +75,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 10000;
   server.listen(PORT, () => {
     log(`Server is running at http://localhost:${PORT}`);
   });
