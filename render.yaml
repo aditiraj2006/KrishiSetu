@@ -4,15 +4,20 @@ services:
     env: node
     plan: free
     buildCommand: |
+      cd server
+      npm install
+      cd ../client
       npm install
       npm run build
+      cd ..
     startCommand: |
-      NODE_ENV=production node dist/index.js
+      cd server
+      node index.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: 5000
       - key: MONGO_URI
         sync: false
       - key: MONGO_DB_NAME
