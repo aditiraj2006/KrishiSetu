@@ -92,8 +92,3 @@ app.use((req, res, next) => {
   });
 })();
 
-  const PORT = process.env.PORT || 10000;
-  server.listen(PORT, () => {
-    log(`Server is running at http://localhost:${PORT}`);
-  });
-})();
