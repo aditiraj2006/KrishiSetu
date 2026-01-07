@@ -1,4 +1,4 @@
-import { Router, Route } from "wouter"; // Remove Switch
+import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "react-hot-toast";
@@ -37,7 +37,7 @@ function App() {
             duration: 2000,
           }}
         />
-        <Router>
+        <Switch>
           <Route path="/" component={LandingPage} />
           <Route path="/contact" component={Contact} />
           <Route path="/about" component={about} />
@@ -54,8 +54,8 @@ function App() {
           />
           <Route path="/scanned-products" component={ScannedProductsPage} />
           <Route path="/request-products" component={RequestProductsPage} />
-          <Route path="*" component={NotFound} />
-        </Router>
+          <Route component={NotFound} />
+        </Switch>
       </TooltipProvider>
     </QueryClientProvider>
   );
