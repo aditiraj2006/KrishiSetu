@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![GSSoC-Aspirant](https://img.shields.io/badge/Aspiring%20for-GirlScript%20Summer%20of%20Code-ff69b4?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-success?style=for-the-badge)
 ![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-blue?style=for-the-badge)
@@ -10,7 +9,7 @@
 
 **Empowering farmers and consumers through transparent, decentralized agricultural supply chain management.**
 
-[Live Demo](#) • [Documentation](#) • [Contribute](##-contributing) • [Report Issue](../../issues) • [Discussions](../../discussions)
+[🌐 Live Demo](https://krishisetu-kqj9.onrender.com/) • [📖 GitHub Repo](https://github.com/aditiraj2006/KrishiSetu) • [🤝 Contribute](#-contributing) • [🐛 Report Issue](https://github.com/aditiraj2006/KrishiSetu/issues) • [💬 Discussions](https://github.com/aditiraj2006/KrishiSetu/discussions)
 
 </div>
 
@@ -20,7 +19,9 @@
 
 **KrishiSetu** is an open-source platform that revolutionizes agricultural supply chains by enabling **direct connections** between farmers, distributors, retailers, and consumers. With **real-time tracking**, **QR code verification**, and **transparent pricing**, KrishiSetu eliminates middlemen exploitation while ensuring product authenticity and fair compensation for farmers.
 
-Built with modern web technologies and designed with **beginner-friendly contributions** in mind, KrishiSetu is aspiring to be part of **GirlScript Summer of Code 2025**! 🌟
+Built with modern web technologies and designed with **beginner-friendly contributions** in mind, KrishiSetu is an ideal platform for developers to learn, collaborate, and make a real-world impact! 🌟
+
+**[🚀 Visit Live Demo](https://krishisetu-kqj9.onrender.com/)** | **[⭐ Star on GitHub](https://github.com/aditiraj2006/KrishiSetu)**
 
 ---
 
@@ -46,6 +47,14 @@ Built with modern web technologies and designed with **beginner-friendly contrib
 - ⛓️ Full blockchain integration for immutable records
 - 📊 Advanced analytics and reporting dashboard
 - 🌐 Multi-language support expansion
+
+---
+
+## 🌐 Live Demo
+
+👉 **[Visit KrishiSetu Live](https://krishisetu-kqj9.onrender.com/)**
+
+Want to see it in action? Click the link above to explore the platform!
 
 ---
 
@@ -167,7 +176,7 @@ KrishiSetu/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/KrishiSetu.git
+git clone https://github.com/aditiraj2006/KrishiSetu.git
 cd KrishiSetu
 ```
 
@@ -245,7 +254,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
    ```bash
    git clone https://github.com/YOUR_USERNAME/KrishiSetu.git
    cd KrishiSetu
-   git remote add upstream https://github.com/ORIGINAL_OWNER/KrishiSetu.git
+   git remote add upstream https://github.com/aditiraj2006/KrishiSetu
    ```
 
 3. **Create a Feature Branch**
@@ -350,7 +359,7 @@ git clone https://github.com/YOUR_USERNAME/KrishiSetu.git
 cd KrishiSetu
 
 # Add upstream remote to stay synchronized
-git remote add upstream https://github.com/ORIGINAL_OWNER/KrishiSetu.git
+git remote add upstream https://github.com/aditiraj2006/KrishiSetu.git
 git remote -v  # Verify both remotes exist
 ```
 
@@ -422,39 +431,19 @@ Your PR gets merged and you're now officially a KrishiSetu contributor!
 
 ---
 
-## 🌟 GSSoC 2025 – We're Aspiring!
+## 🌟 Why Contribute?
 
-**GirlScript Summer of Code** (GSSoC) is one of India's largest 3-month-long open-source programs that encourages developers of all levels to contribute to real-world projects while learning, collaborating, and growing together! 🚀
-
-### Why Contribute to KrishiSetu?
+Contributing to KrishiSetu offers numerous benefits:
 
 ✨ **Improve Your Skills** — Work with modern technologies and best practices
-🤝 **Collaborative Community** — Learn from experienced mentors
-🏆 **Get Recognized** — Earn badges, certificates, and swag
-📜 **Build Your Portfolio** — Real-world project experience
-🌍 **Social Impact** — Help empower farmers and consumers
+🤝 **Collaborative Community** — Learn from experienced developers
+🏆 **Get Recognized** — Earn recognition and build your portfolio
+📜 **Real-World Experience** — Contribute to a project with real-world impact
+🌍 **Social Impact** — Help empower farmers and ensure transparent agriculture
 
 ---
 
-## 🏆 GSSoC 2025 Contribution Levels
-
-| Level | Description | Points | Badge |
-|-------|-------------|--------|-------|
-| 🥉 **Beginner** | Fix typos, update docs, minor bug fixes | 5-10 | Beginner |
-| 🥈 **Intermediate** | Add features, improve UI/UX, bug fixes | 15-25 | Intermediate |
-| 🥇 **Advanced** | Major features, architecture, optimization | 30-50 | Advanced |
-
-### Contribution Scoring
-
-- **Documentation fixes**: 5 points
-- **UI/UX improvements**: 10 points
-- **Bug fixes**: 10-20 points
-- **Feature implementation**: 20-50 points
-- **Performance optimization**: 15-25 points
-
----
-
-## 📋 GSSoC 2025 Contribution Guidelines
+## ✅ Contribution Best Practices
 
 ### ✅ Do's
 
@@ -465,7 +454,7 @@ Your PR gets merged and you're now officially a KrishiSetu contributor!
 ✅ Be respectful and collaborative with other contributors
 ✅ Ask questions if you're unsure about anything
 ✅ Update documentation when adding features
-✅ Give feedback to other contributors
+✅ Give constructive feedback to other contributors
 
 ### ❌ Don'ts
 
