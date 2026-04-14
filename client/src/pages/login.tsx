@@ -14,7 +14,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
 
 export default function LoginPage() {
-  const [tab, setTab] = useState<"email" | "google">("email");
+  const [tab, setTab] = useState<"email" | "google">("google");
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -102,16 +102,6 @@ export default function LoginPage() {
           <div className="flex justify-center mb-2">
             <button
               className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "email"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground"
-              }`}
-              onClick={() => setTab("email")}
-            >
-              📧 Email
-            </button>
-            <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
                 tab === "google"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
@@ -119,6 +109,16 @@ export default function LoginPage() {
               onClick={() => setTab("google")}
             >
               🌐 Google
+            </button>
+            <button
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                tab === "email"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
+              }`}
+              onClick={() => setTab("email")}
+            >
+              📧 Email
             </button>
           </div>
         </CardHeader>
