@@ -31,7 +31,6 @@ Built with modern web technologies and designed with **beginner-friendly contrib
 - 📦 **Smart Product Registration** — Easy onboarding with automatic validation and categorization
 - 📱 **QR Code System** — Generate, scan, and verify products instantly for authenticity
 - 🌍 **Real-Time Translation** — Translate product details into 8+ Indian languages using AI
-- ✏️ **AI Grammar Enhancement** — Real-time grammar corrections for product descriptions and stories
 - 📊 **Supply Chain Visualization** — Interactive map showing product journey from farm to consumer
 - 💳 **Payment Proof Management** — Transparent transaction documentation and verification
 - 👤 **Complete User Profiles** — Verified credentials and role-specific information
@@ -85,7 +84,7 @@ Want to see it in action? Click the link above to explore the platform!
 | **Render** | - | Cloud deployment platform |
 
 ### AI & Services
-- **Google Gemini AI** — Language translation & grammar correction
+- **Google Gemini AI** — Language translation
 - **Firebase Authentication** — Secure user management
 - **Firestore** — Real-time database
 
