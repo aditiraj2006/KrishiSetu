@@ -1,21 +1,3 @@
-
-
-
-
-  /**
-   * Get the latest active (pending/accepted) ownership transfer for a product.
-   * Only returns transfers with status 'pending' or 'accepted'.
-   */
-  public async getLatestActiveOwnershipTransfer(productId: string): Promise<OwnershipTransfer | null> {
-    const db = await getDb();
-    // Find the most recent transfer for this product with status 'pending' or 'accepted'
-    return db.collection<OwnershipTransfer>("ownershiptransfers")
-      .find({ productId, status: { $in: ["pending", "accepted"] } })
-      .sort({ timestamp: -1 })
-      .limit(1)
-      .next();
-  }
-
 import { MongoClient, Db } from "mongodb";
 import { randomUUID } from "crypto";
 import { createHash } from "crypto";
