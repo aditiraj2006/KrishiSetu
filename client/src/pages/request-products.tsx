@@ -234,7 +234,7 @@ export default function RequestProductsPage() {
                 };
                 fetchAvailableProducts();
               }}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              className="primary-btn bg-red-600 text-white hover:bg-red-700"
             >
               Try Again
             </button>
@@ -325,7 +325,7 @@ export default function RequestProductsPage() {
 
                     <div className="flex flex-row gap-2">
                       <button
-                        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                        className="primary-btn bg-blue-600 text-white hover:bg-blue-700"
                         onClick={() => handleRequestOwnership(product.id)}
                       >
                         Request Ownership
@@ -333,7 +333,7 @@ export default function RequestProductsPage() {
                       <Link
                         href={`/product/${product.id}?from=request-products`}
                       >
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="primary-btn">
                           View Details
                         </Button>
                       </Link>

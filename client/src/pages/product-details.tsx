@@ -174,14 +174,14 @@ export default function ProductDetails() {
             {new URLSearchParams(window.location.search).get("from") ===
             "dashboard" ? (
               <Link href="/dashboard">
-                <Button variant="outline">
+                <Button variant="outline" className="primary-btn">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Dashboard
                 </Button>
               </Link>
             ) : (
               <Link href="/registered-products">
-                <Button variant="outline">
+                <Button variant="outline" className="primary-btn">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Registered Products
                 </Button>

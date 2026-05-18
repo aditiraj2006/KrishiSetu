@@ -255,7 +255,7 @@ export default function RegisteredProductsPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-2 mt-4">
                       <Link href={`/product/${product.id}?from=registered-products`}>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="primary-btn">
                           View Details
                         </Button>
                       </Link>
@@ -264,13 +264,13 @@ export default function RegisteredProductsPage() {
                           {editingProductId === product.id ? (
                             <>
                               <button
-                                className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                               className="primary-btn bg-green-600 text-white hover:bg-green-700"
                                 onClick={() => handleEditSave(product.id)}
                               >
                                 Save
                               </button>
                               <button
-                                className="px-3 py-1 rounded bg-gray-400 text-white hover:bg-gray-500"
+                                className="primary-btn bg-gray-400 text-white hover:bg-gray-500"
                                 onClick={() => setEditingProductId(null)}
                               >
                                 Cancel
@@ -278,7 +278,7 @@ export default function RegisteredProductsPage() {
                             </>
                           ) : (
                             <button
-                              className="px-3 py-1 rounded bg-yellow-500 text-white hover:bg-yellow-600"
+                              className="primary-btn bg-yellow-500 text-white hover:bg-yellow-600"
                               onClick={() => handleEdit(product)}
                             >
                               Edit

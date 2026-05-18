@@ -33,7 +33,9 @@ const Contact: React.FC = () => {
           <input type="text" placeholder="Your Name" required />
           <input type="email" placeholder="Your Email" required />
           <textarea placeholder="Your Message" rows={5} required></textarea>
-          <button type="submit">Send Message</button>
+          <button type="submit" className="primary-btn">
+            Send Message
+          </button>
         </form>
       </div>
 

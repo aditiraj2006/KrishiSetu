@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+
   const [, setLocation] = useLocation();
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -165,7 +166,7 @@ export default function LoginPage() {
                 </div>
                 <Button
                 type="submit"
-                className="w-full bg-primary text-primary-foreground hover:bg-green-700 transition-colors rounded-md py-2 font-semibold"
+              className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
                 disabled={loading}
                 >
                 {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
@@ -186,7 +187,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+             className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
               onClick={handleGoogleLogin}
               disabled={loading}
             >

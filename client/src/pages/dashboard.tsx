@@ -121,7 +121,7 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/qr-scanner">
                   <Button
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 flex items-center gap-2 shadow-sm"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
                     data-testid="button-scan-qr"
                   >
                     <QrCode className="w-4 h-4" />
@@ -132,7 +132,7 @@ export default function Dashboard() {
                 {user && user.role === "farmer" && (
                   <Button
                     onClick={handleRegisterProduct}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 shadow-sm"
+                    className={`bg-primary text-primary-foreground hover:bg-primary/90`}
                     data-testid="button-register-product"
                   >
                     <Plus className="w-4 h-4" />

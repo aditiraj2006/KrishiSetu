@@ -160,3 +160,18 @@
     transition: all 0.2s ease-in-out;
   }
 }
+/* Common Button Style */
+.primary-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  font-weight: 500;
+}
+
+.primary-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
