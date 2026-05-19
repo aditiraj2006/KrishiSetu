@@ -398,35 +398,106 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
     }
   });
 
-  // --- Transaction Routes ---
+  // --- Transaction / Quality-Check / Scan Routes ---
+
+  const requireAuthedUser = async (req: Request, res: Response) => {
+    const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
+    if (!firebaseUid) {
+      res.status(401).json({ message: "Unauthorized" });
+      return null;
+    }
+
+    const authenticatedUser = await storage.getUserByFirebaseUid(firebaseUid);
+    if (!authenticatedUser) {
+      res.status(404).json({ message: "User not found" });
+      return null;
+    }
+
+    return authenticatedUser;
+  };
+
   app.post("/api/transactions", async (req: Request, res: Response) => {
     const parse = insertTransactionSchema.safeParse(req.body);
     if (!parse.success) {
       return res.status(400).json({ message: "Invalid transaction data", errors: parse.error.format() });
     }
-    const transaction = await storage.createTransaction(parse.data);
+
+    const authenticatedUser = await requireAuthedUser(req, res);
+    if (!authenticatedUser) return;
+
+    // Product validation (existence)
+    const product = await storage.getProduct(parse.data.productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Authorization: authenticated user must match fromUserId OR be current product owner
+    const requestedFromUserId = parse.data.fromUserId || null;
+    const isAuthorized = requestedFromUserId === authenticatedUser.id || product.ownerId === authenticatedUser.id;
+    if (!isAuthorized) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    // Override server-side identities to prevent spoofing
+    const transactionToCreate = {
+      ...parse.data,
+      fromUserId: authenticatedUser.id,
+    };
+
+    const transaction = await storage.createTransaction(transactionToCreate);
     return res.status(201).json(transaction);
   });
 
-  // --- Quality Check Routes ---
   app.post("/api/quality-checks", async (req: Request, res: Response) => {
     const parse = insertQualityCheckSchema.safeParse(req.body);
     if (!parse.success) {
       return res.status(400).json({ message: "Invalid quality check data", errors: parse.error.format() });
     }
-    const check = await storage.createQualityCheck(parse.data);
+
+    const authenticatedUser = await requireAuthedUser(req, res);
+    if (!authenticatedUser) return;
+
+    // Product validation (existence)
+    const product = await storage.getProduct(parse.data.productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Prevent impersonation: override inspectorId server-side
+    const checkToCreate = {
+      ...parse.data,
+      inspectorId: authenticatedUser.id,
+    };
+
+    const check = await storage.createQualityCheck(checkToCreate);
     return res.status(201).json(check);
   });
 
-  // --- Scan Routes ---
   app.post("/api/scans", async (req: Request, res: Response) => {
     const parse = insertScanSchema.safeParse(req.body);
     if (!parse.success) {
       return res.status(400).json({ message: "Invalid scan data", errors: parse.error.format() });
     }
-    const scan = await storage.createScan(parse.data);
+
+    const authenticatedUser = await requireAuthedUser(req, res);
+    if (!authenticatedUser) return;
+
+    // Product validation (existence)
+    const product = await storage.getProduct(parse.data.productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Prevent spoofing: override userId server-side
+    const scanToCreate = {
+      ...parse.data,
+      userId: authenticatedUser.id,
+    };
+
+    const scan = await storage.createScan(scanToCreate);
     return res.status(201).json(scan);
   });
+
 
   // Recent scans endpoint
   app.get("/api/scans/recent", async (req: Request, res: Response) => {
