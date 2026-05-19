@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useProducts } from '@/hooks/useProducts';
+import { useProducts, useProductJourney } from '@/hooks/useProducts';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -50,85 +50,46 @@ export function SupplyChainMap({ productId, product, onProductSelect, showProduc
   // If a product prop is provided, use it, otherwise find the product from the list
   const selectedProduct = product || products?.find(p => p.id === selectedProductId);
 
-  // Update journey steps when selected product changes
+  const { data: journeyData, isLoading: isJourneyLoading } = useProductJourney(selectedProductId);
+
+  // Update journey steps when journeyData changes
   useEffect(() => {
-    if (selectedProduct) {
-      console.log('Selected product data:', selectedProduct);
-      
-      // Cast to ExtendedProduct to access the additional properties
-      const extendedProduct = selectedProduct as ExtendedProduct;
-      
-      // Get farm data from the selected product
-      const farmLocation = extendedProduct.location?.trim() || 'Haryana';
-      const farmName = extendedProduct.farmName?.trim() || 'Sunny Acres Farm';
-      
-      // Get distributor data from the selected product
-      const distributorName = extendedProduct.distributorName?.trim() || 'Fresh Pack Co.';
-      const distributorLocation = extendedProduct.warehouseLocation?.trim() || 'Chandigarh';
-      
-      // Get retailer data from the selected product
-      const retailerName = extendedProduct.storeName?.trim() || 'Green Market';
-      const retailerLocation = extendedProduct.storeLocation?.trim() || 'Bangalore';
-      
-      console.log('Retailer data from product:', { retailerName, retailerLocation });
-      
-      // Corrected journey steps with retailer in the proper position
-      const updatedJourneySteps: JourneyStep[] = [
-        { 
-          id: '1', 
-          name: farmName, 
-          location: farmLocation, 
-          date: 'Jan 10', 
-          status: 'Harvested', 
-          icon: Sprout, 
-          bgColor: 'bg-primary', 
-          textColor: 'text-primary-foreground'
-        },
-        { 
-          id: '2', 
-          name: distributorName, 
-          location: distributorLocation, 
-          date: 'Jan 12', 
-          status: 'Processed', 
-          icon: Factory, 
-          bgColor: 'bg-accent', 
-          textColor: 'text-accent-foreground'
-        },
-        { 
-          id: '3', 
-          name: retailerName, // Retailer name goes here
-          location: retailerLocation, // Retailer location goes here
-          date: 'Jan 14', 
-          status: 'Available at Store', 
-          icon: Store, // Using Store icon for retailer
-          bgColor: 'bg-secondary', 
-          textColor: 'text-secondary-foreground'
-        },
-        { 
-          id: '4', 
-          name: 'Consumer', 
-          location: 'Bengaluru', // Fixed to Bengaluru
-          date: 'Jan 16', 
-          status: 'Purchased', 
-          icon: Warehouse, // Using Warehouse icon for consumer
-          bgColor: 'bg-warning', 
-          textColor: 'text-white'
+    if (journeyData && journeyData.length > 0) {
+      const updatedJourneySteps: JourneyStep[] = journeyData.map((point, idx) => {
+        let Icon = MapPin;
+        let bgColor = 'bg-accent';
+        let textColor = 'text-accent-foreground';
+
+        if (point.status === 'Origin' || point.role === 'farmer') {
+          Icon = Sprout;
+          bgColor = 'bg-primary';
+          textColor = 'text-primary-foreground';
+        } else if (point.role === 'distributor') {
+          Icon = Factory;
+          bgColor = 'bg-accent';
+          textColor = 'text-accent-foreground';
+        } else if (point.role === 'retailer') {
+          Icon = Store;
+          bgColor = 'bg-secondary';
+          textColor = 'text-secondary-foreground';
         }
-      ];
-      
+
+        return {
+          id: point.id,
+          name: point.name || point.status,
+          location: point.location || `${point.latitude.toFixed(2)}, ${point.longitude.toFixed(2)}`,
+          date: new Date(point.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+          status: point.status,
+          icon: Icon,
+          bgColor,
+          textColor
+        };
+      });
       setJourneySteps(updatedJourneySteps);
-    } else if (products && products.length > 0 && !selectedProductId && !product) {
-      // If no product is selected and no product prop provided, use the first product
-      const firstProduct = products[0];
-      setSelectedProductId(firstProduct.id);
-      if (onProductSelect) {
-        onProductSelect(firstProduct.id);
-      }
     } else {
-      // If no products are available, show empty state
       setJourneySteps([]);
     }
-  }, [selectedProduct, products, selectedProductId, onProductSelect, product]);
+  }, [journeyData]);
 
   const journeyStats = {
     verifiedStages: journeySteps.length, // Dynamic based on actual steps
@@ -137,27 +98,21 @@ export function SupplyChainMap({ productId, product, onProductSelect, showProduc
     avgTemperature: '28°C'
   };
 
-  // Function to open Google Maps with the route using city/state names
+  // Function to open Google Maps with the route
   const openGoogleMapsRoute = () => {
-    if (journeySteps.length < 2) return;
+    if (!journeyData || journeyData.length < 1) return;
     
-    // Create waypoints for the route (all intermediate points)
-    const waypoints = journeySteps
-      .slice(1, -1)
-      .map(step => step.location)
-      .filter(Boolean)
-      .join('|');
+    let mapsUrl = "";
+    if (journeyData.length === 1) {
+      const p = journeyData[0];
+      mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.latitude},${p.longitude}`;
+    } else {
+      const origin = journeyData[0];
+      const destination = journeyData[journeyData.length - 1];
+      const waypoints = journeyData.slice(1, -1).map(p => `${p.latitude},${p.longitude}`).join('|');
+      mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&waypoints=${waypoints}&travelmode=driving`;
+    }
     
-    // Create origin and destination
-    const origin = journeySteps[0].location;
-    const destination = journeySteps[journeySteps.length - 1].location; // This will be Bengaluru
-    
-    if (!origin || !destination) return;
-    
-    // Construct the Google Maps URL with city/state names
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${encodeURIComponent(waypoints)}&travelmode=driving`;
-    
-    // Open in a new tab
     window.open(mapsUrl, '_blank');
   };
 
@@ -300,10 +255,10 @@ export function SupplyChainMap({ productId, product, onProductSelect, showProduc
                           <div className={`${step.bgColor} rounded-full p-3 shadow-lg transition-transform group-hover:scale-110`}>
                             <Icon className={`w-5 h-5 ${step.textColor}`} />
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm font-medium text-foreground">{step.name}</div>
-                            <div className="text-xs text-muted-foreground">{step.location}</div>
-                            <div className="flex items-center justify-center text-xs text-green-600 gap-1 mt-1">
+                          <div className="text-center w-24">
+                              <div className="text-sm font-medium text-foreground truncate">{step.name}</div>
+                              <div className="text-xs text-muted-foreground truncate" title={step.location}>{step.location}</div>
+                              <div className="flex items-center justify-center text-xs text-green-600 gap-1 mt-1">
                               <Calendar className="w-3 h-3" />
                               <span>{step.date}</span>
                             </div>

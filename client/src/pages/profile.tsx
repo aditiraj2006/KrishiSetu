@@ -224,7 +224,7 @@ export default function ProfilePage() {
                     <Button
                       variant="outline"
                       onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2"
+                      className="primary-btn flex items-center gap-2"
                       data-testid="button-edit-profile"
                     >
                       <Edit3 className="w-4 h-4" />
@@ -475,6 +475,7 @@ export default function ProfilePage() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
+                          className="primary-btn"
                           onClick={() => {
                             setIsEditing(false);
                             form.reset();
@@ -486,6 +487,7 @@ export default function ProfilePage() {
                         </Button>
                         <Button
                           type="submit"
+                          className="primary-btn"
                           disabled={isUpdating}
                           data-testid="button-save-profile"
                         >

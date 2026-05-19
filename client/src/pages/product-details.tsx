@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductHistory } from "@/components/ProductHistory";
 import { Product } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
 
 import {
   ArrowLeft,
@@ -54,6 +55,7 @@ export default function ProductDetails() {
   const params = useParams();
   const productId = params.id as string;
   const { data: product, isLoading, error } = useProduct(productId);
+  const { toast } = useToast();
 
   // --- Add this state for the selected product in the supply chain map ---
   const [selectedProductIdForMap, setSelectedProductIdForMap] = useState<string>(productId);
@@ -172,14 +174,14 @@ export default function ProductDetails() {
             {new URLSearchParams(window.location.search).get("from") ===
             "dashboard" ? (
               <Link href="/dashboard">
-                <Button variant="outline">
+                <Button variant="outline" className="primary-btn">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Dashboard
                 </Button>
               </Link>
             ) : (
               <Link href="/registered-products">
-                <Button variant="outline">
+                <Button variant="outline" className="primary-btn">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Registered Products
                 </Button>
@@ -262,16 +264,29 @@ export default function ProductDetails() {
 
                     {/* Price */}
                     {product.price && (
-                      <div className="flex items-start gap-3">
-                        <DollarSign className="w-5 h-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <div className="text-sm font-medium text-foreground">
-                            Current Price
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            ${product.price}
+                      <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                        <div className="flex items-start gap-3">
+                          <DollarSign className="w-5 h-5 text-primary mt-0.5" />
+                          <div>
+                            <div className="text-sm font-medium text-foreground">
+                              Direct Price
+                            </div>
+                            <div className="text-lg font-bold text-primary">
+                              ₹{product.price}
+                            </div>
                           </div>
                         </div>
+                        <Button 
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          onClick={() => {
+                            toast({
+                              title: "Order Placed!",
+                              description: `Your order for ${product.name} has been sent to the farmer.`,
+                            });
+                          }}
+                        >
+                          Buy Now
+                        </Button>
                       </div>
                     )}
                     <div className="flex items-start gap-3">

@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs";
 import { firebaseAdmin } from "./firebaseAdmin";
+import { translateText, improveGrammar, analyzeProductQuality } from "./ai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1252,8 +1253,7 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
     }
   });
 
-    // Get products available for request (all products not owned by the current user)
-    // Update product status to out for delivery
+  // Update product status to out for delivery (correct workflow)
   app.put("/api/products/:id/out-for-delivery", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       const productId = req.params.id;
@@ -1261,31 +1261,55 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) return res.status(404).json({ message: "User not found" });
 
+      // Fetch product
+      const product = await storage.getProduct(productId);
+      if (!product) return res.status(404).json({ message: "Product not found" });
+
+      // Only current owner can mark as out for delivery
+      if (product.ownerId !== user.id) {
+        return res.status(403).json({ message: "Only the current product owner can mark as out for delivery" });
+      }
+
+      // Idempotency: already out for delivery
+      if (product.status === "out_for_delivery") {
+        return res.status(400).json({ message: "Product already marked as out for delivery" });
+      }
+
+      // Find latest pending ownership transfer for this product
+      const transfer = await storage.getLatestActiveOwnershipTransfer(productId);
+      if (!transfer || !transfer.toUserId) {
+        return res.status(400).json({ message: "No active ownership transfer found" });
+      }
+
       // Update product status
       await storage.updateProduct(productId, { status: "out_for_delivery" });
 
-      // Notify next owner (distributor, etc.)
-      // You may need to determine the next owner based on your logic
-      // For demo, let's notify all previous owners except current
-      const owners = await storage.getProductOwners(productId);
-      const prevOwners = owners.filter(o => o.ownerId !== user.id);
-      for (const owner of prevOwners) {
+      // Notify ONLY the intended recipient (toUserId)
+      const recipient = await storage.getUser(transfer.toUserId);
+      if (recipient) {
         await storage.createNotification({
-          userId: owner.ownerId,
+          userId: recipient.id,
           title: "Product Out for Delivery",
-          message: `${user.name} marked ${productId} as out for delivery.`,
+          message: `${user.name} marked ${product.name} as out for delivery.`,
           type: "product_out_for_delivery",
-          productId,
+          productId: product.id,
+          transferId: transfer.id,
+          fromUserId: user.id,
           read: false,
           createdAt: new Date()
         });
       }
 
+      // Log the event
       await storage.logProductEvent(
-        productId,
+        product.id,
         "product_out_for_delivery",
-        `${user.name} marked product as out for delivery.`,
-        user.id
+        `${user.name} marked product as out for delivery to ${recipient?.name || 'recipient'}.`,
+        user.id,
+        {
+          transferId: transfer.id,
+          recipientId: recipient?.id
+        }
       );
 
       return res.json({ message: "Product marked as out for delivery" });
@@ -1302,6 +1326,46 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
     } catch (error) {
       console.error("Error fetching product events:", error);
       return res.status(500).json({ message: "Failed to fetch product events" });
+    }
+  });
+
+  // --- AI Routes ---
+  app.post("/api/ai/translate", async (req: Request, res: Response) => {
+    try {
+      const { text, targetLanguage } = req.body;
+      if (!text || !targetLanguage) {
+        return res.status(400).json({ message: "Text and targetLanguage are required" });
+      }
+      const translatedText = await translateText(text, targetLanguage);
+      return res.json({ translatedText });
+    } catch (error) {
+      return res.status(500).json({ message: "Translation failed" });
+    }
+  });
+
+  app.post("/api/ai/grammar", async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+      const improvedText = await improveGrammar(text);
+      return res.json({ improvedText });
+    } catch (error) {
+      return res.status(500).json({ message: "Grammar improvement failed" });
+    }
+  });
+
+  app.post("/api/ai/analyze-quality", async (req: Request, res: Response) => {
+    try {
+      const { image } = req.body;
+      if (!image) {
+        return res.status(400).json({ message: "Image data is required" });
+      }
+      const analysis = await analyzeProductQuality(image);
+      return res.json(analysis);
+    } catch (error) {
+      return res.status(500).json({ message: "Quality analysis failed" });
     }
   });
 

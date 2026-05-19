@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const formRef = useRef<HTMLDivElement>(null); // Ref to scroll to form
   const [, navigate] = useLocation();
+  const [lastUpdated, setLastUpdated] = useState("");
 
   // Show role selection if role not chosen
   useEffect(() => {
@@ -34,6 +35,24 @@ export default function Dashboard() {
       formRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [activeForm]);
+  useEffect(() => {
+  const updateTimestamp = () => {
+    const now = new Date();
+
+    setLastUpdated(
+      now.toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    );
+  };
+
+  updateTimestamp();
+
+  const interval = setInterval(updateTimestamp, 60000);
+
+  return () => clearInterval(interval);
+}, []);
 
   // Handle register product button click
   const handleRegisterProduct = () => {
@@ -91,6 +110,9 @@ export default function Dashboard() {
                 <h2 className="text-3xl font-bold text-foreground">
                   Supply Chain Dashboard
                 </h2>
+                <p className="text-sm text-muted-foreground italic mt-1">
+                  Last updated: {lastUpdated}
+                </p>
                 <p className="text-muted-foreground mt-1">
                   Track, verify, and manage your product journey
                 </p>
@@ -99,7 +121,7 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/qr-scanner">
                   <Button
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 flex items-center gap-2 shadow-sm"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
                     data-testid="button-scan-qr"
                   >
                     <QrCode className="w-4 h-4" />
@@ -110,7 +132,7 @@ export default function Dashboard() {
                 {user && user.role === "farmer" && (
                   <Button
                     onClick={handleRegisterProduct}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 shadow-sm"
+                    className={`bg-primary text-primary-foreground hover:bg-primary/90`}
                     data-testid="button-register-product"
                   >
                     <Plus className="w-4 h-4" />

@@ -1,24 +1,16 @@
 services:
   - type: web
     name: KrishiSetu-server
-    env: node
+    runtime: node
     plan: free
-    buildCommand: |
-      cd server
-      npm install
-      cd ../client
-      npm install
-      npm run build
-      cd ..
-    startCommand: |
-      cd server
-      node index.js
+    buildCommand: NODE_ENV=development npm install && npm run build
+    startCommand: node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
-      - key: MONGO_URI
+      - key: MONGODB_URI
         sync: false
       - key: MONGO_DB_NAME
         sync: false
@@ -33,6 +25,8 @@ services:
       - key: FIREBASE_MESSAGING_SENDER_ID
         sync: false
       - key: FIREBASE_APP_ID
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
         sync: false
 
 databases:

@@ -59,7 +59,7 @@ const HowItWorks: React.FC = () => {
               <button
                 key={role}
                 onClick={() => setSelectedRole(role)}
-                className="role-button"
+                className="primary-btn role-button"
               >
                 {role}
               </button>
@@ -78,7 +78,7 @@ const HowItWorks: React.FC = () => {
               </div>
             ))}
           </div>
-          <button onClick={() => setSelectedRole(null)} className="back-button">
+          <button onClick={() => setSelectedRole(null)} className="back-button primary-btn">
             ← Select Another Role
           </button>
         </div>

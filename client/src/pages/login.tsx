@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<"email" | "google">("google");
@@ -19,10 +20,12 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [showReset, setShowReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
 
   const [, setLocation] = useLocation();
 
@@ -142,16 +145,28 @@ export default function LoginPage() {
                 onChange={e => setEmail(e.target.value)}
                 required
                 />
-                <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 <Button
                 type="submit"
-                className="w-full bg-primary text-primary-foreground hover:bg-green-700 transition-colors rounded-md py-2 font-semibold"
+              className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
                 disabled={loading}
                 >
                 {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
@@ -172,7 +187,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+             className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
               onClick={handleGoogleLogin}
               disabled={loading}
             >
