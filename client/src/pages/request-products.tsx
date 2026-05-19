@@ -8,6 +8,7 @@ import { ProductSearch } from "@/components/ProductSearch";
 import { Product } from "@shared/schema";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 interface Owner {
   id: string;
@@ -33,10 +34,8 @@ export default function RequestProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Helper to get auth headers
-  const getAuthHeaders = () => ({
-    "firebase-uid": user?.firebaseUid || "",
-    "Content-Type": "application/json",
-  });
+  const getHeaders = async (includeJson = false) =>
+    getAuthHeaders(includeJson ? { "Content-Type": "application/json" } : {});
 
   // Fetch all products except those owned by the current user
   useEffect(() => {
@@ -44,7 +43,7 @@ export default function RequestProductsPage() {
       try {
         setIsLoading(true);
         const res = await fetch("/api/products/available/search", {
-          headers: getAuthHeaders(),
+          headers: await getHeaders(),
         });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
@@ -79,13 +78,13 @@ export default function RequestProductsPage() {
       for (const product of products) {
         try {
           const res = await fetch(`/api/products/${product.id}/owners`, {
-            headers: getAuthHeaders(),
+            headers: await getHeaders(),
           });
           map[product.id] = await res.json();
 
           // Get owner details
           const ownerRes = await fetch(`/api/users/${product.ownerId}`, {
-            headers: getAuthHeaders(),
+            headers: await getHeaders(),
           });
           if (ownerRes.ok) {
             details[product.ownerId] = await ownerRes.json();
@@ -115,12 +114,12 @@ export default function RequestProductsPage() {
         productId,
         user: user?.name,
         firebaseUid: user?.firebaseUid,
-        headers: getAuthHeaders(),
+        headers: await getHeaders(),
       });
 
       const res = await fetch("/api/request-product", {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: await getHeaders(true),
         body: JSON.stringify({
           productId,
           transferType: "request",
@@ -211,7 +210,7 @@ export default function RequestProductsPage() {
                 const fetchAvailableProducts = async () => {
                   try {
                     const res = await fetch("/api/products/available/search", {
-                      headers: getAuthHeaders(),
+                      headers: await getHeaders(),
                     });
                     if (!res.ok) throw new Error("Failed to fetch products");
                     const data = await res.json();

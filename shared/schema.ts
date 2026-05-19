@@ -55,6 +55,13 @@ export type Product = z.infer<typeof productSchema>;
 
 export const insertProductSchema = productSchema.omit({ id: true, createdAt: true }).extend({
   createdAt: z.date().optional(),
+  name: z.string().trim().min(1, "Product name is required"),
+  farmName: z.string().trim().min(1, "Farm name is required"),
+  quantity: z
+    .string()
+    .trim()
+    .min(1, "Quantity is required")
+    .refine((value) => Number(value) > 0, "Quantity must be a positive number"),
   harvestDate: z.preprocess(
     (val) => (typeof val === "string" ? new Date(val) : val),
     z.date()
