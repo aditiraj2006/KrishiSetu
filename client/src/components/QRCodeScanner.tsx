@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import { useProductByBatch } from "@/hooks/useProducts";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -270,10 +271,9 @@ export function QRCodeScanner() {
 
           const response = await fetch("/api/scans", {
             method: "POST",
-            headers: {
+            headers: await getAuthHeaders({
               "Content-Type": "application/json",
-              "firebase-uid": user.firebaseUid,
-            },
+            }),
             body: JSON.stringify({
               productId: product.id,
               userId: user.id,

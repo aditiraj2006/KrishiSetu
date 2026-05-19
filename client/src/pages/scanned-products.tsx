@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { NavigationHeader } from "@/components/NavigationHeader";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import type { Product } from "@shared/schema";
 
 export default function ScannedProductsPage() {
@@ -13,32 +14,31 @@ export default function ScannedProductsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.id || user.role !== "consumer") return;
-    setIsLoading(true);
+    const fetchScannedProducts = async () => {
+      if (!user?.id || user.role !== "consumer") return;
+      setIsLoading(true);
 
-    // Get firebase uid for authentication
-    const firebaseUid = user.firebaseUid;
-    if (!firebaseUid) {
-      setError("Authentication required");
-      setIsLoading(false);
-      return;
-    }
+      const firebaseUid = user.firebaseUid;
+      if (!firebaseUid) {
+        setError("Authentication required");
+        setIsLoading(false);
+        return;
+      }
 
-    fetch(`/api/user/products/scanned`, {
-      headers: { "firebase-uid": firebaseUid },
-    })
-      .then((res) => {
+      try {
+        const headers = await getAuthHeaders();
+        const res = await fetch(`/api/user/products/scanned`, { headers });
         if (!res.ok) throw new Error("Failed to fetch scanned products");
-        return res.json();
-      })
-      .then((data) => {
+        const data = await res.json();
         setProducts(data);
+      } catch (err: any) {
+        setError(err?.message || "Unknown error");
+      } finally {
         setIsLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message || "Unknown error");
-        setIsLoading(false);
-      });
+      }
+    };
+
+    fetchScannedProducts();
   }, [user]);
 
   return (

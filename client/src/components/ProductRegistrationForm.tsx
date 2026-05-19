@@ -33,10 +33,14 @@ import { PlusCircle, X, Plus, MapPin, Loader2, Sparkles, Languages, Camera as Ca
 // Create a stricter schema with required fields
 const formSchema = insertProductSchema.extend({
   harvestDate: z.string().min(1, "Harvest date is required"),
-  quantity: z.string().min(1, "Quantity is required"),
-  name: z.string().min(1, "Product name is required"),
+  quantity: z
+    .string()
+    .trim()
+    .min(1, "Quantity is required")
+    .refine((value) => Number(value) > 0, "Quantity must be a positive number"),
+  name: z.string().trim().min(1, "Product name is required"),
   category: z.string().min(1, "Category is required"),
-  farmName: z.string().min(1, "Farm name is required"),
+  farmName: z.string().trim().min(1, "Farm name is required"),
   location: z.string().min(1, "Location is required"),
   unit: z.string().min(1, "Unit is required"),
   price: z.string().min(1, "Product price is required"), // <-- add this
@@ -257,12 +261,12 @@ export function ProductRegistrationForm({
     try {
       // Prepare the data in the format expected by the API
       const productData = {
-        name: data.name,
+        name: data.name.trim(),
         category: data.category,
         description: data.description || "",
-        quantity: String(data.quantity),
+        quantity: String(data.quantity).trim(),
         unit: data.unit,
-        farmName: data.farmName,
+        farmName: data.farmName.trim(),
         location: data.location,
         harvestDate: new Date(data.harvestDate),
         certifications: data.certifications,
@@ -484,6 +488,8 @@ export function ProductRegistrationForm({
                             <FormControl>
                               <Input
                                 type="number"
+                                min="0.01"
+                                step="any"
                                 placeholder="Amount"
                                 {...field}
                                 data-testid="input-quantity"

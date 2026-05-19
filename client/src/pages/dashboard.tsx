@@ -9,12 +9,14 @@ import { RetailerProductForm } from "../components/RetailerProductForm";
 import { RoleSelection } from "@/components/RoleSelection";
 import { RoleDashboard } from "@/components/RoleDashboard";
 import { Button } from "@/components/ui/button";
-import { QrCode, Plus } from "lucide-react";
+import { QrCode, Plus, Bell, User, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import React, { useState, useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 export default function Dashboard() {
+  const { theme, setTheme } = useTheme();
   const { user, loading, refreshUser } = useAuth();
   const [activeForm, setActiveForm] = useState<"farmer" | "distributor" | "retailer" | null>(null);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
@@ -77,6 +79,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-background font-sans">
         <NavigationHeader />
+        
         <main className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-muted-foreground">
             Loading dashboard...
@@ -89,8 +92,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background font-sans">
       <NavigationHeader />
-
+      
       <main className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+         
         {/* Dashboard header based on role */}
         {user?.roleSelected && (
           <div className="mb-8">

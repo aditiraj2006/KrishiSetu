@@ -178,7 +178,7 @@ export class MongoStorage {
 
   async countTransfers(): Promise<number> {
     const db = await getDb();
-    return await db.collection('ownershipTransfers').countDocuments();
+    return await db.collection('ownershiptransfers').countDocuments();
   }
 
   async getRecentScans(limit: number = 5): Promise<any[]> {
@@ -743,5 +743,4 @@ export const storage = new MongoStorage();
     console.error("[MongoDB] Connection test failed:", error);
   }
 })();
-
 
