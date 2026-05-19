@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter"; // Wouter hook
 import "./LandingPage.css";
 
@@ -8,6 +8,24 @@ const LandingPage = () => {
   const handleGetStarted = () => {
     setLocation("/dashboard"); // Navigate to dashboard
   };
+  const [showButton, setShowButton] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => {
+    setShowButton(window.scrollY > 100);
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
 
   const navigateTo = (path: string) => {
     setLocation(path);
@@ -71,6 +89,11 @@ const LandingPage = () => {
           <p>Ensure fast, efficient, and cost-effective deliveries with optimized logistics solutions.</p>
         </div>
       </div>
+      {showButton && (
+  <button className="back-to-top" onClick={scrollToTop}>
+    ↑
+  </button>
+)}
     </div>
   );
 };

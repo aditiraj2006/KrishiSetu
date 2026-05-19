@@ -18,6 +18,7 @@ import NotFound from "@/pages/not-found";
 import RegisteredProductsPage from "@/pages/registered-products";
 import ScannedProductsPage from "@/pages/scanned-products";
 import RequestProductsPage from "@/pages/request-products";
+import { Footer } from "@/components/Footer";
 
 function App() {
   return (
@@ -37,25 +38,30 @@ function App() {
             duration: 2000,
           }}
         />
-        <Switch>
-          <Route path="/" component={LandingPage} />
-          <Route path="/contact" component={Contact} />
-          <Route path="/about" component={about} />
-          <Route path="/howitworks" component={HowItWorks} />
-          <Route path="/dashboard" component={Dashboard} />
-          <Route path="/product-registration" component={ProductRegistration} />
-          <Route path="/qr-scanner" component={QRScannerPage} />
-          <Route path="/product/:id" component={ProductDetails} />
-          <Route path="/profile" component={ProfilePage} />
-          <Route path="/login" component={LoginPage} />
-          <Route
-            path="/registered-products"
-            component={RegisteredProductsPage}
-          />
-          <Route path="/scanned-products" component={ScannedProductsPage} />
-          <Route path="/request-products" component={RequestProductsPage} />
-          <Route component={NotFound} />
-        </Switch>
+        <div className="flex flex-col min-h-screen">
+          <main className="flex-grow flex flex-col relative">
+            <Switch>
+              <Route path="/" component={LandingPage} />
+              <Route path="/contact" component={Contact} />
+              <Route path="/about" component={about} />
+              <Route path="/howitworks" component={HowItWorks} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/product-registration" component={ProductRegistration} />
+              <Route path="/qr-scanner" component={QRScannerPage} />
+              <Route path="/product/:id" component={ProductDetails} />
+              <Route path="/profile" component={ProfilePage} />
+              <Route path="/login" component={LoginPage} />
+              <Route
+                path="/registered-products"
+                component={RegisteredProductsPage}
+              />
+              <Route path="/scanned-products" component={ScannedProductsPage} />
+              <Route path="/request-products" component={RequestProductsPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </main>
+          <Footer />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );
