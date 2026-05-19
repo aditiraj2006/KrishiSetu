@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { QrCode, Download, Copy, Check } from "lucide-react";
 import type { Product } from "@shared/schema";
+import { Check, Copy, Download, QrCode } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 interface QRCodeGeneratorProps {
   product: Product;
@@ -21,12 +21,14 @@ export function QRCodeGenerator({ product }: QRCodeGeneratorProps) {
   };
 
   const handleDownload = () => {
-    const canvas = document.getElementById("product-qr-canvas") as HTMLCanvasElement;
+    const canvas = document.getElementById(
+      "product-qr-canvas",
+    ) as HTMLCanvasElement;
     if (canvas) {
       const url = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = url;
-      link.download = `QR-${product.batchId || 'product'}.png`;
+      link.download = `QR-${product.batchId || "product"}.png`;
       link.click();
     }
   };

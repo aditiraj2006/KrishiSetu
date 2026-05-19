@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, type QueryFunction } from "@tanstack/react-query";
 import { getAuth } from "firebase/auth";
 
 async function throwIfResNotOk(res: Response) {
@@ -12,7 +12,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ) {
   const firebaseUid = getAuth().currentUser?.uid;
 

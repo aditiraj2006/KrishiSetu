@@ -1,11 +1,12 @@
 // components/UserSearch.tsx
-import { useState, useEffect, useRef } from 'react';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, UserPlus, Loader2, X, Check, User } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+
+import { Check, Loader2, Search, User, UserPlus, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: string;
@@ -24,14 +25,14 @@ interface UserSearchProps {
   onClearSelection?: () => void;
 }
 
-export function UserSearch({ 
-  onUserSelect, 
-  currentUserId, 
+export function UserSearch({
+  onUserSelect,
+  currentUserId,
   placeholder = "Search users by name, username, or email...",
   selectedUser,
-  onClearSelection
+  onClearSelection,
 }: UserSearchProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<User[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -45,14 +46,17 @@ export function UserSearch({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setHighlightedIndex(-1);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Handle keyboard navigation
@@ -61,23 +65,23 @@ export function UserSearch({
       if (!isOpen) return;
 
       switch (e.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex(prev => 
-            prev < results.length - 1 ? prev + 1 : prev
+          setHighlightedIndex((prev) =>
+            prev < results.length - 1 ? prev + 1 : prev,
           );
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
-          setHighlightedIndex(prev => prev > 0 ? prev - 1 : prev);
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
           break;
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           if (highlightedIndex >= 0 && results[highlightedIndex]) {
             handleUserSelect(results[highlightedIndex]);
           }
           break;
-        case 'Escape':
+        case "Escape":
           e.preventDefault();
           setIsOpen(false);
           setHighlightedIndex(-1);
@@ -85,8 +89,8 @@ export function UserSearch({
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, results, highlightedIndex]);
 
   useEffect(() => {
@@ -100,30 +104,35 @@ export function UserSearch({
       setIsSearching(true);
       setIsOpen(true);
       setSearchError(null);
-      
+
       try {
-        const firebaseUid = localStorage.getItem('firebase-uid');
-        const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-          headers: {
-            'firebase-uid': firebaseUid || ''
-          }
-        });
+        const firebaseUid = localStorage.getItem("firebase-uid");
+        const response = await fetch(
+          `/api/users/search?q=${encodeURIComponent(query)}`,
+          {
+            headers: {
+              "firebase-uid": firebaseUid || "",
+            },
+          },
+        );
         if (response.ok) {
           const data = await response.json();
           // Filter out current user from results
-          const filteredData = data.filter((user: User) => user.id !== currentUserId);
+          const filteredData = data.filter(
+            (user: User) => user.id !== currentUserId,
+          );
           setResults(filteredData);
           setHighlightedIndex(-1);
         } else {
-          throw new Error('Failed to search users');
+          throw new Error("Failed to search users");
         }
       } catch (error) {
-        console.error('Search failed:', error);
-        setSearchError('Failed to search for users');
+        console.error("Search failed:", error);
+        setSearchError("Failed to search for users");
         toast({
-          title: 'Search Error',
-          description: 'Failed to search for users',
-          variant: 'destructive'
+          title: "Search Error",
+          description: "Failed to search for users",
+          variant: "destructive",
         });
       } finally {
         setIsSearching(false);
@@ -142,19 +151,22 @@ export function UserSearch({
 
   const handleUserSelect = (user: User) => {
     onUserSelect(user);
-    setQuery('');
+    setQuery("");
     setResults([]);
     setIsOpen(false);
     setHighlightedIndex(-1);
 
     // Update recent searches
-    const updated = [user, ...recentSearches.filter(u => u.id !== user.id)].slice(0, 5);
+    const updated = [
+      user,
+      ...recentSearches.filter((u) => u.id !== user.id),
+    ].slice(0, 5);
     setRecentSearches(updated);
     localStorage.setItem("recentUserSearches", JSON.stringify(updated));
   };
 
   const clearSearch = () => {
-    setQuery('');
+    setQuery("");
     setResults([]);
     setIsOpen(false);
     setHighlightedIndex(-1);
@@ -168,18 +180,24 @@ export function UserSearch({
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
     const parts = text.split(regex);
-    
+
     return parts.map((part, index) =>
       regex.test(part) ? (
-        <span key={index} className="bg-yellow-200 dark:bg-yellow-800 font-semibold">
+        <span
+          key={index}
+          className="bg-yellow-200 dark:bg-yellow-800 font-semibold"
+        >
           {part}
         </span>
       ) : (
         part
-      )
+      ),
     );
   };
 
@@ -208,7 +226,10 @@ export function UserSearch({
         {isSearching && (
           <div className="p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 mb-2 animate-pulse">
+              <div
+                key={i}
+                className="flex items-center gap-2 mb-2 animate-pulse"
+              >
                 <div className="h-8 w-8 bg-muted rounded-full" />
                 <div className="flex-1 h-4 bg-muted rounded" />
               </div>
@@ -216,7 +237,7 @@ export function UserSearch({
           </div>
         )}
       </div>
-      
+
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-80 overflow-auto">
           <div role="listbox">
@@ -229,8 +250,8 @@ export function UserSearch({
                     aria-selected={highlightedIndex === index}
                     className={`relative flex items-center p-3 cursor-pointer transition-colors ${
                       highlightedIndex === index
-                        ? 'bg-accent text-accent-foreground'
-                        : 'hover:bg-muted'
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-muted"
                     }`}
                     onClick={() => handleUserSelect(user)}
                     onMouseEnter={() => setHighlightedIndex(index)}
@@ -259,9 +280,15 @@ export function UserSearch({
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0 ml-2" />
                     )}
                     <div className="absolute left-full top-0 ml-2 w-64 p-2 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 transition">
-                      <p><b>Name:</b> {user.name}</p>
-                      <p><b>Email:</b> {user.email}</p>
-                      <p><b>Role:</b> {user.role}</p>
+                      <p>
+                        <b>Name:</b> {user.name}
+                      </p>
+                      <p>
+                        <b>Email:</b> {user.email}
+                      </p>
+                      <p>
+                        <b>Role:</b> {user.role}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -271,7 +298,9 @@ export function UserSearch({
                 {isSearching ? (
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm text-muted-foreground">Searching...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Searching...
+                    </span>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
@@ -302,7 +331,9 @@ export function UserSearch({
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">@{user.username}</p>
+                <p className="text-xs text-muted-foreground">
+                  @{user.username}
+                </p>
               </div>
             </div>
           ))}
@@ -319,9 +350,7 @@ export function UserSearch({
       )}
 
       {searchError && (
-        <div className="p-4 text-center text-red-500">
-          {searchError}
-        </div>
+        <div className="p-4 text-center text-red-500">{searchError}</div>
       )}
 
       {selectedUser && !query && (

@@ -1,17 +1,17 @@
-import { useEffect, useState, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useProductByBatch } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
+import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import {
-  Camera,
-  StopCircle,
   AlertTriangle,
+  Camera,
   FlipHorizontal,
+  StopCircle,
 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useProductByBatch } from "@/hooks/useProducts";
 
 export function QRCodeScanner() {
   const [isScanning, setIsScanning] = useState(false);
@@ -21,7 +21,7 @@ export function QRCodeScanner() {
     "idle" | "pending" | "granted" | "denied" | "notfound"
   >("idle");
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
-    []
+    [],
   );
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [, navigate] = useLocation();
@@ -48,7 +48,7 @@ export function QRCodeScanner() {
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(
-        (device) => device.kind === "videoinput"
+        (device) => device.kind === "videoinput",
       );
       setAvailableCameras(videoDevices);
 
@@ -57,10 +57,10 @@ export function QRCodeScanner() {
         const rearCamera = videoDevices.find(
           (device) =>
             device.label.toLowerCase().includes("back") ||
-            device.label.toLowerCase().includes("rear")
+            device.label.toLowerCase().includes("rear"),
         );
         setSelectedCamera(
-          rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId
+          rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId,
         );
       } else {
         setCameraStatus("notfound");
@@ -130,7 +130,7 @@ export function QRCodeScanner() {
             let batchId = trimmedText;
 
             // Check if it's a full URL and extract the batch ID
-            const urlMatch = trimmedText.match(/\/product\/([a-f0-9\-]+)$/i);
+            const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
             if (urlMatch) {
               batchId = urlMatch[1];
             } else if (trimmedText.includes("/product/")) {
@@ -150,7 +150,7 @@ export function QRCodeScanner() {
             setScanError(null);
             stopScanning();
           }
-        }
+        },
       )
       .then((controls) => {
         controlsRef.current = controls;
@@ -163,7 +163,7 @@ export function QRCodeScanner() {
           variant: "destructive",
         });
         setScanError(
-          "Unable to access camera. Please ensure camera permissions are granted."
+          "Unable to access camera. Please ensure camera permissions are granted.",
         );
         setIsScanning(false);
         console.error("Camera error:", error);
@@ -206,7 +206,7 @@ export function QRCodeScanner() {
   const switchCamera = () => {
     if (!isScanning || availableCameras.length < 2) return;
     const currentIndex = availableCameras.findIndex(
-      (cam) => cam.deviceId === selectedCamera
+      (cam) => cam.deviceId === selectedCamera,
     );
     const nextIndex = (currentIndex + 1) % availableCameras.length;
     setSelectedCamera(availableCameras[nextIndex].deviceId);
@@ -256,12 +256,16 @@ export function QRCodeScanner() {
           let coordinates = null;
           if ("geolocation" in navigator) {
             try {
-              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
-              });
+              const position = await new Promise<GeolocationPosition>(
+                (resolve, reject) => {
+                  navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    timeout: 5000,
+                  });
+                },
+              );
               coordinates = {
                 latitude: position.coords.latitude,
-                longitude: position.coords.longitude
+                longitude: position.coords.longitude,
               };
             } catch (geoError) {
               console.warn("Geolocation failed:", geoError);

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -44,12 +44,20 @@
   --font-mono: Menlo, monospace;
   --radius: 0.5rem;
   --shadow-2xs: 0px 1px 2px 0px hsl(0, 0%, 0%, 0.05);
-  --shadow-xs: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
-  --shadow-sm: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
-  --shadow: 0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
-  --shadow-md: 0px 4px 6px -1px hsl(0, 0%, 0%, 0.1), 0px 2px 4px -1px hsl(0, 0%, 0%, 0.06);
-  --shadow-lg: 0px 10px 15px -3px hsl(0, 0%, 0%, 0.1), 0px 4px 6px -2px hsl(0, 0%, 0%, 0.05);
-  --shadow-xl: 0px 20px 25px -5px hsl(0, 0%, 0%, 0.1), 0px 10px 10px -5px hsl(0, 0%, 0%, 0.04);
+  --shadow-xs:
+    0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow-sm:
+    0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow:
+    0px 1px 3px 0px hsl(0, 0%, 0%, 0.1), 0px 1px 2px 0px hsl(0, 0%, 0%, 0.06);
+  --shadow-md:
+    0px 4px 6px -1px hsl(0, 0%, 0%, 0.1), 0px 2px 4px -1px hsl(0, 0%, 0%, 0.06);
+  --shadow-lg:
+    0px 10px 15px -3px hsl(0, 0%, 0%, 0.1),
+    0px 4px 6px -2px hsl(0, 0%, 0%, 0.05);
+  --shadow-xl:
+    0px 20px 25px -5px hsl(0, 0%, 0%, 0.1),
+    0px 10px 10px -5px hsl(0, 0%, 0%, 0.04);
   --shadow-2xl: 0px 25px 50px -12px hsl(0, 0%, 0%, 0.25);
 }
 
@@ -92,20 +100,36 @@
 
 /* Custom utility classes */
 .gradient-bg {
-  background: linear-gradient(135deg, hsl(120, 20%, 98%) 0%, hsl(135, 15%, 95%) 100%);
+  background: linear-gradient(
+    135deg,
+    hsl(120, 20%, 98%) 0%,
+    hsl(135, 15%, 95%) 100%
+  );
 }
 
 .blockchain-pattern {
-  background-image: radial-gradient(circle at 1px 1px, hsl(135, 30%, 88%) 1px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    hsl(135, 30%, 88%) 1px,
+    transparent 0
+  );
   background-size: 20px 20px;
 }
 
 .verified-badge {
-  background: linear-gradient(135deg, var(--verified) 0%, hsl(50, 100%, 60%) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--verified) 0%,
+    hsl(50, 100%, 60%) 100%
+  );
 }
 
 .map-container {
-  background: linear-gradient(to bottom, hsl(200, 60%, 95%) 0%, hsl(120, 30%, 95%) 100%);
+  background: linear-gradient(
+    to bottom,
+    hsl(200, 60%, 95%) 0%,
+    hsl(120, 30%, 95%) 100%
+  );
 }
 
 /* Animations */
@@ -115,7 +139,9 @@
 
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .loading-pulse {
@@ -123,11 +149,12 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
-    opacity: .7;
+    opacity: 0.7;
   }
 }
 

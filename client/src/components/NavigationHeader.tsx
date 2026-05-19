@@ -1,22 +1,22 @@
+import { Bell, ChevronDown, LogOut, Menu, Sprout, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Sprout, ChevronDown, LogOut, User, Menu } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 // IMPORT your form components (update paths if needed)
 import { DistributorProductForm } from "./DistributorProductForm";
-import { RetailerProductForm } from "./RetailerProductForm";
 import { OwnershipManagementPanel } from "./OwnershipManagementPanel"; // Import at the top
+import { RetailerProductForm } from "./RetailerProductForm";
 
 export function NavigationHeader() {
   const [location, setLocation] = useLocation();
@@ -334,7 +334,7 @@ export function NavigationHeader() {
   };
   const markNotificationReadLocal = (notifId: string) => {
     setNotifications((prev) =>
-      prev.map((n) => n.id === notifId ? { ...n, read: true } : n)
+      prev.map((n) => (n.id === notifId ? { ...n, read: true } : n)),
     );
     setNotificationCount((prev) => Math.max(0, prev - 1));
   };
@@ -532,7 +532,9 @@ export function NavigationHeader() {
                       return (
                         <DropdownMenuItem
                           key={notif.id}
-                          onClick={() => !isRead && handleNotificationClick(notif)}
+                          onClick={() =>
+                            !isRead && handleNotificationClick(notif)
+                          }
                           style={{ cursor: isRead ? "default" : "pointer" }}
                           className={notifClass}
                         >
@@ -695,4 +697,3 @@ export function NavigationHeader() {
     </>
   );
 }
-

@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import type { User } from "@shared/schema";
 import {
-  User as FirebaseUser,
-  onAuthStateChanged,
-  signInWithPopup,
   createUserWithEmailAndPassword,
+  type User as FirebaseUser,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
   updateProfile,
-  signOut
-} from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebase';
-import { User } from '@shared/schema';
-import { apiRequest } from '@/lib/queryClient';
+} from "firebase/auth";
+import { useEffect, useState } from "react";
+import { auth, googleProvider } from "@/lib/firebase";
+import { apiRequest } from "@/lib/queryClient";
 
 export interface AuthState {
   user: User | null;
@@ -24,44 +24,53 @@ export function useAuth() {
     user: null,
     firebaseUser: null,
     loading: true,
-    error: null
+    error: null,
   });
 
   const fetchUserProfile = async (firebaseUser: FirebaseUser) => {
     const idToken = await firebaseUser.getIdToken();
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch("/api/user/profile", {
         headers: {
-          'X-Firebase-UID': firebaseUser.uid,
-          'Authorization': `Bearer ${idToken}`
-        }
+          "X-Firebase-UID": firebaseUser.uid,
+          Authorization: `Bearer ${idToken}`,
+        },
       });
       let user: User;
       if (response.ok) {
         user = await response.json();
       } else {
-        user = await apiRequest('POST', '/api/user/register', {
+        user = await apiRequest("POST", "/api/user/register", {
           email: firebaseUser.email!,
-          name: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
+          name: firebaseUser.displayName || firebaseUser.email!.split("@")[0],
           firebaseUid: firebaseUser.uid,
           profileImage: firebaseUser.photoURL,
-          roleSelected: false
-        }).then(res => res.json());
+          roleSelected: false,
+        }).then((res) => res.json());
       }
       setState({ user, firebaseUser, loading: false, error: null });
     } catch {
-      setState(prev => ({ ...prev, loading: false, error: 'Failed to load user profile' }));
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Failed to load user profile",
+      }));
     }
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async fbUser => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        localStorage.setItem('firebase-uid', fbUser.uid);
+        localStorage.setItem("firebase-uid", fbUser.uid);
         await fetchUserProfile(fbUser);
       } else {
-        localStorage.removeItem('firebase-uid');
-        setState({ user: null, firebaseUser: null, loading: false, error: null });
+        localStorage.removeItem("firebase-uid");
+        setState({
+          user: null,
+          firebaseUser: null,
+          loading: false,
+          error: null,
+        });
       }
     });
     return unsubscribe;
@@ -69,7 +78,7 @@ export function useAuth() {
 
   const refetchUser = async () => {
     if (state.firebaseUser) {
-      setState(prev => ({ ...prev, loading: true }));
+      setState((prev) => ({ ...prev, loading: true }));
       await fetchUserProfile(state.firebaseUser);
     }
   };
@@ -78,61 +87,84 @@ export function useAuth() {
     if (!state.firebaseUser) return null;
     const idToken = await state.firebaseUser.getIdToken();
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch("/api/user/profile", {
         headers: {
-          'X-Firebase-UID': state.firebaseUser.uid,
-          'Authorization': `Bearer ${idToken}`
-        }
+          "X-Firebase-UID": state.firebaseUser.uid,
+          Authorization: `Bearer ${idToken}`,
+        },
       });
       if (response.ok) {
         const updatedUser = await response.json();
-        setState(prev => ({ ...prev, user: updatedUser }));
+        setState((prev) => ({ ...prev, user: updatedUser }));
         return updatedUser;
       }
     } catch {
-      console.error('Failed to refresh user');
+      console.error("Failed to refresh user");
     }
     return null;
   };
 
   const loginWithGoogle = () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    signInWithPopup(auth, googleProvider)
-      .catch(error =>
-        setState(prev => ({ ...prev, loading: false, error: error.message || 'Google login failed' }))
-      );
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    signInWithPopup(auth, googleProvider).catch((error) =>
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: error.message || "Google login failed",
+      })),
+    );
   };
 
   const loginWithEmail = async (email: string, password: string) => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
-      setState(prev => ({ ...prev, loading: false, error: error.message || 'Email login failed' }));
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: error.message || "Email login failed",
+      }));
       throw error;
     }
   };
 
-  const registerWithEmail = async (email: string, password: string, name: string) => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+  const registerWithEmail = async (
+    email: string,
+    password: string,
+    name: string,
+  ) => {
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       await updateProfile(userCredential.user, { displayName: name });
       return userCredential.user;
     } catch (error: any) {
-      setState(prev => ({ ...prev, loading: false, error: error.message || 'Registration failed' }));
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: error.message || "Registration failed",
+      }));
       throw error;
     }
   };
 
   const logout = async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       await signOut(auth);
-      localStorage.removeItem('firebase-uid');
+      localStorage.removeItem("firebase-uid");
       setState({ user: null, firebaseUser: null, loading: false, error: null });
     } catch (error: any) {
-      setState(prev => ({ ...prev, loading: false, error: error.message || 'Logout failed' }));
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: error.message || "Logout failed",
+      }));
     }
   };
 
@@ -144,6 +176,6 @@ export function useAuth() {
     registerWithEmail,
     logout,
     refetchUser,
-    refreshUser
+    refreshUser,
   } as const;
 }

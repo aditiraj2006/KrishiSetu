@@ -1,10 +1,10 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { NavigationHeader } from "@/components/NavigationHeader";
 import type { Product } from "@shared/schema";
+import { useEffect, useState } from "react";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ScannedProductsPage() {
   const { user } = useAuth();

@@ -1,22 +1,24 @@
+import { Plus, QrCode } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "wouter";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { StatsOverview } from "@/components/StatsOverview";
-import { RecentProducts } from "@/components/RecentProducts";
-import { QuickActionsPanel } from "@/components/QuickActionsPanel";
-import { SupplyChainMap } from "@/components/SupplyChainMap";
 import { ProductRegistrationForm } from "@/components/ProductRegistrationForm";
+import { QuickActionsPanel } from "@/components/QuickActionsPanel";
+import { RecentProducts } from "@/components/RecentProducts";
+import { RoleDashboard } from "@/components/RoleDashboard";
+import { RoleSelection } from "@/components/RoleSelection";
+import { StatsOverview } from "@/components/StatsOverview";
+import { SupplyChainMap } from "@/components/SupplyChainMap";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import { DistributorProductForm } from "../components/DistributorProductForm";
 import { RetailerProductForm } from "../components/RetailerProductForm";
-import { RoleSelection } from "@/components/RoleSelection";
-import { RoleDashboard } from "@/components/RoleDashboard";
-import { Button } from "@/components/ui/button";
-import { QrCode, Plus } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/useAuth";
-import React, { useState, useEffect, useRef } from "react";
 
 export default function Dashboard() {
   const { user, loading, refreshUser } = useAuth();
-  const [activeForm, setActiveForm] = useState<"farmer" | "distributor" | "retailer" | null>(null);
+  const [activeForm, setActiveForm] = useState<
+    "farmer" | "distributor" | "retailer" | null
+  >(null);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const formRef = useRef<HTMLDivElement>(null); // Ref to scroll to form
   const [, navigate] = useLocation();
@@ -36,31 +38,30 @@ export default function Dashboard() {
     }
   }, [activeForm]);
   useEffect(() => {
-  const updateTimestamp = () => {
-    const now = new Date();
+    const updateTimestamp = () => {
+      const now = new Date();
 
-    setLastUpdated(
-      now.toLocaleString("en-IN", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      })
-    );
-  };
+      setLastUpdated(
+        now.toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+      );
+    };
 
-  updateTimestamp();
+    updateTimestamp();
 
-  const interval = setInterval(updateTimestamp, 60000);
+    const interval = setInterval(updateTimestamp, 60000);
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
   // Handle register product button click
   const handleRegisterProduct = () => {
     if (!user) return;
     if (user.role === "farmer") {
       setActiveForm("farmer");
-    }
-    else if (user.role === "distributor") {
+    } else if (user.role === "distributor") {
       setActiveForm("distributor");
     } else if (user.role === "retailer") {
       setActiveForm("retailer");
@@ -205,10 +206,7 @@ export default function Dashboard() {
               onClick={handleCloseForm}
             />
             <div className="relative mt-12 mb-12 mx-4 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-white p-6 shadow-2xl z-[121]">
-              <RetailerProductForm
-                isVisible={true}
-                onClose={handleCloseForm}
-              />
+              <RetailerProductForm isVisible={true} onClose={handleCloseForm} />
             </div>
           </div>
         )}

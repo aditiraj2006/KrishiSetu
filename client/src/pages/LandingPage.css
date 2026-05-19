@@ -1,12 +1,10 @@
 /* LandingPage.css */
 
 /* ====== Global Styles ====== */
-*{
+* {
   box-sizing: border-box;
-
 }
 body {
- 
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #0f172a;
@@ -47,7 +45,7 @@ body {
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-top: 0;
-  padding: 0px ;
+  padding: 0px;
 }
 
 .nav-links li {
@@ -125,10 +123,18 @@ body {
   animation: fadeInUp 1s ease forwards;
 }
 
-.step:nth-child(1) { animation-delay: 0.5s; }
-.step:nth-child(2) { animation-delay: 0.9s; }
-.step:nth-child(3) { animation-delay: 1.3s; }
-.step:nth-child(4) { animation-delay: 1.7s; }
+.step:nth-child(1) {
+  animation-delay: 0.5s;
+}
+.step:nth-child(2) {
+  animation-delay: 0.9s;
+}
+.step:nth-child(3) {
+  animation-delay: 1.3s;
+}
+.step:nth-child(4) {
+  animation-delay: 1.7s;
+}
 
 .step img {
   border-radius: 20%;
@@ -170,7 +176,9 @@ body {
   cursor: pointer;
   border-radius: 8px;
   box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   animation: popIn 1.5s ease forwards;
   max-width: 240px;
   width: 100%;
@@ -242,20 +250,32 @@ body {
 
 /* ====== Animations ====== */
 @keyframes popIn {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 /* ===== Desktop-Only Adjustments ===== */
 @media (min-width: 640px) {
   /* Make landing-page full width */
   .landing-page {
-    padding: 0;           /* remove mobile side padding */
-    max-width: none;      /* allow full-screen span */
+    padding: 0; /* remove mobile side padding */
+    max-width: none; /* allow full-screen span */
   }
 
   /* Center content and constrain max width for readability */
@@ -274,9 +294,9 @@ body {
 
   /* Increase gap between step icons */
   .hero-section .steps {
-    gap: 60px;            /* larger spacing on desktop */
-    margin: 60px 0;       /* restore original desktop margin */
-    overflow: visible;    /* show all icons without scroll */
+    gap: 60px; /* larger spacing on desktop */
+    margin: 60px 0; /* restore original desktop margin */
+    overflow: visible; /* show all icons without scroll */
   }
 
   /* Increase step icon size slightly on desktop */
@@ -287,7 +307,7 @@ body {
 
   /* Info cards spacing */
   .info-cards {
-    margin-top: 80px;     /* more space above cards */
+    margin-top: 80px; /* more space above cards */
   }
 
   /* Align cards in row with larger gaps */
@@ -310,7 +330,7 @@ body {
   height: 50px;
   font-size: 24px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   z-index: 1000;
 }

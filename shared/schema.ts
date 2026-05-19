@@ -17,13 +17,15 @@ export const userSchema = z.object({
   roleSelected: z.boolean().default(false),
   language: z.string().default("en"),
   notificationsEnabled: z.boolean().default(true),
-  createdAt: z.date()
+  createdAt: z.date(),
 });
 export type User = z.infer<typeof userSchema>;
 
-export const insertUserSchema = userSchema.omit({ id: true, createdAt: true }).extend({
-  createdAt: z.date().optional()
-});
+export const insertUserSchema = userSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    createdAt: z.date().optional(),
+  });
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 // -------------------- Product --------------------
@@ -49,18 +51,20 @@ export const productSchema = z.object({
   distributorName: z.string().nullable().optional(),
   warehouseLocation: z.string().nullable().optional(),
   storeName: z.string().nullable().optional(),
-  storeLocation: z.string().nullable().optional()
+  storeLocation: z.string().nullable().optional(),
 });
 export type Product = z.infer<typeof productSchema>;
 
-export const insertProductSchema = productSchema.omit({ id: true, createdAt: true }).extend({
-  createdAt: z.date().optional(),
-  harvestDate: z.preprocess(
-    (val) => (typeof val === "string" ? new Date(val) : val),
-    z.date()
-  ),
-  price: z.string().nullable().optional() // Add to insert schema too
-});
+export const insertProductSchema = productSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    createdAt: z.date().optional(),
+    harvestDate: z.preprocess(
+      (val) => (typeof val === "string" ? new Date(val) : val),
+      z.date(),
+    ),
+    price: z.string().nullable().optional(), // Add to insert schema too
+  });
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 
 // -------------------- Transaction --------------------
@@ -71,22 +75,27 @@ export const transactionSchema = z.object({
   toUserId: z.string().nullable().optional(),
   transactionType: z.string(),
   location: z.string().nullable().optional(),
-  coordinates: z.object({
-    latitude: z.number(),
-    longitude: z.number()
-  }).nullable().optional(),
+  coordinates: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+    })
+    .nullable()
+    .optional(),
   temperature: z.string().nullable().optional(),
   humidity: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   blockchainHash: z.string().nullable().optional(),
   verified: z.boolean().default(false),
-  timestamp: z.date()
+  timestamp: z.date(),
 });
 export type Transaction = z.infer<typeof transactionSchema>;
 
-export const insertTransactionSchema = transactionSchema.omit({ id: true, timestamp: true }).extend({
-  timestamp: z.date().optional()
-});
+export const insertTransactionSchema = transactionSchema
+  .omit({ id: true, timestamp: true })
+  .extend({
+    timestamp: z.date().optional(),
+  });
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 
 // -------------------- QualityCheck --------------------
@@ -99,13 +108,15 @@ export const qualityCheckSchema = z.object({
   notes: z.string().nullable().optional(),
   certificationUrl: z.string().nullable().optional(),
   verified: z.boolean().default(false),
-  timestamp: z.date()
+  timestamp: z.date(),
 });
 export type QualityCheck = z.infer<typeof qualityCheckSchema>;
 
-export const insertQualityCheckSchema = qualityCheckSchema.omit({ id: true, verified: true, timestamp: true }).extend({
-  timestamp: z.date().optional()
-});
+export const insertQualityCheckSchema = qualityCheckSchema
+  .omit({ id: true, verified: true, timestamp: true })
+  .extend({
+    timestamp: z.date().optional(),
+  });
 export type InsertQualityCheck = z.infer<typeof insertQualityCheckSchema>;
 
 // -------------------- Scan --------------------
@@ -114,17 +125,22 @@ export const scanSchema = z.object({
   productId: z.string(),
   userId: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
-  coordinates: z.object({
-    latitude: z.number(),
-    longitude: z.number()
-  }).nullable().optional(),
-  timestamp: z.date()
+  coordinates: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+    })
+    .nullable()
+    .optional(),
+  timestamp: z.date(),
 });
 export type Scan = z.infer<typeof scanSchema>;
 
-export const insertScanSchema = scanSchema.omit({ id: true, timestamp: true }).extend({
-  timestamp: z.date().optional()
-});
+export const insertScanSchema = scanSchema
+  .omit({ id: true, timestamp: true })
+  .extend({
+    timestamp: z.date().optional(),
+  });
 export type InsertScan = z.infer<typeof insertScanSchema>;
 
 // -------------------- OwnershipTransfer --------------------
@@ -140,16 +156,20 @@ export const ownershipTransferSchema = z.object({
   actualDelivery: z.date().nullable().optional(),
   blockchainHash: z.string().nullable().optional(),
   paymentProofUrl: z.string().nullable().optional(),
-  timestamp: z.date()
+  timestamp: z.date(),
 });
 export type OwnershipTransfer = z.infer<typeof ownershipTransferSchema>;
 
-export const insertOwnershipTransferSchema = ownershipTransferSchema.omit({ id: true, timestamp: true }).extend({
-  expectedDelivery: z.date().nullable().optional(),
-  actualDelivery: z.date().nullable().optional(),
-  timestamp: z.date().optional()
-});
-export type InsertOwnershipTransfer = z.infer<typeof insertOwnershipTransferSchema>;
+export const insertOwnershipTransferSchema = ownershipTransferSchema
+  .omit({ id: true, timestamp: true })
+  .extend({
+    expectedDelivery: z.date().nullable().optional(),
+    actualDelivery: z.date().nullable().optional(),
+    timestamp: z.date().optional(),
+  });
+export type InsertOwnershipTransfer = z.infer<
+  typeof insertOwnershipTransferSchema
+>;
 
 // -------------------- Notification --------------------
 export const notificationSchema = z.object({
@@ -165,7 +185,7 @@ export const notificationSchema = z.object({
     "ownership_request_accepted",
     "product_received",
     "product_out_for_delivery",
-    "product_event"
+    "product_event",
   ]),
   productId: z.string().optional(),
   transferId: z.string().optional(),
@@ -175,9 +195,11 @@ export const notificationSchema = z.object({
 });
 export type Notification = z.infer<typeof notificationSchema>;
 
-export const insertNotificationSchema = notificationSchema.omit({ id: true, createdAt: true }).extend({
-  createdAt: z.date().optional(),
-});
+export const insertNotificationSchema = notificationSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    createdAt: z.date().optional(),
+  });
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // -------------------- ProductOwner (Blockchain-style ownership record) --------------------
@@ -194,13 +216,15 @@ export const productOwnerSchema = z.object({
   blockNumber: z.number().optional(), // Blockchain-style block number
   previousOwnerHash: z.string().nullable().optional(), // Hash of previous ownership record
   ownershipHash: z.string().optional(), // Hash of this ownership record
-  createdAt: z.date()
+  createdAt: z.date(),
 });
 export type ProductOwner = z.infer<typeof productOwnerSchema>;
 
-export const insertProductOwnerSchema = productOwnerSchema.omit({ id: true, createdAt: true, blockNumber: true, ownershipHash: true }).extend({
-  createdAt: z.date().optional()
-});
+export const insertProductOwnerSchema = productOwnerSchema
+  .omit({ id: true, createdAt: true, blockNumber: true, ownershipHash: true })
+  .extend({
+    createdAt: z.date().optional(),
+  });
 export type InsertProductOwner = z.infer<typeof insertProductOwnerSchema>;
 
 // -------------------- ProductComment --------------------
@@ -209,11 +233,13 @@ export const productCommentSchema = z.object({
   productId: z.string(),
   userId: z.string(),
   message: z.string(),
-  createdAt: z.date()
+  createdAt: z.date(),
 });
 export type ProductComment = z.infer<typeof productCommentSchema>;
 
-export const insertProductCommentSchema = productCommentSchema.omit({ id: true, createdAt: true }).extend({
-  createdAt: z.date().optional()
-});
+export const insertProductCommentSchema = productCommentSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    createdAt: z.date().optional(),
+  });
 export type InsertProductComment = z.infer<typeof insertProductCommentSchema>;

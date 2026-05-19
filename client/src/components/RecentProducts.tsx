@@ -1,12 +1,12 @@
-import { useUserProducts } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "wouter";
-import { Eye, ShieldCheck, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Clock, Eye, ShieldCheck } from "lucide-react";
+import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserProducts } from "@/hooks/useProducts";
 
 export function RecentProducts() {
   const { user } = useAuth();

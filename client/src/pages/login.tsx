@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { auth, googleProvider } from "@/lib/firebase";
 import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
-import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { auth, googleProvider } from "@/lib/firebase";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<"email" | "google">("google");
@@ -25,7 +25,6 @@ export default function LoginPage() {
   const [showReset, setShowReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
 
   const [, setLocation] = useLocation();
 
@@ -59,7 +58,7 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       toast.success("Successfully logged in with Google!");
-      setLocation("/dashboard"); 
+      setLocation("/dashboard");
     } catch (err: any) {
       setError(err.message || "Google login failed");
       toast.error(err.message || "Google login failed");
@@ -94,7 +93,10 @@ export default function LoginPage() {
         {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           className="text-primary font-semibold hover:underline"
-          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setError(null);
+          }}
         >
           {isSignUp ? "Sign In" : "Sign Up"}
         </button>
@@ -129,65 +131,65 @@ export default function LoginPage() {
         <CardContent>
           {tab === "email" && !showReset && (
             <form onSubmit={handleEmailAuth} className="space-y-4">
-                {isSignUp && (
+              {isSignUp && (
                 <Input
-                    type="text"
-                    placeholder="Name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
+                  type="text"
+                  placeholder="Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
                 />
-                )}
-                <Input
+              )}
+              <Input
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
                 />
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    className="pr-10"
-                  />
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                <Button
-                type="submit"
-              className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
-                disabled={loading}
-                >
-                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
-                </Button>
-                {!isSignUp && (
                 <button
-                    type="button"
-                    className="text-sm text-accent hover:underline mt-2"
-                    onClick={() => setShowReset(true)}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                    Forgot password?
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-                )}
+              </div>
+              <Button
+                type="submit"
+                className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
+                disabled={loading}
+              >
+                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
+              </Button>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  className="text-sm text-accent hover:underline mt-2"
+                  onClick={() => setShowReset(true)}
+                >
+                  Forgot password?
+                </button>
+              )}
             </form>
-            )}
+          )}
 
           {tab === "google" && (
             <Button
               type="button"
               variant="outline"
-             className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
+              className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
               onClick={handleGoogleLogin}
               disabled={loading}
             >
@@ -197,7 +199,9 @@ export default function LoginPage() {
         </CardContent>
       </Card>
 
-      {error && <div className="text-destructive mt-4 text-center">{error}</div>}
+      {error && (
+        <div className="text-destructive mt-4 text-center">{error}</div>
+      )}
     </div>
   );
 }

@@ -1,14 +1,14 @@
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { useAuth } from "@/hooks/useAuth";
-import { useProducts } from "@/hooks/useProducts";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link } from "wouter";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useProducts } from "@/hooks/useProducts";
 
 interface Owner {
   id: string;
@@ -254,8 +254,14 @@ export default function RegisteredProductsPage() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 mt-4">
-                      <Link href={`/product/${product.id}?from=registered-products`}>
-                        <Button size="sm" variant="outline" className="primary-btn">
+                      <Link
+                        href={`/product/${product.id}?from=registered-products`}
+                      >
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="primary-btn"
+                        >
                           View Details
                         </Button>
                       </Link>
@@ -264,7 +270,7 @@ export default function RegisteredProductsPage() {
                           {editingProductId === product.id ? (
                             <>
                               <button
-                               className="primary-btn bg-green-600 text-white hover:bg-green-700"
+                                className="primary-btn bg-green-600 text-white hover:bg-green-700"
                                 onClick={() => handleEditSave(product.id)}
                               >
                                 Save

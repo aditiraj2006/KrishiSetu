@@ -1,15 +1,15 @@
-import { useStats } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
+  ArrowRightLeft,
+  Medal,
   Package,
   ShieldCheck,
-  Truck,
-  Medal,
   TrendingUp,
-  ArrowRightLeft,
+  Truck,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useStats } from "@/hooks/useProducts";
 
 export function StatsOverview() {
   const { user } = useAuth();
@@ -55,7 +55,7 @@ export function StatsOverview() {
     stats.totalProducts,
     stats.verifiedBatches,
     stats.activeShipments,
-    stats.averageQualityScore
+    stats.averageQualityScore,
   );
 
   const statCards =

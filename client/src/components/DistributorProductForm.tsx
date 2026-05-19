@@ -1,7 +1,11 @@
 // src/components/DistributorProductForm.tsx
-import React, { useState, useEffect } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,10 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DistributorProductFormProps {
   isVisible: boolean;
@@ -45,7 +47,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
   const [name, setName] = useState(productData?.name || "");
   const [category, setCategory] = useState(productData?.category || "");
   const [description, setDescription] = useState(
-    productData?.description || ""
+    productData?.description || "",
   );
   const [quantity, setQuantity] = useState(productData?.quantity || "");
   const [unit, setUnit] = useState(productData?.unit || "");
@@ -69,7 +71,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
 
   const toggleCertification = (cert: string) => {
     setCertifications((prev) =>
-      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert]
+      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert],
     );
   };
 
@@ -193,11 +195,11 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-start justify-center p-6 bg-black bg-opacity-50 overflow-y-auto"
       onClick={handleOverlayClick}
     >
-      <div 
+      <div
         className="mt-12 bg-white p-6 rounded-lg shadow-md max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -381,7 +383,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                       type="checkbox"
                       id="cert2"
                       checked={certifications.includes(
-                        "Temperature Controlled"
+                        "Temperature Controlled",
                       )}
                       onChange={() =>
                         toggleCertification("Temperature Controlled")
@@ -396,7 +398,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                       type="checkbox"
                       id="cert3"
                       checked={certifications.includes(
-                        "Eco-Friendly Packaging"
+                        "Eco-Friendly Packaging",
                       )}
                       onChange={() =>
                         toggleCertification("Eco-Friendly Packaging")

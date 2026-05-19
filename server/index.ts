@@ -1,37 +1,42 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+
 dotenv.config();
 
-import express, { type Request, Response, NextFunction } from "express";
-import path from "path";
-
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
-
+import express, {
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
+import path from "path";
 // If using ES modules, define __dirname:
 import { fileURLToPath } from "url";
+import { registerRoutes } from "./routes";
+import { log, serveStatic, setupVite } from "./vite";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Add CORS middleware to allow cross-origin requests
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 
 // ... existing middleware and logging
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: Record<string, any> | undefined;
 
   const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
+  res.json = (bodyJson, ...args) => {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
@@ -81,14 +86,16 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5001', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    // reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    console.log(`Server is running at http://localhost:${port}`);
-  });
+  const port = parseInt(process.env.PORT || "5001", 10);
+  server.listen(
+    {
+      port,
+      host: "0.0.0.0",
+      // reusePort: true,
+    },
+    () => {
+      log(`serving on port ${port}`);
+      console.log(`Server is running at http://localhost:${port}`);
+    },
+  );
 })();
-

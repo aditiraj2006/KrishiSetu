@@ -1,33 +1,31 @@
-import { useEffect, useState } from "react";
-import { useParams } from "wouter";
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { SupplyChainMap } from "@/components/SupplyChainMap";
-import { OwnershipHistoryList } from "@/components/OwnershipHistoryList";
-import { useProduct } from "@/hooks/useProducts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ProductHistory } from "@/components/ProductHistory";
-import { Product } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
-
+import type { Product } from "@shared/schema";
+import { formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
-  MapPin,
   Calendar,
-  Package,
-  User,
-  ShieldCheck,
   Clock,
-  Truck,
-  History,
-  Shield,
   DollarSign,
+  History,
+  MapPin,
+  Package,
+  Shield,
+  ShieldCheck,
+  Truck,
+  User,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { Link } from "wouter";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "wouter";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { OwnershipHistoryList } from "@/components/OwnershipHistoryList";
+import { ProductHistory } from "@/components/ProductHistory";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { SupplyChainMap } from "@/components/SupplyChainMap";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { useProduct } from "@/hooks/useProducts";
 
 interface ProductEvent {
   id: string;
@@ -58,7 +56,8 @@ export default function ProductDetails() {
   const { toast } = useToast();
 
   // --- Add this state for the selected product in the supply chain map ---
-  const [selectedProductIdForMap, setSelectedProductIdForMap] = useState<string>(productId);
+  const [selectedProductIdForMap, setSelectedProductIdForMap] =
+    useState<string>(productId);
 
   // Update selected product when productId changes
   useEffect(() => {
@@ -90,9 +89,8 @@ export default function ProductDetails() {
   // --------------------------------------------
 
   // --- Enhanced product info state ---
-  const [enhancedProduct, setEnhancedProduct] = useState<EnhancedProduct | null>(
-    null
-  );
+  const [enhancedProduct, setEnhancedProduct] =
+    useState<EnhancedProduct | null>(null);
 
   useEffect(() => {
     async function fetchEnhancedProductData() {
@@ -276,7 +274,7 @@ export default function ProductDetails() {
                             </div>
                           </div>
                         </div>
-                        <Button 
+                        <Button
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           onClick={() => {
                             toast({
@@ -348,8 +346,8 @@ export default function ProductDetails() {
                             product.status === "delivered"
                               ? "bg-verified/10 text-verified border-verified/20"
                               : product.status === "in_transit"
-                              ? "bg-accent/10 text-accent border-accent/20"
-                              : "bg-warning/10 text-warning border-warning/20"
+                                ? "bg-accent/10 text-accent border-accent/20"
+                                : "bg-warning/10 text-warning border-warning/20"
                           }`}
                           data-testid="badge-product-status"
                         >
@@ -433,8 +431,7 @@ export default function ProductDetails() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                
-                <SupplyChainMap 
+                <SupplyChainMap
                   product={product}
                   showProductSelector={false}
                   onProductSelect={(newProductId) => {
