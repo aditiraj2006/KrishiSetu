@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { MongoStorage, getDb } from "./storage";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import {
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs";
+import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { translateText, improveGrammar, analyzeProductQuality } from "./ai";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,20 +54,73 @@ if (!fs.existsSync(uploadDir)) {
   console.log("Created upload directory:", uploadDir);
 }
 
+const allowedUserUpdateFields = new Set([
+  "name",
+  "profileImage",
+  "phone",
+  "company",
+  "location",
+  "bio",
+  "website",
+  "language",
+  "notificationsEnabled"
+]);
+
+const filterUserUpdates = (payload: Record<string, unknown>) => {
+  const updates: Record<string, unknown> = {};
+  for (const field of allowedUserUpdateFields) {
+    if (payload[field] !== undefined) {
+      updates[field] = payload[field];
+    }
+  }
+  return updates;
+};
+
+const getBearerToken = (req: Request) => {
+  const authHeader = req.header("authorization") || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+};
+
+const requireFirebaseAuth = async (req: Request, res: Response, next: NextFunction) => {
+  const token = getBearerToken(req);
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const decoded = await verifyFirebaseIdToken(token);
+    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (headerUid && headerUid !== decoded.uid) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    res.locals.firebaseUid = decoded.uid;
+    return next();
+  } catch (error) {
+    console.error("Auth token verification failed:", error);
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+};
+
 export async function registerRoutes(app: Express) {
   app.use("/uploads/payment-proofs", express.static(path.join(__dirname, "../uploads/payment-proofs")));
   // --- Authentication Routes ---
-  app.post("/api/user/register", async (req: Request, res: Response) => {
+  app.post("/api/user/register", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
+      const authFirebaseUid = res.locals.firebaseUid as string;
       
       // Validate required fields
-      if (!email || !name || !firebaseUid) {
+      if (!email || !name) {
         return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      if (firebaseUid && firebaseUid !== authFirebaseUid) {
+        return res.status(401).json({ message: "Unauthorized" });
       }
       
       // Check if user already exists
-      const existingUser = await storage.getUserByFirebaseUid(firebaseUid);
+      const existingUser = await storage.getUserByFirebaseUid(authFirebaseUid);
       
       if (existingUser) {
         return res.json(existingUser); // Return existing user if already registered
@@ -80,7 +134,7 @@ export async function registerRoutes(app: Express) {
         name,
         username,
         role: "farmer", // default role
-        firebaseUid,
+        firebaseUid: authFirebaseUid,
         profileImage,
         roleSelected: roleSelected || false,
         language: "en",
@@ -95,13 +149,9 @@ export async function registerRoutes(app: Express) {
   });
   
   // Get user profile
-  app.get("/api/user/profile", async (req: Request, res: Response) => {
+  app.get("/api/user/profile", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -115,22 +165,18 @@ export async function registerRoutes(app: Express) {
   });
 
   // Update user profile
-  app.put("/api/user/profile", async (req: Request, res: Response) => {
+  app.put("/api/user/profile", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const updates = req.body;
-      // Ensure certain fields cannot be changed
-      delete updates.firebaseUid;
-      delete updates.id;
+      const updates = filterUserUpdates(req.body || {});
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
       
       const updatedUser = await storage.updateUser(user.id, updates);
       return res.json(updatedUser);
@@ -139,12 +185,9 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to update profile" });
     }
   });
-    app.get("/api/users/search", async (req, res) => {
+    app.get("/api/users/search", requireFirebaseAuth, async (req, res) => {
       try {
-        const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-        if (!firebaseUid) {
-          return res.status(401).json({ message: "Unauthorized" });
-        }
+        const firebaseUid = res.locals.firebaseUid as string;
         const currentUser = await storage.getUserByFirebaseUid(firebaseUid);
         if (!currentUser) {
           return res.status(404).json({ message: "User not found" });
@@ -174,12 +217,9 @@ export async function registerRoutes(app: Express) {
     if (!user) return res.status(404).json({ message: "User not found" });
     return res.json(user);
   });
-app.patch("/api/users/:id", async (req: Request, res: Response) => {
+app.patch("/api/users/:id", requireFirebaseAuth, async (req: Request, res: Response) => {
   try {
-    const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-    if (!firebaseUid) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    const firebaseUid = res.locals.firebaseUid as string;
 
     const { id } = req.params;
     const userToUpdate = await storage.getUser(id);
@@ -192,10 +232,10 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const updates = req.body;
-    // Remove protected fields
-    delete updates.firebaseUid;
-    delete updates.id;
+    const updates = filterUserUpdates(req.body || {});
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
 
     const updatedUser = await storage.updateUser(id, updates);
     return res.json(updatedUser);
@@ -206,18 +246,14 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
 });
 
   // --- Product Routes ---
-  app.post("/api/products", async (req: Request, res: Response) => {
+  app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       const parse = insertProductSchema.safeParse(req.body);
       if (!parse.success) {
         return res.status(400).json({ message: "Invalid product data", errors: parse.error.format() });
       }
       
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -249,14 +285,9 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
   });
 
   //All products search
- app.get("/api/products/available/search", async (req, res) => {
+ app.get("/api/products/available/search", requireFirebaseAuth, async (req, res) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        console.log("No firebase-uid header found:", req.headers);
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
+      const firebaseUid = res.locals.firebaseUid as string;
       console.log("Received search request with firebase-uid:", firebaseUid);
       const currentUser = await storage.getUserByFirebaseUid(firebaseUid);
       if (!currentUser) {
@@ -321,12 +352,9 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
   });
 
   // Get user's owned products
-  app.get("/api/user/products/owned", async (req: Request, res: Response) => {
+  app.get("/api/user/products/owned", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -346,13 +374,9 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
   });
 
   // Get user's scanned products
-  app.get("/api/user/products/scanned", async (req: Request, res: Response) => {
+  app.get("/api/user/products/scanned", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -441,16 +465,11 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
   });
 
   // --- Ownership Transfer Routes ---
-  app.post("/api/ownership-transfers", async (req: Request, res: Response) => {
+  app.post("/api/ownership-transfers", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       console.log("HIT /api/ownership-transfers ENDPOINT!");
 
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        console.log("[OWNERSHIP REQUEST] No firebase-uid header found");
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
+      const firebaseUid = res.locals.firebaseUid as string;
       const currentUser = await storage.getUserByFirebaseUid(firebaseUid);
       if (!currentUser) {
         console.log("[OWNERSHIP REQUEST] User not found for firebaseUid:", firebaseUid);
@@ -556,15 +575,11 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
     }
   });
 
-  app.post("/api/request-product", async (req: Request, res: Response) => {
+  app.post("/api/request-product", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       console.log("HIT /api/request-product ENDPOINT!");
 
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-
+      const firebaseUid = res.locals.firebaseUid as string;
       const requester = await storage.getUserByFirebaseUid(firebaseUid);
       if (!requester) {
         return res.status(404).json({ message: "User not found" });
@@ -636,12 +651,12 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
  * Accept an ownership transfer AND optionally update/register product data.
  * Expects:
  *  - transferId in params
- *  - headers: firebase-uid (or x-firebase-uid)
+ *  - headers: Authorization: Bearer <Firebase ID token>
  *  - body: { productData?: {...}, productId?: string }
  */
-app.put("/api/ownership-transfers/:id/accept", upload.single("paymentProof"), async (req: Request, res: Response) => {
+app.put("/api/ownership-transfers/:id/accept", requireFirebaseAuth, upload.single("paymentProof"), async (req: Request, res: Response) => {
   const transferId = req.params.id;
-  const firebaseUid = req.header("firebase-uid") || req.header("x-firebase-uid");
+  const firebaseUid = res.locals.firebaseUid as string;
 
   console.log("Accept ownership transfer called");
   console.log("transferId:", transferId);
@@ -649,11 +664,6 @@ app.put("/api/ownership-transfers/:id/accept", upload.single("paymentProof"), as
   console.log("req.headers:", req.headers);
   console.log("req.body:", req.body);
   console.log("req.file:", req.file);
-
-  if (!firebaseUid) {
-    console.log("No firebaseUid");
-    return res.status(401).json({ message: "Unauthorized" });
-  }
 
   // Extract all form data
   const formData = { ...req.body };
@@ -851,15 +861,10 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   });
 });
 
-  app.put("/api/ownership-transfers/:id/reject", async (req: Request, res: Response) => {
+  app.put("/api/ownership-transfers/:id/reject", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       const transferId = req.params.id;
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -904,13 +909,9 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   });
 
   // Get pending transfer requests for user
-  app.get("/api/ownership-transfers/pending", async (req: Request, res: Response) => {
+  app.get("/api/ownership-transfers/pending", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -942,12 +943,9 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   });
 
   // Get all notifications for the authenticated user
-  app.get("/api/notifications", async (req, res) => {
+  app.get("/api/notifications", requireFirebaseAuth, async (req, res) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -1115,16 +1113,17 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   });
 
   // --- Role Selection ---
-  app.put("/api/user/role", async (req: Request, res: Response) => {
+  app.put("/api/user/role", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
+      const firebaseUid = res.locals.firebaseUid as string;
       const { role } = req.body;
       if (!role) {
         return res.status(400).json({ message: "Role is required" });
+      }
+
+      const allowedRoles = new Set(["farmer", "distributor", "retailer", "consumer"]);
+      if (!allowedRoles.has(role)) {
+        return res.status(400).json({ message: "Invalid role" });
       }
       
       const user = await storage.getUserByFirebaseUid(firebaseUid);
@@ -1255,11 +1254,10 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   });
 
   // Update product status to out for delivery (correct workflow)
-  app.put("/api/products/:id/out-for-delivery", async (req: Request, res: Response) => {
+  app.put("/api/products/:id/out-for-delivery", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
       const productId = req.params.id;
-      const firebaseUid = req.header('firebase-uid') || req.header('x-firebase-uid');
-      if (!firebaseUid) return res.status(401).json({ message: "Unauthorized" });
+      const firebaseUid = res.locals.firebaseUid as string;
       const user = await storage.getUserByFirebaseUid(firebaseUid);
       if (!user) return res.status(404).json({ message: "User not found" });
 

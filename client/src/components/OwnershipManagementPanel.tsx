@@ -26,6 +26,7 @@ import * as z from "zod";
 import { Shield, Users, AlertCircle } from "lucide-react";
 import { UserSearch } from "./UserSearch";
 import { ProductSearch } from "./ProductSearch";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 const transferFormSchema = z.object({
   productId: z.string().min(1, "Product is required"),
@@ -148,10 +149,9 @@ export function OwnershipManagementPanel({
 
       const response = await fetch("/api/ownership-transfers", {
         method: "POST",
-        headers: {
+        headers: await getAuthHeaders({
           "Content-Type": "application/json",
-          "firebase-uid": user.firebaseUid,
-        },
+        }),
         body: JSON.stringify(requestBody),
       });
 

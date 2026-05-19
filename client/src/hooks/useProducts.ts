@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Product, InsertProduct } from '@shared/schema';
 import { getAuth } from "firebase/auth";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 export function useProducts(ownerId?: string) {
   return useQuery({
@@ -45,14 +46,13 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: async (productData: InsertProduct) => {
       // Get the UID from your auth system
-      const firebaseUid = getAuth().currentUser?.uid;
-      if (!firebaseUid) throw new Error("Not authenticated");
+      const firebaseUser = getAuth().currentUser;
+      if (!firebaseUser) throw new Error("Not authenticated");
 
       const response = await apiRequest(
         'POST',
         '/api/products',
-        productData,
-        { 'firebase-uid': firebaseUid }
+        productData
       );
       return response.json() as Promise<Product>;
     },
@@ -115,17 +115,15 @@ export function useUserProducts(user?: any) {
       }
 
       // Get firebase uid
-      const firebaseUid = getAuth().currentUser?.uid;
-      if (!firebaseUid) throw new Error('Not authenticated');
+      const firebaseUser = getAuth().currentUser;
+      if (!firebaseUser) throw new Error('Not authenticated');
+
+      const headers = await getAuthHeaders();
 
       // Fetch owned and scanned products
       const [ownedRes, scannedRes] = await Promise.all([
-        fetch(`/api/user/products/owned`, {
-          headers: { 'firebase-uid': firebaseUid }
-        }),
-        fetch(`/api/user/products/scanned`, {
-          headers: { 'firebase-uid': firebaseUid }
-        })
+        fetch(`/api/user/products/owned`, { headers }),
+        fetch(`/api/user/products/scanned`, { headers })
       ]);
 
       if (!ownedRes.ok || !scannedRes.ok) throw new Error('Failed to fetch user products');

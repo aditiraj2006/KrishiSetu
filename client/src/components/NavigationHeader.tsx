@@ -355,11 +355,13 @@ export function NavigationHeader() {
 
     if (!firebaseUser) return;
     try {
+      const idToken = await firebaseUser.getIdToken();
       await fetch(`/api/notifications/${notif.id}/read`, {
         method: "PUT",
         headers: {
           "firebase-uid": user?.firebaseUid || "",
           "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
       });
     } catch (err) {
