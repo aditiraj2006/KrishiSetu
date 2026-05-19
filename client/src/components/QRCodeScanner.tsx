@@ -252,6 +252,22 @@ export function QRCodeScanner() {
     async function saveScannedProduct() {
       if (user && user.role === "consumer" && product) {
         try {
+          // Get geolocation
+          let coordinates = null;
+          if ("geolocation" in navigator) {
+            try {
+              const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+              });
+              coordinates = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              };
+            } catch (geoError) {
+              console.warn("Geolocation failed:", geoError);
+            }
+          }
+
           const response = await fetch("/api/scans", {
             method: "POST",
             headers: {
@@ -261,6 +277,7 @@ export function QRCodeScanner() {
             body: JSON.stringify({
               productId: product.id,
               userId: user.id,
+              coordinates: coordinates,
               timestamp: new Date(),
             }),
           });

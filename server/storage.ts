@@ -20,13 +20,43 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-  const client = new MongoClient(process.env.MONGO_URI!);
+  const client = new MongoClient(process.env.MONGODB_URI!);
   await client.connect();
-  db = client.db(process.env.MONGO_DB_NAME);
+  db = client.db(process.env.MONGO_DB_NAME || "krishisetu");
   return db;
 }
 
 export class MongoStorage {
+
+    /**
+     * Get the latest active (pending/accepted) ownership transfer for a product.
+     * Only returns transfers with status 'pending' or 'accepted'.
+     */
+    public async getLatestActiveOwnershipTransfer(productId: string): Promise<OwnershipTransfer | null> {
+      const db = await getDb();
+      // Find the most recent transfer for this product with status 'pending' or 'accepted'
+      return db.collection<OwnershipTransfer>("ownershiptransfers")
+        .find({ productId, status: { $in: ["pending", "accepted"] } })
+        .sort({ timestamp: -1 })
+        .limit(1)
+        .next();
+    }
+
+    /**
+     * Update delivery status fields for an ownership transfer (non-breaking, adds fields if not present).
+     * @param id Transfer ID
+     * @param deliveryFields Fields to update (e.g., deliveryStatus, outForDeliveryAt)
+     */
+    public async updateOwnershipTransferDeliveryStatus(id: string, deliveryFields: Partial<{ deliveryStatus: string; outForDeliveryAt: Date }>): Promise<OwnershipTransfer | null> {
+      const db = await getDb();
+      const result = await db.collection<OwnershipTransfer>("ownershiptransfers").findOneAndUpdate(
+        { id },
+        { $set: deliveryFields },
+        { returnDocument: "after" }
+      );
+      if (!result) return null;
+      return result as OwnershipTransfer;
+    }
   // -------- Helper Methods --------
   private generateOwnershipHash(productId: string, ownerId: string, blockNumber: number, previousHash: string | null): string {
     const data = `${productId}-${ownerId}-${blockNumber}-${previousHash || 'genesis'}`;
@@ -708,8 +738,6 @@ export const storage = new MongoStorage();
   try {
     console.log("[MongoDB] Testing connection...");
     await getDb();
-    console.log("[MongoDB]", process.env.MONGO_URI);
-    console.log("MONGO_DB_NAME:", process.env.MONGO_DB_NAME);
     console.log("[MongoDB] Connection test successful");
   } catch (error) {
     console.error("[MongoDB] Connection test failed:", error);

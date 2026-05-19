@@ -71,7 +71,10 @@ export const transactionSchema = z.object({
   toUserId: z.string().nullable().optional(),
   transactionType: z.string(),
   location: z.string().nullable().optional(),
-  coordinates: z.record(z.any()).nullable().optional(),
+  coordinates: z.object({
+    latitude: z.number(),
+    longitude: z.number()
+  }).nullable().optional(),
   temperature: z.string().nullable().optional(),
   humidity: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
@@ -111,7 +114,10 @@ export const scanSchema = z.object({
   productId: z.string(),
   userId: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
-  coordinates: z.record(z.any()).nullable().optional(),
+  coordinates: z.object({
+    latitude: z.number(),
+    longitude: z.number()
+  }).nullable().optional(),
   timestamp: z.date()
 });
 export type Scan = z.infer<typeof scanSchema>;

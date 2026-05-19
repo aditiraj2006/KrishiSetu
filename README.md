@@ -183,7 +183,6 @@ cd KrishiSetu
 
 ```bash
 npm install
-cd client && npm install && cd ..
 ```
 
 ### Configure Environment Variables
@@ -203,29 +202,22 @@ VITE_FIREBASE_APP_ID=your_app_id_here
 
 # MongoDB Connection
 MONGODB_URI=your_mongodb_connection_string_here
+MONGO_DB_NAME=mongo_db_name
 
-# API Keys
+#Gemini Api key
 GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+
 ```
 
 > ⚠️ **IMPORTANT**: Never commit your `.env` file. It contains sensitive credentials!
 
 ### Start Development Servers
 
-**Terminal 1 - Backend Server:**
 ```bash
 npm run dev
-# Backend runs at http://localhost:10000
 ```
 
-**Terminal 2 - Frontend Development:**
-```bash
-cd client
-npm run dev
-# Frontend runs at http://localhost:5173
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser!
+Open [http://localhost:5001](http://localhost:5001) in your browser!
 
 ---
 
@@ -492,7 +484,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 If you witness or experience violations of our Code of Conduct, please report to the maintainers confidentially at:
 
-📧 **Email**: [your-email@example.com]
+📧 **Email**: [aditiraj0205@gmail.com]
 📊 **GitHub**: [Create an issue](../../issues) with `[Code of Conduct]` tag
 
 ---
@@ -503,9 +495,9 @@ For queries, feedback, or guidance regarding this project:
 
 | Name | Role | Contact |
 |------|------|---------|
-| **Mentor 1** | Project Lead | [LinkedIn](https://linkedin.com) \| [Email](mailto:) |
-| **Mentor 2** | Tech Lead | [LinkedIn](https://linkedin.com) \| [Email](mailto:) |
-| **Mentor 3** | Community Manager | [LinkedIn](https://linkedin.com) \| [Email](mailto:) |
+| **Mentor 1** | Project Lead | [LinkedIn](https://www.linkedin.com/in/aditi-raj-890358329/) \| [Email](mailto:aditiraj0205@gmail.com) |
+| **Mentor 2** | Tech Lead | [LinkedIn](https://www.linkedin.com/in/piyushydv08/) \| [Email](mailto:piyuhydv011@gmail.com) |
+
 
 ### Ways to Connect
 

@@ -22,4 +22,3 @@ const googleProvider = new GoogleAuthProvider();
 
 // Export the required Firebase objects
 export { app, analytics, auth, googleProvider, signInWithPopup };
-

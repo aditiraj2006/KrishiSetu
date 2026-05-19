@@ -144,3 +144,14 @@ export function useUserProducts(user?: any) {
     enabled: !!user || !user // Always enabled
   });
 }
+export function useProductJourney(id: string) {
+  return useQuery({
+    queryKey: ['/api/products', id, 'journey'],
+    queryFn: async () => {
+      const response = await fetch(`/api/products/${id}/journey`);
+      if (!response.ok) throw new Error('Product journey not found');
+      return response.json() as Promise<any[]>;
+    },
+    enabled: !!id
+  });
+}
