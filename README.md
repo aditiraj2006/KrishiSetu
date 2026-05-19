@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active%20Development-success?style=for-the-badge)
 ![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-blue?style=for-the-badge)
-![Node Version](https://img.shields.io/badge/Node-v16%2B-green?style=for-the-badge)
+![Node Version](https://img.shields.io/badge/Node-v18%2B-green?style=for-the-badge)
 
 **Empowering farmers and consumers through transparent, decentralized agricultural supply chain management.**
 
@@ -76,7 +76,7 @@ Want to see it in action? Click the link above to explore the platform!
 ### Backend & Infrastructure
 | Technology | Version | Purpose |
 |-----------|---------|---------|
-| **Node.js** | 16+ | JavaScript runtime |
+| **Node.js** | 18+ | JavaScript runtime |
 | **Express.js** | 4.21+ | Web server framework |
 | **TypeScript** | 5.6+ | Type-safe backend code |
 | **MongoDB** | 6.19+ | NoSQL database |
@@ -199,6 +199,7 @@ VITE_FIREBASE_PROJECT_ID=your_project_id_here
 VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id_here
 VITE_FIREBASE_APP_ID=your_app_id_here
+FIREBASE_PROJECT_ID=your_project_id_here
 
 # MongoDB Connection
 MONGODB_URI=your_mongodb_connection_string_here

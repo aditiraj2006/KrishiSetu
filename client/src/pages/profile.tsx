@@ -51,7 +51,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
-  const { user, firebaseUser } = useAuth();
+  const { user, firebaseUser, refreshUser } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -108,7 +108,24 @@ export default function ProfilePage() {
   const onSubmit = async (data: ProfileFormData) => {
     setIsUpdating(true);
     try {
-      await apiRequest('PUT', `/api/user/profile`, data);
+      const profileUpdates = {
+        name: data.name,
+        phone: data.phone,
+        company: data.company,
+        location: data.location,
+        bio: data.bio,
+        website: data.website,
+        language: data.language,
+        notificationsEnabled: data.notificationsEnabled,
+      };
+
+      await apiRequest('PUT', `/api/user/profile`, profileUpdates);
+
+      if (data.role && data.role !== user.role) {
+        await apiRequest('PUT', '/api/user/role', { role: data.role });
+      }
+
+      await refreshUser();
       
       toast({
         title: "Profile Updated",

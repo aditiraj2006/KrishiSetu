@@ -6,6 +6,7 @@ import { Search, UserPlus, Loader2, X, Check, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 interface User {
   id: string;
@@ -102,11 +103,9 @@ export function UserSearch({
       setSearchError(null);
       
       try {
-        const firebaseUid = localStorage.getItem('firebase-uid');
+        const headers = await getAuthHeaders();
         const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-          headers: {
-            'firebase-uid': firebaseUid || ''
-          }
+          headers
         });
         if (response.ok) {
           const data = await response.json();
