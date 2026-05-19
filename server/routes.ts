@@ -12,7 +12,7 @@ import {
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs";
-import { firebaseAdmin } from "./firebaseAdmin";
+import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { translateText, improveGrammar, analyzeProductQuality } from "./ai";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -89,7 +89,7 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
   }
 
   try {
-    const decoded = await firebaseAdmin.auth().verifyIdToken(token);
+    const decoded = await verifyFirebaseIdToken(token);
     const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
     if (headerUid && headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
