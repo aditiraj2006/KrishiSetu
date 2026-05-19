@@ -752,29 +752,60 @@ app.put("/api/ownership-transfers/:id/accept", upload.single("paymentProof"), as
   console.log("filledFields:", filledFields);
   console.log("registeredFields:", registeredFields);
 
-  // Parse certifications if sent as JSON string
-  if (filledFields.certifications && typeof filledFields.certifications === "string") {
-    try {
-      filledFields.certifications = JSON.parse(filledFields.certifications);
-    } catch (e) {
-      console.error("Error parsing certifications:", e);
-    }
-  }
-
-  // Parse numbers if needed
-  if (filledFields.price && typeof filledFields.price === "string" && !isNaN(Number(filledFields.price))) {
-    filledFields.price = Number(filledFields.price);
-  }
-  if (filledFields.quantity && typeof filledFields.quantity === "string" && !isNaN(Number(filledFields.quantity))) {
-    filledFields.quantity = Number(filledFields.quantity);
-  }
-
   // If you handle paymentProof file upload, set paymentProofUrl here
   if (req.file && req.file.filename) {
     filledFields.paymentProofUrl = `/uploads/payment-proofs/${req.file.filename}`;
     if (!registeredFields.includes("paymentProofUrl")) {
       registeredFields.push("paymentProofUrl");
     }
+  }
+
+  // Parse certifications if sent as JSON string
+  if (filledFields.certifications && typeof filledFields.certifications === "string") {
+    try {
+      filledFields.certifications = JSON.parse(filledFields.certifications);
+    } catch (e) {
+      console.error("Error parsing certifications:", e);
+      return res.status(400).json({ message: "Invalid certifications format" });
+    }
+  }
+
+  const ownershipTransferFieldsSchema = z.object({
+    name: z.string().trim().min(1).optional(),
+    category: z.string().trim().min(1).optional(),
+    description: z.string().trim().min(1).optional(),
+    quantity: z.preprocess(
+      (value: unknown) => (typeof value === "string" ? Number(value) : value),
+      z.number({ invalid_type_error: "Quantity must be a number" }).finite().optional()
+    ),
+    unit: z.string().trim().min(1).optional(),
+    distributorName: z.string().trim().min(1).optional(),
+    warehouseLocation: z.string().trim().min(1).optional(),
+    dispatchDate: z.string().trim().min(1).refine((value: string) => !Number.isNaN(Date.parse(value)), {
+      message: "Invalid dispatchDate"
+    }).optional(),
+    certifications: z.union([
+      z.array(z.string().trim().min(1)),
+      z.array(z.record(z.any()))
+    ]).optional(),
+    price: z.preprocess(
+      (value: unknown) => (typeof value === "string" ? Number(value) : value),
+      z.number({ invalid_type_error: "Price must be a number" }).finite().min(0).optional()
+    ),
+    paymentProofUrl: z.string().trim().min(1).optional(),
+    storeName: z.string().trim().min(1).optional(),
+    storeLocation: z.string().trim().min(1).optional(),
+    arrivalDate: z.string().trim().min(1).refine((value: string) => !Number.isNaN(Date.parse(value)), {
+      message: "Invalid arrivalDate"
+    }).optional(),
+  });
+
+  const validatedFields = ownershipTransferFieldsSchema.safeParse(filledFields);
+  if (!validatedFields.success) {
+    return res.status(400).json({
+      message: "Invalid ownership transfer data",
+      errors: validatedFields.error.format()
+    });
   }
 
   try {
@@ -821,7 +852,7 @@ app.put("/api/ownership-transfers/:id/accept", upload.single("paymentProof"), as
 
     // 2) Update product with the filled fields
     console.log("Updating product");
-    await storage.updateProduct(product.id, { ownerId: user.id, ...filledFields });
+    await storage.updateProduct(product.id, { ownerId: user.id, ...validatedFields.data });
 
     // 3) Add to product owners blockchain
     console.log("Adding product owner");
@@ -872,7 +903,7 @@ app.put("/api/ownership-transfers/:id/accept", upload.single("paymentProof"), as
         previousOwnerName: previousOwner?.username || previousOwner?.name || "Unknown", // Use username if available
         previousOwnerRole: previousOwner?.role || "Unknown",
         registeredFields: registeredFields,
-        ...filledFields
+        ...validatedFields.data
       }
     );
 
@@ -1247,7 +1278,8 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
       const scansCount = await storage.countScans();
       const transfersCount = await storage.countTransfers();
 
-      console.log("Stats counts:", { productsCount, usersCount, scansCount, transfersCount });
+      console.log("Sta
+        ts counts:", { productsCount, usersCount, scansCount, transfersCount });
 
       // Additional calculations for dashboard
       const db = await getDb();
