@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Eye, ShieldCheck, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import CopyableText from "./ui/CopyableText";
 
 export function RecentProducts() {
   const { user } = useAuth();
@@ -123,12 +124,15 @@ export function RecentProducts() {
                       >
                         {product.name}
                       </h4>
-                      <p
-                        className="text-sm text-muted-foreground"
-                        data-testid={`text-product-batch-${product.id}`}
-                      >
-                        Batch #{product.batchId}
-                      </p>
+                      <div
+                      className="text-sm text-muted-foreground"
+                      data-testid={`text-product-batch-${product.id}`}
+                        >
+                      <CopyableText text={`Batch #${product.batchId}`} />
+                      </div>
+                      <div className="mt-1">
+                      <CopyableText text={product.id} />
+                      </div>
                       <div className="flex items-center gap-4 mt-1">
                         <Badge
                           variant="secondary"
