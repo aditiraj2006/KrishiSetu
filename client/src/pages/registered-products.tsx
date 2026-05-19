@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import EmptyState from "@/components/ui/EmptyState";
+
 
 interface Owner {
   id: string;
@@ -125,18 +127,17 @@ export default function RegisteredProductsPage() {
             Failed to load products.
           </div>
         )}
-        {!isLoading &&
-          !isError &&
-          filteredProducts.length === 0 &&
-          searchQuery && (
-            <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground">
-              No products match your search.
-            </div>
+        {!isLoading && !isError && filteredProducts.length === 0 && (
+          <EmptyState
+           title="No matching results found"
+          description="Try adjusting your search or filters."
+          />
           )}
         {!isLoading && !isError && products?.length === 0 && !searchQuery && (
-          <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground">
-            No products registered yet.
-          </div>
+          <EmptyState
+          title="No products found"
+           description="Products you register will appear here."
+          />
         )}
         <div className="space-y-6">
           {filteredProducts.map((product) => {

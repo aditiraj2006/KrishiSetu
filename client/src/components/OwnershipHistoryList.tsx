@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Shield, User, Calendar, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
+import EmptyState from './ui/EmptyState';
 
 interface ProductOwner {
   _id: string;
@@ -94,7 +95,10 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
     return (
       <div className="text-center py-6">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-        <p className="text-muted-foreground">No ownership records found.</p>
+        <EmptyState
+          title="No ownership history found"
+          description="Ownership records will appear here once available."
+      />
       </div>
     );
   }

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { Eye, ShieldCheck, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import EmptyState from "@/components/ui/EmptyState";
 
 export function RecentProducts() {
   const { user } = useAuth();
@@ -89,18 +90,21 @@ export function RecentProducts() {
       <CardContent className="p-0">
         {recentProducts.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-muted-foreground" data-testid="text-no-products">
-              No products registered yet.
-              <Link href="/product-registration">
-                <Button
-                  variant="link"
-                  className="p-0 ml-1"
-                  data-testid="link-register-first"
-                >
-                  Register your first product
-                </Button>
-              </Link>
-            </p>
+           <div className="flex flex-col items-center gap-4">
+            <EmptyState
+            title="No products found"
+            description="Recently registered products will appear here."
+              />
+
+          <Link href="/product-registration">
+          <Button
+           variant="default"
+            data-testid="link-register-first"
+            >
+            Register your first product
+          </Button>
+        </Link>
+    </div>
           </div>
         ) : (
           <div className="divide-y divide-border">

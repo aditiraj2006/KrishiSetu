@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Calendar, Package, DollarSign, MapPin, Eye } from "lucide-react";
 import { PaymentProofModal } from "./PaymentProofModal";
+import EmptyState from "./ui/EmptyState";
 
 interface RegistrationEvent {
   id: string;
@@ -149,7 +150,12 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
-            <div className="text-muted-foreground">No registration events found.</div>
+            <div className="text-muted-foreground">
+              <EmptyState
+                title="No product history found"
+                description="Registration and ownership history will appear here."
+              />
+            </div>
           ) : (
             <ol className="space-y-6">
               {events.map((event) => {
