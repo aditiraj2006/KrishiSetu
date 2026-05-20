@@ -59,7 +59,7 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       toast.success("Successfully logged in with Google!");
-      setLocation("/dashboard"); 
+      setLocation("/dashboard");
     } catch (err: any) {
       setError(err.message || "Google login failed");
       toast.error(err.message || "Google login failed");
@@ -104,21 +104,19 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex justify-center mb-2">
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "google"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "google"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("google")}
             >
               🌐 Google
             </button>
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "email"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "email"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("email")}
             >
               📧 Email
@@ -129,70 +127,90 @@ export default function LoginPage() {
         <CardContent>
           {tab === "email" && !showReset && (
             <form onSubmit={handleEmailAuth} className="space-y-4">
-                {isSignUp && (
+              {isSignUp && (
                 <Input
-                    type="text"
-                    placeholder="Name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
+                  type="text"
+                  placeholder="Name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
                 />
-                )}
-                <Input
+              )}
+              <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
+              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
                 />
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                    className="pr-10"
-                  />
 
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                <Button
-                type="submit"
-              className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
-                disabled={loading}
-                >
-                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
-                </Button>
-                {!isSignUp && (
                 <button
-                    type="button"
-                    className="text-sm text-accent hover:underline mt-2"
-                    onClick={() => setShowReset(true)}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                    Forgot password?
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-                )}
+              </div>
+              <Button
+                type="submit"
+                className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
+                disabled={loading}
+              >
+                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
+              </Button>
+              {!isSignUp && (
+                <button
+                  type="button"
+                  className="text-sm text-accent hover:underline mt-2"
+                  onClick={() => setShowReset(true)}
+                >
+                  Forgot password?
+                </button>
+              )}
             </form>
-            )}
+          )}
 
-          {tab === "google" && (
-            <Button
-              type="button"
-              variant="outline"
-             className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
-              onClick={handleGoogleLogin}
-              disabled={loading}
-            >
-              🌐 Sign {isSignUp ? "Up" : "In"} with Google
-            </Button>
+          {tab === "email" && showReset && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">
+                Reset Password
+              </h3>
+
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground hover:bg-green-700"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Password Reset Email"}
+              </Button>
+
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:underline mt-2 block"
+                onClick={() => setShowReset(false)}
+              >
+                Back to Sign In
+              </button>
+            </form>
           )}
         </CardContent>
       </Card>
