@@ -7,6 +7,7 @@ import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
+import helmet from "helmet";
 
 // If using ES modules, define __dirname:
 import { fileURLToPath } from "url";
@@ -22,6 +23,22 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   origin: true,
   credentials: true
+}));
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://*.firebaseapp.com", "https://nominatim.openstreetmap.org"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
 }));
 
 // ... existing middleware and logging
