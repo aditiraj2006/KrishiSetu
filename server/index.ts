@@ -7,6 +7,7 @@ import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
+import compression from "compression";
 
 // If using ES modules, define __dirname:
 import { fileURLToPath } from "url";
@@ -23,6 +24,8 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
+
+app.use(compression());
 
 // ... existing middleware and logging
 app.use((req, res, next) => {
