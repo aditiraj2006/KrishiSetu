@@ -9,7 +9,7 @@ export function ModeToggle() {
       onClick={() =>
         setTheme(theme === "dark" ? "light" : "dark")
       }
-      className="p-2 rounded-md border"
+      className="p-2 rounded-md border text-black border-black"
     >
       {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
     </button>
