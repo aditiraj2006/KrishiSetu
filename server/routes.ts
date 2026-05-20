@@ -4,6 +4,7 @@ import { MongoStorage, getDb } from "./storage";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
+import crypto from "crypto";
 import {
   insertUserSchema, insertProductSchema, insertTransactionSchema,
   insertQualityCheckSchema, insertScanSchema, insertOwnershipTransferSchema,
@@ -72,7 +73,21 @@ export async function registerRoutes(app: Express) {
       }
       
       // Create new user with username derived from email
-      const username = email.split('@')[0] + Math.floor(Math.random() * 1000);
+      const baseUsername = email.split("@")[0];
+
+let username = "";
+let isUnique = false;
+
+while (!isUnique) {
+  const suffix = crypto.randomUUID().slice(0, 8);
+  username = `${baseUsername}_${suffix}`;
+
+  const existingUser = await storage.getUserByUsername(username);
+
+  if (!existingUser) {
+    isUnique = true;
+  }
+}
       
       const user = await storage.createUser({
         email,
