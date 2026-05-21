@@ -4,6 +4,7 @@ import { MongoStorage, getDb } from "./storage";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
+import escapeStringRegexp from "escape-string-regexp";
 import crypto from "crypto";
 import {
   insertUserSchema, insertProductSchema, insertTransactionSchema,
@@ -163,9 +164,21 @@ while (!isUnique) {
         if (!currentUser) {
           return res.status(404).json({ message: "User not found" });
         }
-        const q = (req.query.q as string || "").trim();
-        if (!q) return res.json([]);
-        let users = await storage.searchUsers(q, 10);
+       const q = (req.query.q as string || "").trim();
+
+if (!q) {
+  return res.json([]);
+}
+
+if (q.length > 100) {
+  return res.status(400).json({
+    message: "Search query too long",
+  });
+}
+
+const escapedQuery = escapeStringRegexp(q);
+
+let users = await storage.searchUsers(escapedQuery, 10);
         users = users.filter(u => u.id !== currentUser.id);
         return res.json(users || []);
       } catch (error) {
@@ -278,7 +291,19 @@ app.patch("/api/users/:id", async (req: Request, res: Response) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const q = (req.query.q as string)?.toLowerCase() || "";
+ const rawQuery = (req.query.q as string || "").trim();
+
+if (!rawQuery) {
+  return res.json([]);
+}
+
+if (rawQuery.length > 100) {
+  return res.status(400).json({
+    message: "Search query too long",
+  });
+}
+
+const q = escapeStringRegexp(rawQuery.toLowerCase());
       console.log("Searching for products with query:", q);
       
       const db = await getDb();
@@ -1254,14 +1279,25 @@ app.post("/api/debug/form-data", upload.single("paymentProof"), async (req: Requ
   // --- Search endpoint ---
   app.get("/api/search", async (req: Request, res: Response) => {
     try {
-      const query = req.query.q as string;
-      if (!query) {
-        return res.status(400).json({ message: "Search query is required" });
-      }
-      
-      // Implement search across products
-      const results = await storage.searchProducts(query);
-      return res.json(results);
+      const query = (req.query.q as string || "").trim();
+
+if (!query) {
+  return res.status(400).json({
+    message: "Search query is required",
+  });
+}
+
+if (query.length > 100) {
+  return res.status(400).json({
+    message: "Search query too long",
+  });
+}
+
+const escapedQuery = escapeStringRegexp(query);
+
+const results = await storage.searchProducts(escapedQuery);
+
+return res.json(results);
     } catch (error) {
       console.error("Error searching:", error);
       return res.status(500).json({ message: "Failed to perform search" });

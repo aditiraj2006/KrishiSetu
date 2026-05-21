@@ -2,6 +2,7 @@ import { MongoClient, Db } from "mongodb";
 import { randomUUID } from "crypto";
 import { createHash } from "crypto";
 import { config } from "dotenv";
+import escapeStringRegexp from "escape-string-regexp";
 import { 
   User, InsertUser, 
   Product, InsertProduct, 
@@ -201,6 +202,7 @@ export class MongoStorage {
   
   async searchProducts(query: string): Promise<Product[]> {
     const db = await getDb();
+    const escapedQuery = escapeStringRegexp(query);
     return db.collection<Product>("products")
       .find({
         $or: [
@@ -210,6 +212,7 @@ export class MongoStorage {
           { farmName: { $regex: query, $options: "i" } }
         ]
       })
+      .limit(50)
       .toArray();
   }
 
@@ -276,18 +279,20 @@ export class MongoStorage {
   // Search products by owner with filters
   async searchProductsByOwner(ownerId: string, query: string): Promise<Product[]> {
     const db = await getDb();
+    const escapedQuery = escapeStringRegexp(query);
     return db.collection<Product>("products")
       .find({
         ownerId,
         $or: [
-          { name: { $regex: query, $options: "i" } },
-          { category: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { farmName: { $regex: query, $options: "i" } },
-          { batchId: { $regex: query, $options: "i" } }
+          { name: { $regex: escapedQuery, $options: "i" } },
+          { category: { $regex: escapedQuery, $options: "i" } },
+          { description: { $regex: escapedQuery, $options: "i" } },
+          { farmName: { $regex: escapedQuery, $options: "i" } },
+          { batchId: { $regex: escapedQuery, $options: "i" } }
         ]
       })
       .sort({ createdAt: -1 }) // Newest first
+      .limit(50)
       .toArray();
   }
 
@@ -568,11 +573,12 @@ export class MongoStorage {
   async searchUsers(query: string, limit = 10): Promise<any[]> {
     try {
       const db = await getDb();
+      const escapedQuery = escapeStringRegexp(query);
       const users = await db.collection("users").find({
         $or: [
-          { name: { $regex: query, $options: "i" } },
-          { username: { $regex: query, $options: "i" } },
-          { email: { $regex: query, $options: "i" } }
+          { name: { $regex: escapedQuery, $options: "i" } },
+          { username: { $regex: escapedQuery, $options: "i" } },
+          { email: { $regex: escapedQuery, $options: "i" } }
         ]
       }).limit(limit).toArray();
       
