@@ -1,32 +1,3 @@
-<<<<<<< HEAD
-import {
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  updateProfile,
-} from "firebase/auth";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { auth, googleProvider } from "@/lib/firebase";
-
-export default function LoginPage() {
-  const [tab, setTab] = useState<"email" | "google">("google");
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
-  const [showReset, setShowReset] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-=======
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,60 +5,55 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
 import { useAuth, UserRole } from "@/hooks/useAuth";
-import {
-  sendPasswordResetEmail
-} from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 // ─── Role options ─────────────────────────────────────────────────────────────
 const ROLES: { value: UserRole; label: string; icon: string; desc: string }[] = [
-  { value: 'farmer',      label: 'Farmer',      icon: '🌾', desc: 'Register & track produce' },
-  { value: 'distributor', label: 'Distributor',  icon: '🚚', desc: 'Manage supply chain'     },
-  { value: 'retailer',    label: 'Retailer',     icon: '🏪', desc: 'Source verified products' },
-  { value: 'consumer',    label: 'Consumer',     icon: '🧑', desc: 'Verify product origin'   },
+  { value: "farmer",      label: "Farmer",      icon: "🌾", desc: "Register & track produce"  },
+  { value: "distributor", label: "Distributor",  icon: "🚚", desc: "Manage supply chain"       },
+  { value: "retailer",    label: "Retailer",     icon: "🏪", desc: "Source verified products"  },
+  { value: "consumer",    label: "Consumer",     icon: "🧑", desc: "Verify product origin"     },
 ];
 
 export default function LoginPage() {
   const { loginWithGoogle, loginWithEmail, registerWithEmail, loading } = useAuth();
 
-  const [tab, setTab]               = useState<'email' | 'google'>('google');
-  const [isSignUp, setIsSignUp]     = useState(false);
+  const [tab, setTab]                   = useState<"email" | "google">("google");
+  const [isSignUp, setIsSignUp]         = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [name, setName]             = useState('');
-  const [email, setEmail]           = useState('');
-  const [password, setPassword]     = useState('');
-  const [resetEmail, setResetEmail] = useState('');
-  const [showReset, setShowReset]   = useState(false);
-  const [error, setError]           = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
->>>>>>> 537e144 ([fix] Persist role selection across Google OAuth redirect)
+  const [name, setName]                 = useState("");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
+  const [resetEmail, setResetEmail]     = useState("");
+  const [showReset, setShowReset]       = useState(false);
+  const [error, setError]               = useState<string | null>(null);
+  const [submitting, setSubmitting]     = useState(false);
 
   const [, setLocation] = useLocation();
 
   // ── Validate role selected before any auth attempt ────────────────────────
   const requireRole = (): boolean => {
     if (!selectedRole) {
-      setError('Please select your role before continuing.');
-      toast.error('Please select your role first.');
+      setError("Please select your role before continuing.");
+      toast.error("Please select your role first.");
       return false;
     }
     return true;
   };
 
   // ── Google sign-in ────────────────────────────────────────────────────────
-  // FIX: now passes selectedRole to loginWithGoogle so it is saved to
-  // sessionStorage before any redirect fires. Role survives the OAuth round-trip.
   const handleGoogleLogin = async () => {
     if (!requireRole()) return;
     setError(null);
     setSubmitting(true);
     try {
       await loginWithGoogle(selectedRole!);
-      toast.success('Successfully logged in with Google!');
-      setLocation('/dashboard');
+      toast.success("Successfully logged in with Google!");
+      setLocation("/dashboard");
     } catch (err: any) {
-      setError(err.message || 'Google login failed');
-      toast.error(err.message || 'Google login failed');
+      setError(err.message || "Google login failed");
+      toast.error(err.message || "Google login failed");
     } finally {
       setSubmitting(false);
     }
@@ -101,40 +67,19 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       if (isSignUp) {
-        if (!name.trim()) throw new Error('Name is required for sign up.');
-        // FIX: registerWithEmail now accepts role param so new users are
-        // registered with the correct role immediately
+        if (!name.trim()) throw new Error("Name is required for sign up.");
         await registerWithEmail(email, password, name, selectedRole!);
-        toast.success('Account created successfully!');
+        toast.success("Account created successfully!");
       } else {
         await loginWithEmail(email, password);
-        toast.success('Successfully logged in!');
+        toast.success("Successfully logged in!");
       }
-      setLocation('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
-      toast.error(err.message || 'Authentication failed');
-    } finally {
-<<<<<<< HEAD
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success("Successfully logged in with Google!");
       setLocation("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Google login failed");
-      toast.error(err.message || "Google login failed");
+      setError(err.message || "Authentication failed");
+      toast.error(err.message || "Authentication failed");
     } finally {
-      setLoading(false);
-=======
       setSubmitting(false);
->>>>>>> 537e144 ([fix] Persist role selection across Google OAuth redirect)
     }
   };
 
@@ -145,20 +90,17 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await sendPasswordResetEmail(auth, resetEmail);
-      toast.success('Password reset email sent!');
+      toast.success("Password reset email sent!");
       setShowReset(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email');
-      toast.error(err.message || 'Failed to send reset email');
+      setError(err.message || "Failed to send reset email");
+      toast.error(err.message || "Failed to send reset email");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Loading guard ─────────────────────────────────────────────────────────
-  // FIX: while getRedirectResult() resolves on the first mount after a Google
-  // redirect, `loading` is true. Without this guard the role-select screen
-  // flashes briefly, confusing the user into thinking login failed.
+  // ── Loading guard — shows while getRedirectResult() resolves ─────────────
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
@@ -172,18 +114,15 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background font-sans px-4">
       <Toaster />
       <h1 className="text-4xl font-bold mb-2 text-center text-foreground">
-        🌱 Sign {isSignUp ? 'Up' : 'In'} for KrishiSetu
+        🌱 Sign {isSignUp ? "Up" : "In"} for KrishiSetu
       </h1>
       <p className="mb-6 text-center text-lg text-muted-foreground">
-        {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+        {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           className="text-primary font-semibold hover:underline"
-          onClick={() => {
-            setIsSignUp(!isSignUp);
-            setError(null);
-          }}
+          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
         >
-          {isSignUp ? 'Sign In' : 'Sign Up'}
+          {isSignUp ? "Sign In" : "Sign Up"}
         </button>
       </p>
 
@@ -198,15 +137,15 @@ export default function LoginPage() {
             )}
           </p>
           <div className="grid grid-cols-2 gap-2 mb-1">
-            {ROLES.map(r => (
+            {ROLES.map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => { setSelectedRole(r.value); setError(null); }}
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm transition-colors
                   ${selectedRole === r.value
-                    ? 'border-primary bg-primary/10 text-primary font-semibold'
-                    : 'border-border text-muted-foreground hover:border-primary/50'
+                    ? "border-primary bg-primary/10 text-primary font-semibold"
+                    : "border-border text-muted-foreground hover:border-primary/50"
                   }`}
               >
                 <span className="text-xl">{r.icon}</span>
@@ -223,21 +162,21 @@ export default function LoginPage() {
           <div className="flex">
             <button
               className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === 'google'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground'
+                tab === "google"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
               }`}
-              onClick={() => setTab('google')}
+              onClick={() => setTab("google")}
             >
               🌐 Google
             </button>
             <button
               className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === 'email'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground'
+                tab === "email"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground"
               }`}
-              onClick={() => setTab('email')}
+              onClick={() => setTab("email")}
             >
               📧 Email
             </button>
@@ -256,12 +195,12 @@ export default function LoginPage() {
                 type="email"
                 placeholder="Your email"
                 value={resetEmail}
-                onChange={e => setResetEmail(e.target.value)}
+                onChange={(e) => setResetEmail(e.target.value)}
                 required
               />
               <div className="flex gap-2">
                 <Button type="submit" className="flex-1" disabled={submitting}>
-                  {submitting ? 'Sending…' : 'Send reset link'}
+                  {submitting ? "Sending…" : "Send reset link"}
                 </Button>
                 <Button
                   type="button"
@@ -276,32 +215,28 @@ export default function LoginPage() {
           )}
 
           {/* ── Google tab ── */}
-          {tab === 'google' && !showReset && (
+          {tab === "google" && !showReset && (
             <Button
               type="button"
               variant="outline"
               className="w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
               onClick={handleGoogleLogin}
               disabled={submitting || !selectedRole}
-              title={!selectedRole ? 'Select a role above first' : undefined}
+              title={!selectedRole ? "Select a role above first" : undefined}
             >
-              🌐 Sign {isSignUp ? 'Up' : 'In'} with Google
+              🌐 Sign {isSignUp ? "Up" : "In"} with Google
             </Button>
           )}
 
           {/* ── Email tab ── */}
-          {tab === 'email' && !showReset && (
+          {tab === "email" && !showReset && (
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {isSignUp && (
                 <Input
                   type="text"
                   placeholder="Name"
                   value={name}
-<<<<<<< HEAD
                   onChange={(e) => setName(e.target.value)}
-=======
-                  onChange={e => setName(e.target.value)}
->>>>>>> 537e144 ([fix] Persist role selection across Google OAuth redirect)
                   required
                 />
               )}
@@ -312,61 +247,11 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-<<<<<<< HEAD
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pr-10"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              <Button
-                type="submit"
-                className={`w-full bg-primary text-primary-foreground hover:bg-green-700`}
-                disabled={loading}
-              >
-                {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
-              </Button>
-              {!isSignUp && (
-                <button
-                  type="button"
-                  className="text-sm text-accent hover:underline mt-2"
-                  onClick={() => setShowReset(true)}
-                >
-                  Forgot password?
-                </button>
-              )}
-            </form>
-          )}
-
-          {tab === "google" && (
-            <Button
-              type="button"
-              variant="outline"
-              className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
-              onClick={handleGoogleLogin}
-              disabled={loading}
-            >
-              🌐 Sign {isSignUp ? "Up" : "In"} with Google
-            </Button>
-=======
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <Button
@@ -374,7 +259,7 @@ export default function LoginPage() {
                 className="w-full bg-primary text-primary-foreground hover:bg-green-700 transition-colors rounded-md py-2 font-semibold"
                 disabled={submitting || (isSignUp && !selectedRole)}
               >
-                {submitting ? 'Please wait…' : isSignUp ? 'Sign Up' : 'Sign In'}
+                {submitting ? "Please wait…" : isSignUp ? "Sign Up" : "Sign In"}
               </Button>
               {!isSignUp && (
                 <button
@@ -386,7 +271,6 @@ export default function LoginPage() {
                 </button>
               )}
             </form>
->>>>>>> 537e144 ([fix] Persist role selection across Google OAuth redirect)
           )}
 
         </CardContent>
