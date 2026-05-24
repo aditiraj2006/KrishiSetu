@@ -1,11 +1,11 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { getAuthHeaders } from "@/lib/authHeaders";
 import type { Product } from "@shared/schema";
+import { useEffect, useState } from "react";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 export default function ScannedProductsPage() {
   const { user } = useAuth();
@@ -52,9 +52,7 @@ export default function ScannedProductsPage() {
             : "This page is for consumers to see their scanned products."}
         </p>
         {isLoading && (
-          <div className="text-center text-muted-foreground">
-            Loading scanned products...
-          </div>
+          <div className="text-center text-muted-foreground">Loading scanned products...</div>
         )}
         {error && <div className="text-center text-red-500">{error}</div>}
         {!isLoading && !error && products.length === 0 && (
@@ -79,23 +77,18 @@ export default function ScannedProductsPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg font-semibold">
-                      {product.name}
-                    </span>
+                    <span className="text-lg font-semibold">{product.name}</span>
                     <Badge>{product.category}</Badge>
                     <Badge variant="outline">{product.status}</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground mb-1">
-                    <span className="font-medium">Quantity:</span>{" "}
-                    {product.quantity} {product.unit}
+                    <span className="font-medium">Quantity:</span> {product.quantity} {product.unit}
                   </div>
                   <div className="text-sm text-muted-foreground mb-1">
-                    <span className="font-medium">Farm:</span>{" "}
-                    {product.farmName}
+                    <span className="font-medium">Farm:</span> {product.farmName}
                   </div>
                   <div className="text-sm text-muted-foreground mb-1">
-                    <span className="font-medium">Location:</span>{" "}
-                    {product.location}
+                    <span className="font-medium">Location:</span> {product.location}
                   </div>
                   <div className="text-sm text-muted-foreground mb-1">
                     <span className="font-medium">Harvest Date:</span>{" "}
@@ -105,14 +98,12 @@ export default function ScannedProductsPage() {
                   </div>
                   {product.batchId && (
                     <div className="text-xs text-muted-foreground">
-                      <span className="font-medium">Batch ID:</span>{" "}
-                      {product.batchId}
+                      <span className="font-medium">Batch ID:</span> {product.batchId}
                     </div>
                   )}
                   {product.blockchainHash && (
                     <div className="text-xs text-muted-foreground break-all">
-                      <span className="font-medium">Blockchain Hash:</span>{" "}
-                      {product.blockchainHash}
+                      <span className="font-medium">Blockchain Hash:</span> {product.blockchainHash}
                     </div>
                   )}
                 </div>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter"; // Wouter hook
 import "./LandingPage.css";
 import { ModeToggle } from "../components/mode-toggle";
+
 const LandingPage = () => {
   const [, setLocation] = useLocation(); // Hook for navigation
 
@@ -10,22 +11,22 @@ const LandingPage = () => {
   };
   const [showButton, setShowButton] = useState(false);
 
-useEffect(() => {
-  const handleScroll = () => {
-    setShowButton(window.scrollY > 100);
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowButton(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
-
-  window.addEventListener("scroll", handleScroll);
-
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
-
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-};
 
   const navigateTo = (path: string) => {
     setLocation(path);
@@ -48,13 +49,9 @@ const scrollToTop = () => {
           </div>
           </div>
         <ul className="nav-links">
-          
           <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
           <li onClick={() => navigateTo("/about")}>About</li>
           <li onClick={() => navigateTo("/contact")}>Contact</li>
-          
-          
-          
         </ul>
         <ModeToggle />
       </nav>
@@ -111,24 +108,31 @@ const scrollToTop = () => {
         <div className="card">
           <img src="/tracking-icon.png" alt="Tracking" />
           <h3>Real-Time Tracking</h3>
-          <p>Monitor your produce every step of the way with live GPS and supply chain visibility.</p>
+          <p>
+            Monitor your produce every step of the way with live GPS and supply chain visibility.
+          </p>
         </div>
         <div className="card">
           <img src="/insights-icon.png" alt="Insights" />
           <h3>Smart Insights</h3>
-          <p>Leverage data-driven analytics to reduce losses and optimize farm-to-market efficiency.</p>
+          <p>
+            Leverage data-driven analytics to reduce losses and optimize farm-to-market efficiency.
+          </p>
         </div>
         <div className="card">
           <img src="/deliver-icon.png" alt="Delivery" />
           <h3>Seamless Deliveries</h3>
-          <p>Ensure fast, efficient, and cost-effective deliveries with optimized logistics solutions.</p>
+          <p>
+            Ensure fast, efficient, and cost-effective deliveries with optimized logistics
+            solutions.
+          </p>
         </div>
       </div>
       {showButton && (
-  <button className="back-to-top" onClick={scrollToTop}>
-    ↑
-  </button>
-)}
+        <button className="back-to-top" onClick={scrollToTop}>
+          ↑
+        </button>
+      )}
     </div>
   );
 };

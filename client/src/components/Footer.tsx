@@ -1,24 +1,14 @@
+import { Github, Leaf, Linkedin, Mail, MapPin, Phone, Twitter } from "lucide-react";
 import React from "react";
 import { Link } from "wouter";
-import {
-  Github,
-  Linkedin,
-  Twitter,
-  Mail,
-  Phone,
-  MapPin,
-  Leaf
-} from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer className="relative overflow-hidden border-t border-border/50 mt-auto w-full bg-gradient-to-br from-white via-green-50/40 to-emerald-100/30 dark:from-[#07110a] dark:via-[#0b1b12] dark:to-[#102017]">
-
       {/* Background Glow Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-
         <div className="absolute top-0 left-0 w-[350px] h-[350px] bg-green-400/10 blur-3xl rounded-full" />
 
         <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-emerald-500/10 blur-3xl rounded-full" />
@@ -27,17 +17,11 @@ export function Footer() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-12 pb-6">
-
         {/* Main Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-
           {/* Brand Section */}
           <div className="flex flex-col space-y-4">
-
-            <Link
-              href="/"
-              className="flex items-center gap-3 cursor-pointer w-fit group"
-            >
+            <Link href="/" className="flex items-center gap-3 cursor-pointer w-fit group">
               <div className="p-2.5 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20 group-hover:scale-105 transition-transform duration-300">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
@@ -48,20 +32,16 @@ export function Footer() {
             </Link>
 
             <p className="text-sm leading-6 text-muted-foreground max-w-xs">
-              Empowering farmers with transparent supply chain visibility and smart agricultural tracking from farm to market.
+              Empowering farmers with transparent supply chain visibility and smart agricultural
+              tracking from farm to market.
             </p>
-
           </div>
 
           {/* Quick Links */}
           <div className="flex flex-col space-y-4">
-
-            <h3 className="text-base font-semibold text-foreground">
-              Quick Links
-            </h3>
+            <h3 className="text-base font-semibold text-foreground">Quick Links</h3>
 
             <ul className="space-y-2 text-sm">
-
               {[
                 ["Dashboard", "/dashboard"],
                 ["How It Works", "/HowItWorks"],
@@ -108,15 +88,10 @@ export function Footer() {
 
           {/* Contact */}
           <div className="flex flex-col space-y-4">
-
-            <h3 className="text-base font-semibold text-foreground">
-              Contact
-            </h3>
+            <h3 className="text-base font-semibold text-foreground">Contact</h3>
 
             <ul className="space-y-3 text-sm text-muted-foreground">
-
               <li className="flex items-start gap-3 group">
-
                 <div className="mt-0.5 p-1.5 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                   <Mail className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
@@ -130,7 +105,6 @@ export function Footer() {
               </li>
 
               <li className="flex items-start gap-3 group">
-
                 <div className="mt-0.5 p-1.5 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                   <Phone className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
@@ -139,32 +113,24 @@ export function Footer() {
               </li>
 
               <li className="flex items-start gap-3 group">
-
                 <div className="mt-0.5 p-1.5 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                   <MapPin className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
 
-                <span className="leading-relaxed">
-                  Gurugram, India
-                </span>
+                <span className="leading-relaxed">Gurugram, India</span>
               </li>
-
             </ul>
           </div>
 
           {/* Open Source */}
           <div className="flex flex-col space-y-4">
-
-            <h3 className="text-base font-semibold text-foreground">
-              Open Source
-            </h3>
+            <h3 className="text-base font-semibold text-foreground">Open Source</h3>
 
             <p className="text-sm text-muted-foreground leading-6">
               KrishiSetu is open source and community driven. Contributions are always welcome 🌱
             </p>
 
             <div className="flex gap-3">
-
               {[
                 {
                   icon: Github,
@@ -219,7 +185,6 @@ export function Footer() {
                   <Icon className="relative z-10 w-4 h-4 text-muted-foreground group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-300" />
                 </a>
               ))}
-
             </div>
           </div>
         </div>
@@ -229,13 +194,11 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-
           <p className="text-sm text-muted-foreground text-center md:text-left">
             © {currentYear} KrishiSetu. Built for transparent agriculture 🌾
           </p>
 
           <div className="flex gap-5 text-sm">
-
             <span className="cursor-pointer text-muted-foreground hover:text-green-600 dark:hover:text-green-400 transition-colors">
               Privacy Policy
             </span>
@@ -243,7 +206,6 @@ export function Footer() {
             <span className="cursor-pointer text-muted-foreground hover:text-green-600 dark:hover:text-green-400 transition-colors">
               Terms of Service
             </span>
-
           </div>
         </div>
       </div>
