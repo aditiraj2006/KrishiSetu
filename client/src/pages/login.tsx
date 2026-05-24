@@ -60,8 +60,13 @@ export default function LoginPage() {
       toast.success("Successfully logged in with Google!");
       setLocation("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Google login failed");
-      toast.error(err.message || "Google login failed");
+      if (err.code === 'auth/unauthorized-domain') {
+        setError('Google Sign-In is not available on this domain. Please use Email login instead.');
+        toast.error('Google Sign-In is not available on this domain. Please use Email login instead.');
+      } else {
+        setError('Sign-in failed. Please try again.');
+        toast.error('Sign-in failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
