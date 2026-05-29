@@ -12,10 +12,16 @@ export function LoadingStates() {
           <div className="loading-pulse w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Sprout className="w-8 h-8 text-primary" />
           </div>
-          <p className="text-foreground font-medium mb-2" data-testid="text-processing">
+          <p
+            className="text-foreground font-medium mb-2"
+            data-testid="text-processing"
+          >
             Processing on Blockchain
           </p>
-          <p className="text-sm text-muted-foreground" data-testid="text-wait-message">
+          <p
+            className="text-sm text-muted-foreground"
+            data-testid="text-wait-message"
+          >
             This may take a few moments...
           </p>
         </CardContent>

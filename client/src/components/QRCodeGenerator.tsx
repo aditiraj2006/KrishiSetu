@@ -21,7 +21,9 @@ export function QRCodeGenerator({ product }: QRCodeGeneratorProps) {
   };
 
   const handleDownload = () => {
-    const canvas = document.getElementById("product-qr-canvas") as HTMLCanvasElement;
+    const canvas = document.getElementById(
+      "product-qr-canvas",
+    ) as HTMLCanvasElement;
     if (canvas) {
       const url = canvas.toDataURL("image/png");
       const link = document.createElement("a");
