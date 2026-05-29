@@ -1,5 +1,5 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { getAuth } from "firebase/auth";
+import { QueryClient, type QueryFunction } from "@tanstack/react-query";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -12,15 +12,12 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ) {
-  const firebaseUid = getAuth().currentUser?.uid;
-
-  const allHeaders = {
+  const allHeaders = await getAuthHeaders({
     "Content-Type": "application/json",
-    ...(firebaseUid ? { "firebase-uid": firebaseUid } : {}),
     ...headers,
-  };
+  });
 
   const response = await fetch(url, {
     method,
@@ -36,13 +33,13 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers = await getAuthHeaders();
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

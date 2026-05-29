@@ -1,23 +1,21 @@
-import { useRef, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useCreateProduct } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
 import { insertProductSchema } from "@shared/schema";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Camera as CameraIcon,
+  Languages,
+  Loader2,
+  MapPin,
+  Plus,
+  PlusCircle,
+  Sparkles,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -26,17 +24,32 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { LoadingStates } from "./LoadingStates";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, X, Plus, MapPin, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useCreateProduct } from "@/hooks/useProducts";
+import { LoadingStates } from "./LoadingStates";
 
 // Create a stricter schema with required fields
 const formSchema = insertProductSchema.extend({
   harvestDate: z.string().min(1, "Harvest date is required"),
-  quantity: z.string().min(1, "Quantity is required"),
-  name: z.string().min(1, "Product name is required"),
+  quantity: z
+    .string()
+    .trim()
+    .min(1, "Quantity is required")
+    .refine((value) => Number(value) > 0, "Quantity must be a positive number"),
+  name: z.string().trim().min(1, "Product name is required"),
   category: z.string().min(1, "Category is required"),
-  farmName: z.string().min(1, "Farm name is required"),
+  farmName: z.string().trim().min(1, "Farm name is required"),
   location: z.string().min(1, "Location is required"),
   unit: z.string().min(1, "Unit is required"),
   price: z.string().min(1, "Product price is required"), // <-- add this
@@ -47,12 +60,7 @@ type FormData = z.infer<typeof formSchema>;
 
 const categories = ["vegetables", "fruits", "grains", "dairy", "meat"];
 
-const certificationOptions = [
-  "Organic",
-  "Non-GMO",
-  "Fair Trade",
-  "Sustainable",
-];
+const certificationOptions = ["Organic", "Non-GMO", "Fair Trade", "Sustainable"];
 
 const units = ["kg", "lbs", "units", "boxes"];
 
@@ -69,21 +77,91 @@ interface LocationSuggestion {
   osm_id?: number;
 }
 
-export function ProductRegistrationForm({
-  isVisible,
-  onClose,
-}: ProductRegistrationFormProps) {
+export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrationFormProps) {
   const { user } = useAuth();
   const { mutate: createProduct, isPending } = useCreateProduct();
   const { toast } = useToast();
 
   const formRef = useRef<HTMLDivElement>(null);
   const [locationQuery, setLocationQuery] = useState("");
-  const [locationSuggestions, setLocationSuggestions] = useState<
-    LocationSuggestion[]
-  >([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [qualityAnalysis, setQualityAnalysis] = useState<{
+    score: number;
+    explanation: string;
+  } | null>(null);
+
+  const indianLanguages = [
+    { name: "Hindi", code: "hi" },
+    { name: "Marathi", code: "mr" },
+    { name: "Gujarati", code: "gu" },
+    { name: "Tamil", code: "ta" },
+    { name: "Telugu", code: "te" },
+    { name: "Kannada", code: "kn" },
+    { name: "Bengali", code: "bn" },
+    { name: "Punjabi", code: "pa" },
+  ];
+
+  const handleEnhanceDescription = async () => {
+    const description = form.getValues("description");
+    if (!description) {
+      toast({
+        title: "Error",
+        description: "Please enter a description first",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const response = await fetch("/api/ai/grammar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: description }),
+      });
+      const data = await response.json();
+      if (data.improvedText) {
+        form.setValue("description", data.improvedText);
+        toast({
+          title: "Enhanced!",
+          description: "Description improved using AI",
+        });
+      }
+    } catch (error) {
+      console.error("Enhancement error:", error);
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
+  const handleTranslate = async (language: string) => {
+    const description = form.getValues("description");
+    if (!description) return;
+    setIsTranslating(true);
+    try {
+      const response = await fetch("/api/ai/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: description, targetLanguage: language }),
+      });
+      const data = await response.json();
+      if (data.translatedText) {
+        form.setValue("description", data.translatedText);
+        toast({
+          title: "Translated!",
+          description: `Description translated to ${language}`,
+        });
+      }
+    } catch (error) {
+      console.error("Translation error:", error);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   useEffect(() => {
     if (isVisible && formRef.current) {
@@ -111,8 +189,8 @@ export function ProductRegistrationForm({
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query
-        )}&addressdetails=1&limit=5`
+          query,
+        )}&addressdetails=1&limit=5`,
       );
       const data = await response.json();
       setLocationSuggestions(data);
@@ -125,6 +203,45 @@ export function ProductRegistrationForm({
       });
     } finally {
       setIsLoadingSuggestions(false);
+    }
+  };
+
+  const handleAnalyzeQuality = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsAnalyzing(true);
+    setQualityAnalysis(null);
+
+    try {
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        try {
+          const response = await fetch("/api/ai/analyze-quality", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64String }),
+          });
+          const data = await response.json();
+          if (data.score) {
+            setQualityAnalysis(data);
+            toast({
+              title: "Analysis Complete!",
+              description: `Quality Score: ${data.score}/10`,
+            });
+          }
+        } catch (error) {
+          console.error("Analysis API error:", error);
+        } finally {
+          setIsAnalyzing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("File reading error:", error);
+      setIsAnalyzing(false);
     }
   };
 
@@ -142,7 +259,7 @@ export function ProductRegistrationForm({
       certifications: [],
       status: "registered",
       ownerId: user?.id || "",
-      price:"",
+      price: "",
     },
   });
 
@@ -159,12 +276,12 @@ export function ProductRegistrationForm({
     try {
       // Prepare the data in the format expected by the API
       const productData = {
-        name: data.name,
+        name: data.name.trim(),
         category: data.category,
         description: data.description || "",
-        quantity: String(data.quantity),
+        quantity: String(data.quantity).trim(),
         unit: data.unit,
-        farmName: data.farmName,
+        farmName: data.farmName.trim(),
         location: data.location,
         harvestDate: new Date(data.harvestDate),
         certifications: data.certifications,
@@ -188,9 +305,7 @@ export function ProductRegistrationForm({
           onError: (error: any) => {
             toast({
               title: "Registration Failed",
-              description:
-                error.message ||
-                "Failed to register product. Please try again.",
+              description: error.message || "Failed to register product. Please try again.",
               variant: "destructive",
             });
           },
@@ -266,16 +381,11 @@ export function ProductRegistrationForm({
 
           <CardContent className="p-6">
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Basic Product Information */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-foreground">
-                      Product Information
-                    </h4>
+                    <h4 className="font-medium text-foreground">Product Information</h4>
 
                     <FormField
                       control={form.control}
@@ -302,11 +412,7 @@ export function ProductRegistrationForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Category *</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            required
-                          >
+                          <Select onValueChange={field.onChange} value={field.value} required>
                             <FormControl>
                               <SelectTrigger data-testid="select-category">
                                 <SelectValue placeholder="Select category" />
@@ -315,8 +421,7 @@ export function ProductRegistrationForm({
                             <SelectContent>
                               {categories.map((category) => (
                                 <SelectItem key={category} value={category}>
-                                  {category.charAt(0).toUpperCase() +
-                                    category.slice(1)}
+                                  {category.charAt(0).toUpperCase() + category.slice(1)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -331,7 +436,45 @@ export function ProductRegistrationForm({
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description (Optional)</FormLabel>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Description (Optional)</FormLabel>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-[10px] gap-1 text-primary hover:text-primary"
+                                onClick={handleEnhanceDescription}
+                                disabled={isEnhancing}
+                              >
+                                {isEnhancing ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Sparkles className="w-3 h-3" />
+                                )}
+                                AI Enhance
+                              </Button>
+                              <Select onValueChange={handleTranslate} disabled={isTranslating}>
+                                <SelectTrigger className="h-7 text-[10px] w-24">
+                                  <div className="flex items-center gap-1">
+                                    {isTranslating ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
+                                    ) : (
+                                      <Languages className="w-3 h-3" />
+                                    )}
+                                    <span>Translate</span>
+                                  </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {indianLanguages.map((lang) => (
+                                    <SelectItem key={lang.code} value={lang.name}>
+                                      {lang.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                           <FormControl>
                             <Textarea
                               placeholder="Brief description of the product..."
@@ -356,6 +499,8 @@ export function ProductRegistrationForm({
                             <FormControl>
                               <Input
                                 type="number"
+                                min="0.01"
+                                step="any"
                                 placeholder="Amount"
                                 {...field}
                                 data-testid="input-quantity"
@@ -372,11 +517,7 @@ export function ProductRegistrationForm({
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Unit *</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              required
-                            >
+                            <Select onValueChange={field.onChange} value={field.value} required>
                               <FormControl>
                                 <SelectTrigger data-testid="select-unit">
                                   <SelectValue />
@@ -421,9 +562,7 @@ export function ProductRegistrationForm({
 
                   {/* Origin & Location */}
                   <div className="space-y-4">
-                    <h4 className="font-medium text-foreground">
-                      Origin Information
-                    </h4>
+                    <h4 className="font-medium text-foreground">Origin Information</h4>
 
                     <FormField
                       control={form.control}
@@ -470,11 +609,7 @@ export function ProductRegistrationForm({
                           <div className="absolute z-10 w-full mt-1 bg-popover text-popover-foreground shadow-md rounded-md border max-h-60 overflow-y-auto">
                             {locationSuggestions.map((suggestion, index) => (
                               <div
-                                key={
-                                  suggestion.place_id ||
-                                  suggestion.osm_id ||
-                                  index
-                                }
+                                key={suggestion.place_id || suggestion.osm_id || index}
                                 className="px-4 py-2 cursor-pointer hover:bg-accent"
                                 onClick={() => handleLocationSelect(suggestion)}
                               >
@@ -484,9 +619,7 @@ export function ProductRegistrationForm({
                           </div>
                         )}
                       </div>
-                      <FormMessage>
-                        {form.formState.errors.location?.message}
-                      </FormMessage>
+                      <FormMessage>{form.formState.errors.location?.message}</FormMessage>
                     </FormItem>
 
                     <FormField
@@ -516,9 +649,7 @@ export function ProductRegistrationForm({
                   name="certifications"
                   render={() => (
                     <FormItem>
-                      <FormLabel className="text-base">
-                        Certifications (Optional)
-                      </FormLabel>
+                      <FormLabel className="text-base">Certifications (Optional)</FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {certificationOptions.map((certification) => (
                           <FormField
@@ -533,20 +664,14 @@ export function ProductRegistrationForm({
                                 >
                                   <FormControl>
                                     <Checkbox
-                                      checked={field.value?.includes(
-                                        certification
-                                      )}
+                                      checked={field.value?.includes(certification)}
                                       onCheckedChange={(checked) => {
                                         return checked
-                                          ? field.onChange([
-                                              ...field.value,
-                                              certification,
-                                            ])
+                                          ? field.onChange([...field.value, certification])
                                           : field.onChange(
                                               field.value?.filter(
-                                                (value) =>
-                                                  value !== certification
-                                              )
+                                                (value) => value !== certification,
+                                              ),
                                             );
                                       }}
                                       data-testid={`checkbox-${certification
@@ -567,6 +692,57 @@ export function ProductRegistrationForm({
                     </FormItem>
                   )}
                 />
+
+                {/* AI Quality Inspector */}
+                <div className="space-y-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-primary flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" />
+                        AI Quality Inspector (Beta)
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Upload a photo of your produce for instant AI quality grading
+                      </p>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAnalyzeQuality}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={isAnalyzing}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="gap-2"
+                        disabled={isAnalyzing}
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <CameraIcon className="w-4 h-4" />
+                        )}
+                        {isAnalyzing ? "Analyzing..." : "Take Photo"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {qualityAnalysis && (
+                    <div className="mt-3 p-3 bg-background rounded border border-primary/10 animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold">Quality Score:</span>
+                        <span className="text-lg font-bold text-primary">
+                          {qualityAnalysis.score}/10
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {qualityAnalysis.explanation}
+                      </p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Submit Actions */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-border">
