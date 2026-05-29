@@ -1,5 +1,5 @@
 // pages/Contact.tsx
-import React from "react";
+import type React from "react";
 import { Link } from "wouter";
 import "./contact.css";
 
@@ -7,7 +7,10 @@ const Contact: React.FC = () => {
   return (
     <div className="contact-container">
       <h1>Get in Touch</h1>
-      <p>We’d love to hear from you! Reach out with your questions or feedback and we’ll respond as soon as possible.</p>
+      <p>
+        We’d love to hear from you! Reach out with your questions or feedback and we’ll respond as
+        soon as possible.
+      </p>
 
       <div className="contact-cards">
         <div className="contact-card">
@@ -33,11 +36,15 @@ const Contact: React.FC = () => {
           <input type="text" placeholder="Your Name" required />
           <input type="email" placeholder="Your Email" required />
           <textarea placeholder="Your Message" rows={5} required></textarea>
-          <button type="submit">Send Message</button>
+          <button type="submit" className="primary-btn">
+            Send Message
+          </button>
         </form>
       </div>
 
-      <Link href="/" className="back-link">← Back </Link>
+      <Link href="/" className="back-link">
+        ← Back{" "}
+      </Link>
     </div>
   );
 };

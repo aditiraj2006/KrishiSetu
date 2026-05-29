@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Shield, User, Calendar, ArrowUpRight } from 'lucide-react';
-import { format } from 'date-fns';
-import EmptyState from './ui/EmptyState';
+import { format } from "date-fns";
+import { ArrowUpRight, Calendar, Shield, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import CopyableText from "./ui/CopyableText";
+import EmptyState from "./ui/EmptyState";
 
 interface ProductOwner {
   _id: string;
@@ -37,68 +38,53 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
       setIsLoading(true);
       try {
         const response = await fetch(`/api/products/${productId}/owners`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch ownership history');
+          throw new Error("Failed to fetch ownership history");
         }
-        
+
         const data = await response.json();
         setOwners(data);
-        
+
         // Verify the ownership chain
         const verificationResponse = await fetch(`/api/products/${productId}/verify-ownership`);
         const verificationData = await verificationResponse.json();
-        
+
         if (!verificationData.ownershipValid) {
           toast({
             title: "Warning: Ownership Chain Compromised",
-            description: "The blockchain validation has detected integrity issues with this product's ownership history.",
-            variant: "destructive"
+            description:
+              "The blockchain validation has detected integrity issues with this product's ownership history.",
+            variant: "destructive",
           });
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to load ownership history');
-        console.error('Error fetching ownership history:', err);
+        setError(err.message || "Failed to load ownership history");
+        console.error("Error fetching ownership history:", err);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchOwnershipHistory();
   }, [productId, toast]);
-  
- if (isLoading) {
-  return (
-    <div className="space-y-4">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Card key={i} className="overflow-hidden">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-4">
-              <Skeleton className="w-10 h-10 rounded-full" />
 
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-5 w-32" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-
-                <Skeleton className="h-4 w-24" />
-
-                <div className="flex items-center gap-4">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-6 w-24 rounded-full" />
-                </div>
-              </div>
-
-              <Skeleton className="h-6 w-24 rounded-full" />
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Skeleton className="w-10 h-10 rounded-full" />
+            <div className="flex-1">
+              <Skeleton className="h-5 w-32 mb-2" />
+              <Skeleton className="h-4 w-48" />
             </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-  
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="p-4 border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900/50 rounded-md text-center">
@@ -106,7 +92,7 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
       </div>
     );
   }
-  
+
   if (owners.length === 0) {
     return (
       <div className="text-center py-6">
@@ -114,19 +100,23 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
         <EmptyState
           title="No ownership history found"
           description="Ownership records will appear here once available."
-      />
+        />
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-4">
       {owners.map((owner, index) => (
-        <Card key={owner._id} className={`overflow-hidden ${index === owners.length - 1 ? 'border-primary/50' : ''}`}>
+        <Card
+          key={owner._id}
+          className={`overflow-hidden ${index === owners.length - 1 ? "border-primary/50" : ""}`}
+        >
           <CardContent className="p-4 relative">
             <div className="flex items-start gap-4">
-              <div className={`w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center 
-                ${index === owners.length - 1 ? 'bg-primary text-primary-foreground' : 'text-primary'}`}
+              <div
+                className={`w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center 
+                ${index === owners.length - 1 ? "bg-primary text-primary-foreground" : "text-primary"}`}
               >
                 <User className="w-5 h-5" />
               </div>
@@ -141,10 +131,10 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {format(new Date(owner.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(owner.createdAt), "MMM d, yyyy")}
                   </span>
-                  <Badge 
-                    variant={index === 0 ? "default" : "outline"} 
+                  <Badge
+                    variant={index === 0 ? "default" : "outline"}
                     className={index === 0 ? "bg-primary" : ""}
                   >
                     {owner.transferType.charAt(0).toUpperCase() + owner.transferType.slice(1)}
@@ -152,12 +142,12 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
                 </div>
               </div>
               <div className="text-right">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  Block #{owner.blockNumber}
-                </Badge>
+                <div className="mt-1">
+                  <CopyableText text={`Block #${owner.blockNumber}`} />
+                </div>
               </div>
             </div>
-            
+
             {/* Show connection arrows between blocks */}
             {index < owners.length - 1 && (
               <div className="h-8 w-0.5 bg-border absolute left-7 bottom-0 transform translate-x-1/2 translate-y-full">
