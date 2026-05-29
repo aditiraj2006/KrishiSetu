@@ -4,21 +4,21 @@
   max-width: 800px;
   margin: 40px auto;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   color: #333;
   text-align: left;
 }
 
 h1 {
   font-size: 15px;
-  color: #4CAF50;
+  color: #4caf50;
   margin-bottom: 20px;
   text-align: center;
   animation: fadeInUp 1s ease forwards;
 }
 
-h1.fade-in{
-    font-size: 50px;
+h1.fade-in {
+  font-size: 50px;
 }
 
 p {
@@ -39,7 +39,7 @@ section {
 section h2 {
   font-size: 1.5rem;
   margin-bottom: 10px;
-  color: #388E3C;
+  color: #388e3c;
 }
 
 section p {
@@ -55,11 +55,13 @@ ul {
 ul li {
   margin-bottom: 10px;
   font-size: 1rem;
-  transition: transform 0.3s ease, color 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
 }
 
 ul li:hover {
-  color: #4CAF50;
+  color: #4caf50;
   transform: translateX(5px);
 }
 
@@ -67,13 +69,15 @@ ul li:hover {
   display: inline-block;
   margin-top: 20px;
   text-decoration: none;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: bold;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .back-link:hover {
-  color: #388E3C;
+  color: #388e3c;
   transform: scale(1.05);
 }
 

@@ -1,7 +1,11 @@
 // src/components/DistributorProductForm.tsx
-import React, { useState, useEffect } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,10 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DistributorProductFormProps {
   isVisible: boolean;
@@ -44,9 +46,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
   // Initialize form fields with productData if available
   const [name, setName] = useState(productData?.name || "");
   const [category, setCategory] = useState(productData?.category || "");
-  const [description, setDescription] = useState(
-    productData?.description || ""
-  );
+  const [description, setDescription] = useState(productData?.description || "");
   const [quantity, setQuantity] = useState(productData?.quantity || "");
   const [unit, setUnit] = useState(productData?.unit || "");
   const [distributorName, setDistributorName] = useState("");
@@ -69,7 +69,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
 
   const toggleCertification = (cert: string) => {
     setCertifications((prev) =>
-      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert]
+      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert],
     );
   };
 
@@ -193,27 +193,23 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-start justify-center p-6 bg-black bg-opacity-50 overflow-y-auto"
       onClick={handleOverlayClick}
     >
-      <div 
+      <div
         className="mt-12 bg-white p-6 rounded-lg shadow-md max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4">
-          Distributor Product Registration
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Distributor Product Registration</h2>
 
         {productData && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Existing Product:</strong> {productData.name} (
-              {productData.category})
+              <strong>Existing Product:</strong> {productData.name} ({productData.category})
             </p>
             <p className="text-sm text-blue-800">
-              <strong>Quantity:</strong> {productData.quantity}{" "}
-              {productData.unit}
+              <strong>Quantity:</strong> {productData.quantity} {productData.unit}
             </p>
           </div>
         )}
@@ -314,9 +310,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={(e) =>
-                      setPaymentProofFile(e.target.files?.[0] || null)
-                    }
+                    onChange={(e) => setPaymentProofFile(e.target.files?.[0] || null)}
                     required
                   />
                   {paymentProofFile && (
@@ -368,9 +362,7 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                       type="checkbox"
                       id="cert1"
                       checked={certifications.includes("Certified Distributor")}
-                      onChange={() =>
-                        toggleCertification("Certified Distributor")
-                      }
+                      onChange={() => toggleCertification("Certified Distributor")}
                     />
                     <label htmlFor="cert1" className="ml-2">
                       Certified Distributor
@@ -380,12 +372,8 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                     <input
                       type="checkbox"
                       id="cert2"
-                      checked={certifications.includes(
-                        "Temperature Controlled"
-                      )}
-                      onChange={() =>
-                        toggleCertification("Temperature Controlled")
-                      }
+                      checked={certifications.includes("Temperature Controlled")}
+                      onChange={() => toggleCertification("Temperature Controlled")}
                     />
                     <label htmlFor="cert2" className="ml-2">
                       Temperature Controlled
@@ -395,12 +383,8 @@ export const DistributorProductForm: React.FC<DistributorProductFormProps> = ({
                     <input
                       type="checkbox"
                       id="cert3"
-                      checked={certifications.includes(
-                        "Eco-Friendly Packaging"
-                      )}
-                      onChange={() =>
-                        toggleCertification("Eco-Friendly Packaging")
-                      }
+                      checked={certifications.includes("Eco-Friendly Packaging")}
+                      onChange={() => toggleCertification("Eco-Friendly Packaging")}
                     />
                     <label htmlFor="cert3" className="ml-2">
                       Eco-Friendly Packaging
