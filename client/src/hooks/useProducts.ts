@@ -85,7 +85,7 @@ export function useStats(userId?: string) {
         averageRating?: number;
       }>;
     },
-    enabled: !!userId || !userId, // Always enabled for global stats, but userId required for user stats
+    enabled: userId !== undefined,
   });
 }
 
@@ -137,7 +137,7 @@ export function useUserProducts(user?: any) {
 
       return Array.from(productMap.values());
     },
-    enabled: !!user || !user, // Always enabled
+    enabled: Boolean(user),
   });
 }
 export function useProductJourney(id: string) {
