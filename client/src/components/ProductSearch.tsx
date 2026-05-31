@@ -1,18 +1,19 @@
 // components/ProductSearch.tsx
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
-import { Search, Loader2, X, Package, Calendar, MapPin } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
-import { getAuthHeaders } from "@/lib/authHeaders";
+
 import type { Product } from "@shared/schema";
+import { Calendar, Loader2, MapPin, Package, Search, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 interface ProductSearchProps {
   onProductSelect: (product: Product) => void;
   placeholder?: string;
   selectedProduct?: Product | null;
   onClearSelection?: () => void;
-  searchEndpoint?: string; 
+  searchEndpoint?: string;
   ownerId?: string;
 }
 
@@ -24,7 +25,7 @@ export function ProductSearch({
   searchEndpoint,
   ownerId,
 }: ProductSearchProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -42,8 +43,8 @@ export function ProductSearch({
         setHighlightedIndex(-1);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // Keyboard navigation
@@ -51,71 +52,74 @@ export function ProductSearch({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
       switch (e.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex(prev => prev < results.length - 1 ? prev + 1 : prev);
+          setHighlightedIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
-          setHighlightedIndex(prev => prev > 0 ? prev - 1 : prev);
+          setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
           break;
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           if (highlightedIndex >= 0 && results[highlightedIndex]) {
             handleProductSelect(results[highlightedIndex]);
           }
           break;
-        case 'Escape':
+        case "Escape":
           e.preventDefault();
           setIsOpen(false);
           setHighlightedIndex(-1);
           break;
       }
     };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, results, highlightedIndex]);
 
   // Search logic
-  const searchProducts = useCallback(async (searchQuery: string) => {
-    if (!searchQuery.trim()) {
-      setResults([]);
-      setIsOpen(false);
-      return;
-    }
-    setIsSearching(true);
-    setSearchError(null);
-    try {
-      let url: string;
-      if (searchEndpoint) {
-        url = `${searchEndpoint}?q=${encodeURIComponent(searchQuery)}`;
-      } else if (ownerId) {
-        url = `/api/user/products/owned?q=${encodeURIComponent(searchQuery)}&ownerId=${ownerId}`;
-      } else {
+  const searchProducts = useCallback(
+    async (searchQuery: string) => {
+      if (!searchQuery.trim()) {
         setResults([]);
         setIsOpen(false);
-        setIsSearching(false);
         return;
       }
-      const headers = await getAuthHeaders();
-      const response = await fetch(url, { headers });
-      if (!response.ok) throw new Error('Failed to search products');
-      const data = await response.json();
-      setResults(data);
-      setHighlightedIndex(-1);
-      setIsOpen(true);
-    } catch (error) {
-      console.error('Product search failed:', error);
-      setSearchError('Failed to search products');
-      toast({
-        title: 'Search Error',
-        description: 'Failed to search products',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  }, [ownerId, toast, searchEndpoint]);
+      setIsSearching(true);
+      setSearchError(null);
+      try {
+        let url: string;
+        if (searchEndpoint) {
+          url = `${searchEndpoint}?q=${encodeURIComponent(searchQuery)}`;
+        } else if (ownerId) {
+          url = `/api/user/products/owned?q=${encodeURIComponent(searchQuery)}&ownerId=${ownerId}`;
+        } else {
+          setResults([]);
+          setIsOpen(false);
+          setIsSearching(false);
+          return;
+        }
+        const headers = await getAuthHeaders();
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error("Failed to search products");
+        const data = await response.json();
+        setResults(data);
+        setHighlightedIndex(-1);
+        setIsOpen(true);
+      } catch (error) {
+        console.error("Product search failed:", error);
+        setSearchError("Failed to search products");
+        toast({
+          title: "Search Error",
+          description: "Failed to search products",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [ownerId, toast, searchEndpoint],
+  );
 
   // Debounced search
   useEffect(() => {
@@ -132,14 +136,14 @@ export function ProductSearch({
 
   const handleProductSelect = (product: Product) => {
     onProductSelect(product);
-    setQuery('');
+    setQuery("");
     setResults([]);
     setIsOpen(false);
     setHighlightedIndex(-1);
   };
 
   const clearSearch = () => {
-    setQuery('');
+    setQuery("");
     setResults([]);
     setIsOpen(false);
     setHighlightedIndex(-1);
@@ -153,7 +157,7 @@ export function ProductSearch({
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
     const parts = text.split(regex);
     return parts.map((part, index) =>
       regex.test(part) ? (
@@ -162,7 +166,7 @@ export function ProductSearch({
         </span>
       ) : (
         part
-      )
+      ),
     );
   };
 
@@ -211,15 +215,17 @@ export function ProductSearch({
                     aria-selected={highlightedIndex === index}
                     className={`relative flex items-start p-3 cursor-pointer transition-colors ${
                       highlightedIndex === index
-                        ? 'bg-accent text-accent-foreground'
-                        : 'hover:bg-muted'
+                        ? "bg-accent text-accent-foreground"
+                        : "hover:bg-muted"
                     }`}
                     onClick={() => handleProductSelect(product)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <Package className="h-5 w-5 mr-3 mt-1 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{highlightMatch(product.name, query)}</p>
+                      <p className="text-sm font-medium truncate">
+                        {highlightMatch(product.name, query)}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
                           {product.category}
@@ -263,11 +269,7 @@ export function ProductSearch({
           </div>
         </div>
       )}
-      {searchError && (
-        <div className="p-4 text-center text-red-500">
-          {searchError}
-        </div>
-      )}
+      {searchError && <div className="p-4 text-center text-red-500">{searchError}</div>}
       {selectedProduct && !query && (
         <div className="mt-2 border border-border rounded-md p-3 bg-muted/30">
           <div className="flex items-center justify-between">

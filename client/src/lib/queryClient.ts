@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, type QueryFunction } from "@tanstack/react-query";
 import { getAuthHeaders } from "@/lib/authHeaders";
 
 async function throwIfResNotOk(res: Response) {
@@ -12,7 +12,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: any,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ) {
   const allHeaders = await getAuthHeaders({
     "Content-Type": "application/json",
@@ -33,9 +33,7 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
+export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const headers = await getAuthHeaders();

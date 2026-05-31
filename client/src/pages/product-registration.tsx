@@ -21,9 +21,7 @@ export default function ProductRegistration() {
           />
           <div className="relative mt-12 max-h-[90vh] w-full max-w-4xl overflow-visible rounded-lg bg-white p-6 shadow-2xl z-110">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-foreground">
-                Product Registration
-              </h2>
+              <h2 className="text-3xl font-bold text-foreground">Product Registration</h2>
               <p className="text-muted-foreground mt-1">
                 Register a new product batch and generate QR codes for tracking
               </p>

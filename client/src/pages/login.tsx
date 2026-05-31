@@ -1,18 +1,18 @@
-import { useState } from "react";
-import { auth, googleProvider } from "@/lib/firebase";
 import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
-  updateProfile
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
-import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { auth, googleProvider } from "@/lib/firebase";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<"email" | "google">("google");
@@ -25,7 +25,6 @@ export default function LoginPage() {
   const [showReset, setShowReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
 
   const [, setLocation] = useLocation();
 
@@ -94,7 +93,10 @@ export default function LoginPage() {
         {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           className="text-primary font-semibold hover:underline"
-          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setError(null);
+          }}
         >
           {isSignUp ? "Sign In" : "Sign Up"}
         </button>
@@ -140,7 +142,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
               <div className="relative">
@@ -211,6 +213,16 @@ export default function LoginPage() {
                 Back to Sign In
               </button>
             </form>
+          {tab === "google" && (
+            <Button
+              type="button"
+              variant="outline"
+              className={`w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground`}
+              onClick={handleGoogleLogin}
+              disabled={loading}
+            >
+              🌐 Sign {isSignUp ? "Up" : "In"} with Google
+            </Button>
           )}
         </CardContent>
       </Card>
