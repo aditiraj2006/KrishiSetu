@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentProofModal } from "./PaymentProofModal";
 import CopyableText from "./ui/CopyableText";
 import EmptyState from "./ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RegistrationEvent {
   id: string;
@@ -129,18 +130,49 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
     return String(value || "");
   };
 
-  if (loading) {
-    return (
-      <Card className="shadow-sm border border-border">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Product Registration History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground">Loading history...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+ if (loading) {
+  return (
+    <Card className="shadow-sm border border-border">
+      <CardHeader>
+        <Skeleton className="h-7 w-72" />
+      </CardHeader>
+
+      <CardContent>
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="w-5 h-5 rounded-full mt-1" />
+
+              <div className="flex-1 space-y-3">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-52" />
+                  <Skeleton className="h-3 w-44" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+
+                <div className="bg-muted/50 rounded p-3 space-y-2">
+                  <Skeleton className="h-4 w-56" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {[1, 2, 3, 4].map((field) => (
+                      <div
+                        key={field}
+                        className="flex items-center gap-2"
+                      >
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 flex-1" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
   return (
     <>

@@ -139,7 +139,7 @@ export default function Dashboard() {
                 )}
                 {!user && (
                   <div className="bg-gradient-to-r from-primary/20 to-accent/20 text-foreground rounded-md px-3 py-2 text-sm flex items-center gap-1 shadow-sm border border-primary/20">
-                    📝 Want to register a product? Log in first to continue.
+                    📝 Want to register a product? <Link href="/auth" className="underline font-semibold hover:text-primary">Log in</Link> first to continue.
                   </div>
                 )}
               </div>

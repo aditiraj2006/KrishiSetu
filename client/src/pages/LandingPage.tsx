@@ -44,6 +44,7 @@ const LandingPage = () => {
       behavior: "smooth",
     });
   };
+  const [location] = useLocation();
 
   const navigateTo = (path: string) => {
     setLocation(path);
@@ -93,17 +94,29 @@ const LandingPage = () => {
       <nav className="navbar">
         <div className="logo-container" onClick={() => navigateTo("/")}>
           <div className="logo-icon">
-            <Leaf className="w-5 h-5 text-white" />
+            <img src="/logo.svg" alt="KrishiSetu Logo" className="w-6 h-6 object-contain" />
           </div>
-          <span className="logo">KrishiSetu</span>
+          <span className="logo">
+            <span className="logo1">Krishi</span>
+            <span className="logo2">Setu</span>
+          </span>
         </div>
         
         <div className="nav-actions">
           <ul className="nav-links">
             <li onClick={() => scrollToSection("features")}>Features</li>
-            <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
-            <li onClick={() => navigateTo("/about")}>About</li>
-            <li onClick={() => navigateTo("/contact")}>Contact</li>
+            <li 
+              onClick={() => navigateTo("/HowItWorks")}
+              className={location === "/HowItWorks" ? "active-link" : ""}
+            >How it works</li>
+            <li 
+              onClick={() => navigateTo("/about")}
+              className={location === "/about" ? "active-link" : ""}
+            >About</li>
+            <li 
+              onClick={() => navigateTo("/contact")}
+              className={location === "/contact" ? "active-link" : ""}
+            >Contact</li>
           </ul>
           
           <ModeToggle />

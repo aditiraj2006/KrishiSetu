@@ -37,16 +37,24 @@
 }
 
 .navbar .logo-icon {
-  background: linear-gradient(135deg, var(--primary), hsl(142, 70%, 45%));
-  color: white;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.navbar .logo-icon img {
+  height: 28px;
+  width: auto;
+}
+
+.logo1 {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.logo2 {
+  color: var(--foreground);
+  font-weight: 800;
 }
 
 .navbar .logo {
@@ -85,6 +93,11 @@
 
 .nav-links li:hover {
   color: var(--primary);
+}
+.nav-links li.active-link {
+  color: #4ade80;
+  font-weight: 600;
+  border-bottom: 2px solid #4ade80;
 }
 
 .nav-links li::after {
@@ -130,8 +143,8 @@
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
+  margin-top: 10px;
 }
-
 .hero-section::before {
   content: '';
   position: absolute;
@@ -691,4 +704,12 @@
   .hero-section {
     padding-top: 50px;
   }
+}
+.nav-links li.active-link {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-links li.active-link::after {
+  transform: scaleX(1);
 }
