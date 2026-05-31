@@ -27,6 +27,7 @@ const LandingPage = () => {
       behavior: "smooth",
     });
   };
+  const [location] = useLocation();
 
   const navigateTo = (path: string) => {
     setLocation(path);
@@ -49,11 +50,19 @@ const LandingPage = () => {
           </div>
           </div>
         <ul className="nav-links">
-          <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
-          <li onClick={() => navigateTo("/about")}>About</li>
-          <li onClick={() => navigateTo("/contact")}>Contact</li>
-        </ul>
-        <ModeToggle />
+  <li
+    onClick={() => navigateTo("/HowItWorks")}
+    className={location === "/HowItWorks" ? "active-link" : ""}
+  >How it works</li>
+  <li
+    onClick={() => navigateTo("/about")}
+    className={location === "/about" ? "active-link" : ""}
+  >About</li>
+  <li
+    onClick={() => navigateTo("/contact")}
+    className={location === "/contact" ? "active-link" : ""}
+  >Contact</li>
+</ul>
       </nav>
 
       <div className="hero-section">
