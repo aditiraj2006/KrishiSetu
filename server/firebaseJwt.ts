@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
 const CERTS_URL =
   "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
@@ -7,7 +7,7 @@ let cachedCerts: Record<string, string> | null = null;
 let certsExpireAt = 0;
 
 const getProjectId = () => {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
   if (!projectId) {
     throw new Error("FIREBASE_PROJECT_ID is required for token verification");
   }
@@ -41,9 +41,9 @@ const fetchCerts = async () => {
 };
 
 const getTokenKid = (token: string) => {
-  const decoded = jwt.decode(token, { complete: true }) as
-    | { header?: { kid?: string } }
-    | null;
+  const decoded = jwt.decode(token, { complete: true }) as {
+    header?: { kid?: string };
+  } | null;
   return decoded?.header?.kid ?? null;
 };
 
