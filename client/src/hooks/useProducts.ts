@@ -1,4 +1,4 @@
-import type { InsertProduct, Product } from "@shared/schema";
+import type { InsertProduct, Product, User } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuth } from "firebase/auth";
 import { getAuthHeaders } from "@/lib/authHeaders";
@@ -85,7 +85,7 @@ export function useStats(userId?: string) {
         averageRating?: number;
       }>;
     },
-    enabled: !!userId || !userId, // Always enabled for global stats, but userId required for user stats
+    enabled: userId === undefined || userId.length > 0,
   });
 }
 
@@ -101,7 +101,7 @@ export function useRecentScans(userId?: string) {
   });
 }
 
-export function useUserProducts(user?: any) {
+export function useUserProducts(user?: User | null) {
   return useQuery({
     queryKey: user ? ["/api/user/products/combined", { userId: user.id }] : ["/api/products"],
     queryFn: async () => {
@@ -137,7 +137,7 @@ export function useUserProducts(user?: any) {
 
       return Array.from(productMap.values());
     },
-    enabled: !!user || !user, // Always enabled
+    enabled: user !== undefined,
   });
 }
 export function useProductJourney(id: string) {
