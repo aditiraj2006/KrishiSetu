@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import cors from "cors";
+import compression from "compression";
+
 import express, { type NextFunction, type Request, type Response } from "express";
 import path from "path";
 // If using ES modules, define __dirname:
@@ -24,6 +26,8 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use(compression());
 
 // ... existing middleware and logging
 app.use((req, res, next) => {
