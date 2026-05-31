@@ -9,7 +9,7 @@ export function StatsOverview() {
   const userId = user && user.role !== "consumer" ? user.id : undefined;
   const { data: stats, isLoading, error } = useStats(userId);
 
-  console.log("StatsOverview - user:", user?.id, "stats:", stats);
+
 
   if (isLoading) {
     return (
@@ -43,13 +43,7 @@ export function StatsOverview() {
     return null;
   }
 
-  console.log(
-    "Rendering stats:",
-    stats.totalProducts,
-    stats.verifiedBatches,
-    stats.activeShipments,
-    stats.averageQualityScore,
-  );
+
 
   const statCards =
     user && user.role !== "consumer"
@@ -133,7 +127,7 @@ export function StatsOverview() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {statCards.map((stat, index) => (
-        <Card key={index} className="hover-lift transition-all duration-200">
+        <Card key={index} className="hover-lift transition-all duration-200 hover:border-green-500/20 hover:shadow-md">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

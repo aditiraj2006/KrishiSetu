@@ -161,21 +161,19 @@ export default function LoginPage() {
           <p className="text-sm font-semibold text-foreground mb-2">2. Sign in</p>
           <div className="flex">
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "google"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "google"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("google")}
             >
               🌐 Google
             </button>
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "email"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "email"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("email")}
             >
               📧 Email
@@ -236,7 +234,7 @@ export default function LoginPage() {
                   type="text"
                   placeholder="Name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   required
                 />
               )}

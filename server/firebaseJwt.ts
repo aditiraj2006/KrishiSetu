@@ -7,7 +7,7 @@ let cachedCerts: Record<string, string> | null = null;
 let certsExpireAt = 0;
 
 const getProjectId = () => {
-  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID;
   if (!projectId) {
     throw new Error("FIREBASE_PROJECT_ID is required for token verification");
   }
