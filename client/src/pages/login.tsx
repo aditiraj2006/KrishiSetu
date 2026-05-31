@@ -106,21 +106,19 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex justify-center mb-2">
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "google"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "google"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("google")}
             >
               🌐 Google
             </button>
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
-                tab === "email"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "email"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-              }`}
+                }`}
               onClick={() => setTab("email")}
             >
               📧 Email
@@ -136,7 +134,7 @@ export default function LoginPage() {
                   type="text"
                   placeholder="Name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   required
                 />
               )}
@@ -152,7 +150,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   required
                   className="pr-10"
                 />
@@ -185,6 +183,37 @@ export default function LoginPage() {
             </form>
           )}
 
+          {tab === "email" && showReset && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <h3 className="text-sm font-semibold text-foreground">
+                Reset Password
+              </h3>
+
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                required
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground hover:bg-green-700"
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Send Password Reset Email"}
+              </Button>
+
+              <button
+                type="button"
+                className="text-sm text-muted-foreground hover:underline mt-2 block"
+                onClick={() => setShowReset(false)}
+              >
+                Back to Sign In
+              </button>
+            </form>
+          )}
           {tab === "google" && (
             <Button
               type="button"
