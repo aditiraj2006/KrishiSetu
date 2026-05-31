@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentProofModal } from "./PaymentProofModal";
 import CopyableText from "./ui/CopyableText";
 import EmptyState from "./ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RegistrationEvent {
   id: string;
