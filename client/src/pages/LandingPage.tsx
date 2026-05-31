@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter"; // Wouter hook
 import "./LandingPage.css";
 import { ModeToggle } from "../components/mode-toggle";
+import { FiMenu, FiX } from "react-icons/fi";
 
 const LandingPage = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [, setLocation] = useLocation(); // Hook for navigation
 
   const handleGetStarted = () => {
@@ -37,37 +39,56 @@ const LandingPage = () => {
       <nav className="navbar">
         <div className="logo">
           <div>
-          <img src="/logo.svg" alt="" />
+            <img src="/logo.svg" alt="Logo" />
           </div>
+
           <div>
-          <span className="logo1">
-          Krishi
-          </span>
-          <span className="logo2">
-          Setu
-          </span>
+            <span className="logo1">Krishi</span>
+            <span className="logo2">Setu</span>
           </div>
-          </div>
-        <ul className="nav-links">
-          <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
-          <li onClick={() => navigateTo("/about")}>About</li>
-          <li onClick={() => navigateTo("/contact")}>Contact</li>
+        </div>
+
+        <div className="nav-controls">
+          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle Menu">
+            {menuOpen ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
+
+        <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
+
+          <li onClick={() => { navigateTo("/dashboard");setMenuOpen(false); }}>
+            Dashboard
+          </li>
+          
+          <li onClick={() => { navigateTo("/HowItWorks");setMenuOpen(false); }}>
+            How it works
+          </li>
+
+          <li onClick={() => {navigateTo("/about");setMenuOpen(false);}}>
+            About Us
+          </li>
+
+          <li onClick={() => { navigateTo("/contact"); setMenuOpen(false);}}>
+            Contact
+          </li>
+
+          <li> <ModeToggle /> </li>
+          
         </ul>
-        <ModeToggle />
       </nav>
 
       <div className="hero-section">
         <div className="farmerimg">
-        <img src="https://st4.depositphotos.com/13187390/20841/i/450/depositphotos_208415896-stock-photo-indian-farmer-holding-crop-plant.jpg" alt="" />
+          <img src="https://st4.depositphotos.com/13187390/20841/i/450/depositphotos_208415896-stock-photo-indian-farmer-holding-crop-plant.jpg" alt="" />
         </div>
         <div className="heading1">
-        <h1>Track Your Produce,</h1>
+          <h1>Track Your Produce,</h1>
         </div>
         <div className="heading2">
           <h1>Optimize Your Profits</h1>
         </div>
         <div className="heading3">
-        <h1>From Shipment to Your Fields, We Provide Real-Time Supply Chain Visibility for Farmers</h1>
+          <h1>From Shipment to Your Fields, We Provide Real-Time Supply Chain Visibility for Farmers</h1>
         </div>
         <button className="primary-btn get-started" onClick={handleGetStarted}>
           Get Started →
@@ -76,30 +97,30 @@ const LandingPage = () => {
           <div className="step">
             <img src="/shipment-icon.png" alt="Shipment" />
             <div className="step-heading">
-            <h2>Shipment</h2>
-            <p>Real-time tracking of your produce from origin to destination.</p>
-              </div>           
+              <h2>Shipment</h2>
+              <p>Real-time tracking of your produce from origin to destination.</p>
+            </div>
           </div>
           <div className="step">
             <img src="/transport-icon.png" alt="Transport" />
             <div className="step-heading">
-            <h2>Trasport</h2>
-            <p>Monitor transport status and get live updates at every step.</p>
-              </div>           
+              <h2>Trasport</h2>
+              <p>Monitor transport status and get live updates at every step.</p>
+            </div>
           </div>
           <div className="step">
             <img src="/Storage-icon.png" alt="Storage" />
             <div className="step-heading">
-            <h2>Storage</h2>
-            <p>Secure and efficient storage with climate-control monitoring.</p>
-              </div>           
+              <h2>Storage</h2>
+              <p>Secure and efficient storage with climate-control monitoring.</p>
+            </div>
           </div>
           <div className="step">
             <img src="/Delivery-icon.png" alt="Delivery" />
             <div className="step-heading">
-            <h2>Dilevery</h2>
-            <p>Fast and reliable delivery ensuring freshness to market.</p>
-              </div>           
+              <h2>Dilevery</h2>
+              <p>Fast and reliable delivery ensuring freshness to market.</p>
+            </div>
           </div>
         </div>
       </div>

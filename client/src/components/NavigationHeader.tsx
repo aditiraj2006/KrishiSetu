@@ -142,8 +142,8 @@ export function NavigationHeader() {
     return (
       <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-between items-center h-16 gap-2">
-            <div className="flex flex-wrap items-center gap-4 flex-grow min-w-0">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-4 min-w-0 overflow-hidden">
               <div className="flex-shrink-0">
                 <h1
                   className="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:opacity-80"
@@ -181,7 +181,18 @@ export function NavigationHeader() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 flex-shrink-0 self-center">
+              <div className="flex items-center gap-3 flex-shrink-0 self-center">
+                <div className="md:hidden">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    aria-label="Toggle menu"
+                  >
+                    <Menu className="w-6 h-6" />
+                  </Button>
+                </div>
+
               <div className="flex items-center">
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -193,13 +204,50 @@ export function NavigationHeader() {
               <Button
                 onClick={() => setLocation("/login")}
                 data-testid="button-login"
-                className="whitespace-nowrap"
+                className="hidden md:flex whitespace-nowrap"
               >
                 Sign In/Up
               </Button>
             </div>
           </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            <div className="px-2 py-3 space-y-1">
+              <Link
+                href="/dashboard"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                Dashboard
+              </Link>
+
+              <Link
+                href="/qr-scanner"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                QR Scanner
+              </Link>
+
+              <Link
+                href="/registered-products"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                Registered Products
+              </Link>
+
+              <Button
+                onClick={() => {
+                  setLocation("/login");
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full mt-2"
+              >
+                Sign In/Up
+              </Button>
+            </div>
+          </div>
+        )}
       </nav>
     );
   }
