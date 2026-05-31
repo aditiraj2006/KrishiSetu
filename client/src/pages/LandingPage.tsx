@@ -29,6 +29,7 @@ const LandingPage = () => {
       behavior: "smooth",
     });
   };
+  const [location] = useLocation();
 
   const navigateTo = (path: string) => {
     setLocation(path);
@@ -46,35 +47,20 @@ const LandingPage = () => {
             <span className="logo1">Krishi</span>
             <span className="logo2">Setu</span>
           </div>
-        </div>
-
-        <div className="nav-controls">
-          <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle Menu">
-            {menuOpen ? <FiX /> : <FiMenu />}
-          </button>
-        </div>
-
-        <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-
-          <li onClick={() => { navigateTo("/dashboard");setMenuOpen(false); }}>
-            Dashboard
-          </li>
-          
-          <li onClick={() => { navigateTo("/HowItWorks");setMenuOpen(false); }}>
-            How it works
-          </li>
-
-          <li onClick={() => {navigateTo("/about");setMenuOpen(false);}}>
-            About Us
-          </li>
-
-          <li onClick={() => { navigateTo("/contact"); setMenuOpen(false);}}>
-            Contact
-          </li>
-
-          <li> <ModeToggle /> </li>
-          
-        </ul>
+        <ul className="nav-links">
+  <li
+    onClick={() => navigateTo("/HowItWorks")}
+    className={location === "/HowItWorks" ? "active-link" : ""}
+  >How it works</li>
+  <li
+    onClick={() => navigateTo("/about")}
+    className={location === "/about" ? "active-link" : ""}
+  >About</li>
+  <li
+    onClick={() => navigateTo("/contact")}
+    className={location === "/contact" ? "active-link" : ""}
+  >Contact</li>
+</ul>
       </nav>
 
       <div className="hero-section">

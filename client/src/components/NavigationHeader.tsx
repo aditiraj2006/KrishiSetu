@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DistributorProductForm } from "./DistributorProductForm";
 import { OwnershipManagementPanel } from "./OwnershipManagementPanel"; // Import at the top
 import { RetailerProductForm } from "./RetailerProductForm";
+
 export function NavigationHeader() {
   const { theme, setTheme } = useTheme();
   const [location, setLocation] = useLocation();
@@ -54,6 +55,13 @@ export function NavigationHeader() {
   } | null>(null); // <-- new state
 
   const isActiveRoute = (path: string) => location === path;
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => setShowScrollTop(window.scrollY > 100);
+  window.addEventListener("scroll", handleScroll);
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
 
   // Fetch unread notifications (we keep only unread in dropdown)
   useEffect(() => {
@@ -477,7 +485,7 @@ export function NavigationHeader() {
                       href={link.href}
                       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         isActiveRoute(link.href)
-                          ? "text-primary border-b-2 border-primary bg-muted"
+                          ? "text-primary border-b-2 border-primary bg-primary/10 font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       } truncate`}
                       data-testid={link.testid}
@@ -633,12 +641,13 @@ export function NavigationHeader() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <Link href="/profile">
-                    <DropdownMenuItem className="cursor-pointer" data-testid="menu-profile">
+                  {/* FIX IMPLEMENTED HERE: Added asChild so wouter link routes correctly without breaking layout */}
+                  <DropdownMenuItem asChild className="cursor-pointer" data-testid="menu-profile">
+                    <Link href="/profile" className="flex items-center w-full">
                       <User className="mr-2 h-4 w-4" />
                       Profile
-                    </DropdownMenuItem>
-                  </Link>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={logout}
@@ -736,6 +745,15 @@ export function NavigationHeader() {
           prefillData={ownershipPanelPrefill}
         />
       )}
+      {showScrollTop && (
+  <button
+    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    className="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:opacity-90 transition-all"
+    aria-label="Scroll to top"
+  >
+    ↑
+  </button>
+)}
     </>
   );
 }
