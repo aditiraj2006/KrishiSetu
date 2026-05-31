@@ -1,9 +1,11 @@
-/* pages/HowItWorks.css */
 
 .how-it-works-container {
-  max-width: 1000px;
-  margin: 40px auto;
-  padding: 20px;
+  margin-top: 0;
+  padding-top: 0;
+  width: "100%";
+}
+
+.how-it-works-container {
   font-family: "Arial", sans-serif;
   text-align: center;
 }

@@ -3,6 +3,7 @@ import type React from "react";
 import { useState } from "react";
 import { Link } from "wouter";
 import "./HowItWorks.css";
+import LandingNavbar from "../components/LandingNavbar";
 
 // Define the possible roles as a constant array
 const roles = ["Farmer", "Retailer", "Distributor", "Consumer"] as const;
@@ -104,7 +105,8 @@ const HowItWorks: React.FC = () => {
 
   return (
     <div className="how-it-works-container">
-      <h1>How KrishiSetu Works</h1>
+  <LandingNavbar />
+  <h1>How KrishiSetu Works</h1>
 
       {!selectedRole ? (
         <div className="role-selection">
