@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { DistributorProductForm } from "./DistributorProductForm";
 import { OwnershipManagementPanel } from "./OwnershipManagementPanel"; // Import at the top
 import { RetailerProductForm } from "./RetailerProductForm";
+
 export function NavigationHeader() {
   const { theme, setTheme } = useTheme();
   const [location, setLocation] = useLocation();
@@ -592,12 +593,13 @@ useEffect(() => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <Link href="/profile">
-                    <DropdownMenuItem className="cursor-pointer" data-testid="menu-profile">
+                  {/* FIX IMPLEMENTED HERE: Added asChild so wouter link routes correctly without breaking layout */}
+                  <DropdownMenuItem asChild className="cursor-pointer" data-testid="menu-profile">
+                    <Link href="/profile" className="flex items-center w-full">
                       <User className="mr-2 h-4 w-4" />
                       Profile
-                    </DropdownMenuItem>
-                  </Link>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={logout}

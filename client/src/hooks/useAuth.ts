@@ -41,8 +41,8 @@ export function useAuth() {
         user = await response.json();
       } else {
         user = await apiRequest("POST", "/api/user/register", {
-          email: firebaseUser.email!,
-          name: firebaseUser.displayName || firebaseUser.email!.split("@")[0],
+          email: firebaseUser.email || "",
+          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
           firebaseUid: firebaseUser.uid,
           profileImage: firebaseUser.photoURL,
           roleSelected: false,
