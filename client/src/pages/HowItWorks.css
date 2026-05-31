@@ -1,4 +1,65 @@
 
+/* pages/About.css */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 10px;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  flex-direction: column;
+  gap: 1px;
+  border-bottom: 1px solid gray;
+   background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.navbar .logo {
+  font-size: 35px;
+  font-weight: bold;
+  color: #28a745;
+}
+
+/* Mobile nav: 2 columns, 2 rows */
+.nav-links {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 0;
+  padding: 0px;
+}
+
+.nav-links li {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 80px; */
+  cursor: pointer;
+  color: black;
+  transition: color 0.3s ease;
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 15px;
+  text-align: center;
+  padding: 5px 10px;
+  font-size: 20px;
+  font-weight: bolder;
+}
+
+.nav-links li:hover {
+  color: #22c55e;
+}
+.nav-links li.active-link {
+  color: #4ade80;
+  font-weight: 600;
+  border-bottom: 2px solid #4ade80;
+}
 .how-it-works-container {
   margin-top: 0;
   padding-top: 0;

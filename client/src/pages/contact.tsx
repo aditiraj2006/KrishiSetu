@@ -1,51 +1,113 @@
 // pages/Contact.tsx
-import type React from "react";
-import { Link } from "wouter";
+
+import React from "react";
+import { Link, useLocation } from "wouter";
 import "./contact.css";
 
 const Contact: React.FC = () => {
+  const [location, setLocation] = useLocation();
+
+  const navigateTo = (path: string) => {
+    setLocation(path);
+  };
+
   return (
-    <div className="contact-container">
-      <h1>Get in Touch</h1>
-      <p>
-        We’d love to hear from you! Reach out with your questions or feedback and we’ll respond as
-        soon as possible.
-      </p>
+    <>
+      {/* Navbar */}
+      <nav className="navbar">
+        <div className="logo">
+          <div>
+            <img src="/logo.svg" alt="KrishiSetu Logo" />
+          </div>
 
-      <div className="contact-cards">
-        <div className="contact-card">
-          <span className="icon">📧</span>
-          <h3>Email</h3>
-          <p>support@KrishiSetu.com</p>
+          <div>
+            <span className="logo1">Krishi</span>
+            <span className="logo2">Setu</span>
+          </div>
         </div>
-        <div className="contact-card">
-          <span className="icon">📞</span>
-          <h3>Phone</h3>
-          <p>+91 98765 43210</p>
+
+        <ul className="nav-links">
+          <li
+            onClick={() => navigateTo("/HowItWorks")}
+            className={location === "/HowItWorks" ? "active-link" : ""}
+          >
+            How it works
+          </li>
+
+          <li
+            onClick={() => navigateTo("/about")}
+            className={location === "/about" ? "active-link" : ""}
+          >
+            About
+          </li>
+
+          <li
+            onClick={() => navigateTo("/contact")}
+            className={location === "/contact" ? "active-link" : ""}
+          >
+            Contact
+          </li>
+        </ul>
+      </nav>
+
+      {/* Contact Content */}
+      <div className="contact-container">
+        <h1>Get in Touch</h1>
+
+        <p>
+          We'd love to hear from you! Reach out with your questions or feedback
+          and we'll respond as soon as possible.
+        </p>
+
+        <div className="contact-cards">
+          <div className="contact-card">
+            <span className="icon">📧</span>
+            <h3>Email</h3>
+            <p>support@KrishiSetu.com</p>
+          </div>
+
+          <div className="contact-card">
+            <span className="icon">📞</span>
+            <h3>Phone</h3>
+            <p>+91 98765 43210</p>
+          </div>
+
+          <div className="contact-card">
+            <span className="icon">📍</span>
+            <h3>Address</h3>
+            <p>123 KrishiSetu, Gurugram, India</p>
+          </div>
         </div>
-        <div className="contact-card">
-          <span className="icon">📍</span>
-          <h3>Address</h3>
-          <p>123 KrishiSetu , Gururgram, India</p>
+
+        <div className="form-section">
+          <h2>Send us a message</h2>
+
+          <form className="contact-form">
+            <input
+              type="text"
+              placeholder="Your Name"
+              required
+            />
+
+            <input
+              type="email"
+              placeholder="Your Email"
+              required
+            />
+
+            <textarea
+              placeholder="Your Message"
+              rows={5}
+              required
+            ></textarea>
+
+            <button type="submit" className="primary-btn">
+              Send Message
+            </button>
+          </form>
         </div>
       </div>
-
-      <div className="form-section">
-        <h2>Send us a message</h2>
-        <form className="contact-form">
-          <input type="text" placeholder="Your Name" required />
-          <input type="email" placeholder="Your Email" required />
-          <textarea placeholder="Your Message" rows={5} required></textarea>
-          <button type="submit" className="primary-btn">
-            Send Message
-          </button>
-        </form>
-      </div>
-
-      <Link href="/" className="back-link">
-        ← Back{" "}
-      </Link>
-    </div>
+    </>
   );
 };
 

@@ -5,6 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "client:dev": "vite --config vite.config.ts",
+    "client:build": "vite build --config vite.config.ts",
+    "client:preview": "vite preview --config vite.config.ts",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
     "start": "NODE_ENV=production node dist/index.js",
     "lint": "echo \"No lint configured (biome removed)\"",

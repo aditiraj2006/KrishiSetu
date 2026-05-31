@@ -3,9 +3,10 @@
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "tsBuildInfoFile": "./.cache/tsbuildinfo",
     "noEmit": true,
-    "target": "ES2015",
+    "ignoreDeprecations": "6.0",
+    "target": "ES2020",
     "downlevelIteration": true,
     "module": "ESNext",
     "strict": true,
@@ -17,9 +18,12 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "types": ["node", "vite/client"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "paths": {
       "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./shared/*"],
+      "@assets/*": ["./attached_assets/*"]
     }
   }
 }
