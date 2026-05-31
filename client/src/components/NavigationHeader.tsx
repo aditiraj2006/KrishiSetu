@@ -1,26 +1,24 @@
+import { Bell, ChevronDown, LogOut, Menu, Moon, Sprout, Sun, User } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Sprout, ChevronDown, LogOut, User, Menu, Moon, Sun } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-
-
+import { useAuth } from "@/hooks/useAuth";
 // IMPORT your form components (update paths if needed)
 import { DistributorProductForm } from "./DistributorProductForm";
-import { RetailerProductForm } from "./RetailerProductForm";
 import { OwnershipManagementPanel } from "./OwnershipManagementPanel"; // Import at the top
-import { useTheme } from "next-themes"
+import { RetailerProductForm } from "./RetailerProductForm";
 export function NavigationHeader() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
   const [location, setLocation] = useLocation();
   const { user, firebaseUser, logout, loading } = useAuth();
   const { toast } = useToast();
@@ -36,8 +34,9 @@ export function NavigationHeader() {
   const [showOwnershipPanel, setShowOwnershipPanel] = useState(false); // <-- new state
 
   // pending product id so we can redirect after form submit
-  const [pendingProductIdForRedirect, setPendingProductIdForRedirect] =
-    useState<string | null>(null);
+  const [pendingProductIdForRedirect, setPendingProductIdForRedirect] = useState<string | null>(
+    null,
+  );
 
   // store the transfer id & product id for the currently-open form
   const [currentTransferForForm, setCurrentTransferForForm] = useState<{
@@ -102,8 +101,7 @@ export function NavigationHeader() {
     }
 
     // compute scrollbar width so content doesn't jump
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -129,14 +127,10 @@ export function NavigationHeader() {
 
   if (loading) {
     return (
-
       <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
           <div className="flex justify-center h-16 items-center">
-          <div className="flex items-center gap-4">
-
-          </div>
+            <div className="flex items-center gap-4"></div>
             <div className="animate-pulse">KrishiSetu...</div>
           </div>
         </div>
@@ -189,15 +183,13 @@ export function NavigationHeader() {
 
             <div className="flex items-center gap-3 flex-shrink-0 self-center">
               <div className="flex items-center">
-          <button
-          onClick={() =>
-              setTheme(theme === "dark" ? "light" : "dark")
-            }
-            className="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center"
-      >
-          {theme === "dark" ? "☀" : "🌙"}
-        </button>
-      </div>
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center"
+                >
+                  {theme === "dark" ? "☀" : "🌙"}
+                </button>
+              </div>
               <Button
                 onClick={() => setLocation("/login")}
                 data-testid="button-login"
@@ -350,9 +342,7 @@ export function NavigationHeader() {
     }
   };
   const markNotificationReadLocal = (notifId: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => n.id === notifId ? { ...n, read: true } : n)
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === notifId ? { ...n, read: true } : n)));
     setNotificationCount((prev) => Math.max(0, prev - 1));
   };
   // Default click behaviour for non-ownership notifications:
@@ -393,10 +383,7 @@ export function NavigationHeader() {
   };
 
   // When form modal closes. result?: { submitted?: boolean, productId?: string }
-  const handleFormClose = (result?: {
-    submitted?: boolean;
-    productId?: string;
-  }) => {
+  const handleFormClose = (result?: { submitted?: boolean; productId?: string }) => {
     setShowDistributorForm(false);
     setShowRetailerForm(false);
 
@@ -416,7 +403,6 @@ export function NavigationHeader() {
 
   return (
     <>
-   
       <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-between items-center h-16 gap-2">
@@ -456,22 +442,15 @@ export function NavigationHeader() {
 
             {/* Right: Notifications, user menu, mobile toggle */}
             <div className="flex items-center gap-3 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                    data-testid="button-theme-toggle"
-                    >
-                    {theme === "dark" ? (
-    <                Sun className="h-5 w-5" />
-                      ) : (
-                    <Moon className="h-5 w-5" />
-                      )}
-                    </Button>
-              <DropdownMenu
-                open={notifDropdownOpen}
-                onOpenChange={setNotifDropdownOpen}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                data-testid="button-theme-toggle"
               >
+                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+              <DropdownMenu open={notifDropdownOpen} onOpenChange={setNotifDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -491,10 +470,7 @@ export function NavigationHeader() {
                   </Button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent
-                  align="end"
-                  className="w-80 max-h-96 overflow-auto"
-                >
+                <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-auto">
                   <div className="p-2 font-semibold">Notifications</div>
                   <DropdownMenuSeparator />
                   {sortedNotifications.length === 0 ? (
@@ -524,9 +500,7 @@ export function NavigationHeader() {
                           >
                             <div className="flex justify-between items-start gap-2">
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">
-                                  {notif.title}
-                                </div>
+                                <div className="font-medium truncate">{notif.title}</div>
                                 <div className="text-xs text-muted-foreground truncate">
                                   {notif.message}
                                 </div>
@@ -552,9 +526,7 @@ export function NavigationHeader() {
                                     Reject
                                   </Button>
                                 </div>
-                                <span className="text-xs text-accent">
-                                  Pending
-                                </span>
+                                <span className="text-xs text-accent">Pending</span>
                               </div>
                             </div>
                           </div>
@@ -590,13 +562,8 @@ export function NavigationHeader() {
                     data-testid="button-user-menu"
                   >
                     <Avatar className="w-8 h-8">
-                      <AvatarImage
-                        src={firebaseUser.photoURL || undefined}
-                        alt={user.name}
-                      />
-                      <AvatarFallback>
-                        {user.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
+                      <AvatarImage src={firebaseUser.photoURL || undefined} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block text-left max-w-[120px] truncate">
                       <div
@@ -619,10 +586,7 @@ export function NavigationHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <Link href="/profile">
-                    <DropdownMenuItem
-                      className="cursor-pointer"
-                      data-testid="menu-profile"
-                    >
+                    <DropdownMenuItem className="cursor-pointer" data-testid="menu-profile">
                       <User className="mr-2 h-4 w-4" />
                       Profile
                     </DropdownMenuItem>
@@ -727,4 +691,3 @@ export function NavigationHeader() {
     </>
   );
 }
-

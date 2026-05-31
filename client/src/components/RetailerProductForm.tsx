@@ -1,7 +1,11 @@
 // src/components/RetailerProductForm.tsx
-import React, { useState, useEffect } from "react";
+
+import { useQueryClient } from "@tanstack/react-query";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,10 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RetailerProductFormProps {
   isVisible: boolean;
@@ -44,9 +46,7 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
   // Initialize form fields with productData if available
   const [name, setName] = useState(productData?.name || "");
   const [category, setCategory] = useState(productData?.category || "");
-  const [description, setDescription] = useState(
-    productData?.description || ""
-  );
+  const [description, setDescription] = useState(productData?.description || "");
   const [quantity, setQuantity] = useState(String(productData?.quantity || ""));
   const [unit, setUnit] = useState(productData?.unit || "");
   const [storeName, setStoreName] = useState("");
@@ -70,7 +70,7 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
 
   const toggleCertification = (cert: string) => {
     setCertifications((prev) =>
-      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert]
+      prev.includes(cert) ? prev.filter((c) => c !== cert) : [...prev, cert],
     );
   };
 
@@ -83,8 +83,7 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
   const validate = () => {
     if (!name.trim()) return "Product name is required";
     if (!category) return "Category is required";
-    if (typeof quantity === "string" && !quantity.trim())
-      return "Quantity is required";
+    if (typeof quantity === "string" && !quantity.trim()) return "Quantity is required";
     if (!unit) return "Unit is required";
     if (!storeName.trim()) return "Store name is required";
     if (!storeLocation.trim()) return "Store location is required";
@@ -179,27 +178,23 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-start justify-center p-6 bg-black bg-opacity-50 overflow-y-auto"
       onClick={handleOverlayClick}
     >
-      <div 
+      <div
         className="mt-12 bg-white p-6 rounded-lg shadow-md max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4">
-          Retailer Product Registration
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Retailer Product Registration</h2>
 
         {productData && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-800">
-              <strong>Existing Product:</strong> {productData.name} (
-              {productData.category})
+              <strong>Existing Product:</strong> {productData.name} ({productData.category})
             </p>
             <p className="text-sm text-blue-800">
-              <strong>Quantity:</strong> {productData.quantity}{" "}
-              {productData.unit}
+              <strong>Quantity:</strong> {productData.quantity} {productData.unit}
             </p>
           </div>
         )}
@@ -299,9 +294,7 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
                   <Input
                     type="file"
                     accept="image/*"
-                    onChange={(e) =>
-                      setPaymentProofFile(e.target.files?.[0] || null)
-                    }
+                    onChange={(e) => setPaymentProofFile(e.target.files?.[0] || null)}
                     required
                   />
                   {paymentProofFile && (

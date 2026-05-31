@@ -1,15 +1,19 @@
 // components/OwnershipManagementPanel.tsx
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Shield, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -20,13 +24,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Shield, Users, AlertCircle } from "lucide-react";
-import { UserSearch } from "./UserSearch";
-import { ProductSearch } from "./ProductSearch";
+import { useAuth } from "@/hooks/useAuth";
 import { getAuthHeaders } from "@/lib/authHeaders";
+import { ProductSearch } from "./ProductSearch";
+import { UserSearch } from "./UserSearch";
 
 const transferFormSchema = z.object({
   productId: z.string().min(1, "Product is required"),
@@ -224,16 +225,13 @@ export function OwnershipManagementPanel({
           <DialogHeader>
             <DialogTitle>Transfer Product Ownership</DialogTitle>
             <DialogDescription>
-              Transfer ownership of your product to another user. They will need
-              to accept the transfer.
+              Transfer ownership of your product to another user. They will need to accept the
+              transfer.
             </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 py-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
               <FormItem>
                 <FormLabel>Your Product</FormLabel>
                 {user && (
@@ -268,11 +266,7 @@ export function OwnershipManagementPanel({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Transfer Type</FormLabel>
-                    <select
-                      {...field}
-                      className="w-full p-2 border rounded-md"
-                      required
-                    >
+                    <select {...field} className="w-full p-2 border rounded-md" required>
                       <option value="transfer">Standard Transfer</option>
                       <option value="sale">Sale</option>
                       <option value="distribution">Distribution</option>
@@ -318,11 +312,7 @@ export function OwnershipManagementPanel({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    isSubmitting ||
-                    !form.watch("toUserId") ||
-                    !form.watch("productId")
-                  }
+                  disabled={isSubmitting || !form.watch("toUserId") || !form.watch("productId")}
                 >
                   {isSubmitting ? "Processing..." : "Send Transfer Request"}
                 </Button>

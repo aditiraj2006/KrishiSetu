@@ -1,7 +1,7 @@
 import { getAuth } from "firebase/auth";
 
 export async function getAuthHeaders(
-  baseHeaders: Record<string, string> = {}
+  baseHeaders: Record<string, string> = {},
 ): Promise<Record<string, string>> {
   const user = getAuth().currentUser;
   if (!user) {
