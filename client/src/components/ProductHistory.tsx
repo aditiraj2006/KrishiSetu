@@ -1,10 +1,13 @@
 // Update your ProductHistory component
-import React, { useState, useEffect } from "react";
+
+import { Calendar, DollarSign, Eye, MapPin, Package, User } from "lucide-react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Calendar, Package, DollarSign, MapPin, Eye } from "lucide-react";
 import { PaymentProofModal } from "./PaymentProofModal";
-import EmptyState from "./ui/EmptyState";
 import CopyableText from "./ui/CopyableText";
+import EmptyState from "./ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RegistrationEvent {
   id: string;
@@ -67,13 +70,13 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
         if (res.ok) {
           const data = await res.json();
           // Filter for registration events only
-          const registrationEvents = data.filter((event: RegistrationEvent) => 
-            event.eventType === "ownership_registration"
+          const registrationEvents = data.filter(
+            (event: RegistrationEvent) => event.eventType === "ownership_registration",
           );
           setEvents(registrationEvents);
         }
       } catch (error) {
-        console.error('Error fetching registration events:', error);
+        console.error("Error fetching registration events:", error);
       } finally {
         setLoading(false);
       }
@@ -95,15 +98,15 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
           </button>
           {value && (
             <div className="mt-1">
-              <img 
-                src={value} 
-                alt="Payment proof thumbnail" 
+              <img
+                src={value}
+                alt="Payment proof thumbnail"
                 className="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => setSelectedPaymentProof(value)}
                 onError={(e) => {
                   // Handle broken images
                   const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
+                  target.style.display = "none";
                 }}
               />
             </div>
@@ -111,34 +114,65 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
         </div>
       );
     }
-    
+
     if (Array.isArray(value)) {
       return value.join(", ");
     }
-    
+
     if (field === "price" && value) {
       return `$${parseFloat(value).toFixed(2)}`;
     }
-    
+
     if (field === "dispatchDate" || field === "arrivalDate") {
       return new Date(value).toLocaleDateString();
     }
-    
+
     return String(value || "");
   };
 
-  if (loading) {
-    return (
-      <Card className="shadow-sm border border-border">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Product Registration History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-muted-foreground">Loading history...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+ if (loading) {
+  return (
+    <Card className="shadow-sm border border-border">
+      <CardHeader>
+        <Skeleton className="h-7 w-72" />
+      </CardHeader>
+
+      <CardContent>
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="w-5 h-5 rounded-full mt-1" />
+
+              <div className="flex-1 space-y-3">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-52" />
+                  <Skeleton className="h-3 w-44" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+
+                <div className="bg-muted/50 rounded p-3 space-y-2">
+                  <Skeleton className="h-4 w-56" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {[1, 2, 3, 4].map((field) => (
+                      <div
+                        key={field}
+                        className="flex items-center gap-2"
+                      >
+                        <Skeleton className="h-3 w-28" />
+                        <Skeleton className="h-3 flex-1" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
   return (
     <>
@@ -164,49 +198,55 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
                 const userRole = event.extra?.userRole || event.userRole || "Unknown Role";
                 const previousOwnerName = event.extra?.previousOwnerName || "Unknown";
                 const previousOwnerRole = event.extra?.previousOwnerRole || "Unknown";
-                
+
                 return (
                   <li key={event.id} className="flex items-start gap-3">
                     <div className="mb-2">
-                    <CopyableText text={event.id} />
-                  </div>
+                      <CopyableText text={event.id} />
+                    </div>
                     <div className="flex-shrink-0">
                       <User className="w-4 h-4 text-accent mt-1" />
                     </div>
                     <div className="flex-1">
                       <div className="text-xs text-muted-foreground flex flex-col gap-1 mb-2">
                         <div>
-                          <span className="font-semibold">From:</span>{" "}
-                          {previousOwnerName} ({previousOwnerRole})
+                          <span className="font-semibold">From:</span> {previousOwnerName} (
+                          {previousOwnerRole})
                         </div>
                         <div>
-                          <span className="font-semibold">To:</span>{" "}
-                          {userName} ({userRole})
+                          <span className="font-semibold">To:</span> {userName} ({userRole})
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3 h-3" />
                           <span>{new Date(event.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
-                      
-                      {event.extra && event.extra.registeredFields && event.extra.registeredFields.length > 0 && (
-                        <div className="mt-3 bg-muted/50 rounded p-3 text-xs">
-                          <div className="font-semibold mb-2">Fields filled in this registration:</div>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {event.extra.registeredFields.map((field: string) => (
-                              <div key={field} className="flex items-start">
-                                <div className="flex items-center text-foreground font-medium mr-2" style={{ minWidth: 120 }}>
-                                  {FIELD_ICONS[field] || <Package className="w-3 h-3 mr-1" />}
-                                  {FIELD_LABELS[field] || field}:
+
+                      {event.extra &&
+                        event.extra.registeredFields &&
+                        event.extra.registeredFields.length > 0 && (
+                          <div className="mt-3 bg-muted/50 rounded p-3 text-xs">
+                            <div className="font-semibold mb-2">
+                              Fields filled in this registration:
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {event.extra.registeredFields.map((field: string) => (
+                                <div key={field} className="flex items-start">
+                                  <div
+                                    className="flex items-center text-foreground font-medium mr-2"
+                                    style={{ minWidth: 120 }}
+                                  >
+                                    {FIELD_ICONS[field] || <Package className="w-3 h-3 mr-1" />}
+                                    {FIELD_LABELS[field] || field}:
+                                  </div>
+                                  <div className="text-muted-foreground break-words">
+                                    {formatFieldValue(field, event.extra[field])}
+                                  </div>
                                 </div>
-                                <div className="text-muted-foreground break-words">
-                                  {formatFieldValue(field, event.extra[field])}
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
                     </div>
                   </li>
                 );
@@ -215,11 +255,11 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
           )}
         </CardContent>
       </Card>
-      
-      <PaymentProofModal 
+
+      <PaymentProofModal
         isOpen={!!selectedPaymentProof}
         onClose={() => setSelectedPaymentProof(null)}
-        imageUrl={selectedPaymentProof || ''}
+        imageUrl={selectedPaymentProof || ""}
       />
     </>
   );

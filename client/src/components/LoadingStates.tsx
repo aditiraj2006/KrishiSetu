@@ -1,9 +1,9 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Sprout } from 'lucide-react';
+import { Sprout } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function LoadingStates() {
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
       data-testid="loading-overlay"
     >

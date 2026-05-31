@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+
+  commands:
+    typecheck:
+      run: npx tsc --noEmit
