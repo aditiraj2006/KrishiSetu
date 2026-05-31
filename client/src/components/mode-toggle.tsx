@@ -11,7 +11,7 @@ export function ModeToggle() {
       }
       className="p-2 rounded-md border text-black border-black"
     >
-      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      {theme === "dark" ? <Moon size={20} /> : <Sun size={18} />}
     </button>
   );
 }
