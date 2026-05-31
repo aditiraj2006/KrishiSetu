@@ -305,7 +305,19 @@ export async function registerRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const q = (req.query.q as string)?.toLowerCase() || "";
+ const rawQuery = (req.query.q as string || "").trim();
+
+if (!rawQuery) {
+  return res.json([]);
+}
+
+if (rawQuery.length > 100) {
+  return res.status(400).json({
+    message: "Search query too long",
+  });
+}
+
+const q = escapeStringRegexp(rawQuery.toLowerCase());
       console.log("Searching for products with query:", q);
 
       const db = await getDb();

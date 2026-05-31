@@ -254,6 +254,7 @@ export class MongoStorage {
           { farmName: { $regex: query, $options: "i" } },
         ],
       })
+      .limit(50)
       .toArray();
   }
 
@@ -338,6 +339,7 @@ export class MongoStorage {
         ],
       })
       .sort({ createdAt: -1 }) // Newest first
+      .limit(50)
       .toArray();
   }
 
