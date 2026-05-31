@@ -33,15 +33,23 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
+      let userCredential;
       if (isSignUp) {
         if (!name.trim()) throw new Error("Name is required for sign up.");
-        await createUserWithEmailAndPassword(auth, email, password);
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
         if (auth.currentUser) {
           await updateProfile(auth.currentUser, { displayName: name });
         }
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       }
+      
+      // 👉 FIX: Get the JWT token from Firebase and save it locally
+      if (userCredential.user) {
+        const token = await userCredential.user.getIdToken();
+        localStorage.setItem("token", token);
+      }
+
       toast.success(`Successfully ${isSignUp ? "signed up" : "logged in"}!`);
       setLocation("/dashboard");
     } catch (err: any) {
@@ -56,7 +64,14 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      
+      // 👉 FIX: Get the JWT token from Firebase and save it locally
+      if (userCredential.user) {
+        const token = await userCredential.user.getIdToken();
+        localStorage.setItem("token", token);
+      }
+
       toast.success("Successfully logged in with Google!");
       setLocation("/dashboard");
     } catch (err: any) {
