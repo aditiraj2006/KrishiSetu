@@ -1,27 +1,27 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { User } from "@shared/schema";
+import {
+  AlertTriangle,
+  Award,
+  BarChart3,
+  CheckCircle,
+  Clock,
+  Leaf,
+  MapPin,
+  Package,
+  Shield,
+  Sprout,
+  Store,
+  Target,
+  TrendingUp,
+  Truck,
+  Users,
+} from "lucide-react";
+import { OwnershipManagementPanel } from "@/components/OwnershipManagementPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { User } from "@shared/schema";
-import { OwnershipManagementPanel } from "@/components/OwnershipManagementPanel";
-import {
-  Sprout,
-  Truck,
-  Store,
-  Users,
-  TrendingUp,
-  Package,
-  MapPin,
-  Clock,
-  Shield,
-  AlertTriangle,
-  CheckCircle,
-  BarChart3,
-  Target,
-  Award,
-  Leaf,
-} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface RoleDashboardProps {
   user: User;
@@ -29,11 +29,7 @@ interface RoleDashboardProps {
   onScanQR?: () => void;
 }
 
-export function RoleDashboard({
-  user,
-  onRegisterProduct,
-  onScanQR,
-}: RoleDashboardProps) {
+export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboardProps) {
   const { role } = user;
 
   // Mock data - in real app this would come from API
@@ -92,19 +88,28 @@ export function RoleDashboard({
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Organic Tomatoes</span>
-              <Badge variant="outline" className="bg-primary/10 text-primary text-xs whitespace-nowrap flex-shrink-0">
+              <Badge
+                variant="outline"
+                className="bg-primary/10 text-primary text-xs whitespace-nowrap flex-shrink-0"
+              >
                 Ready in 5 days
               </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Sweet Corn</span>
-              <Badge variant="outline" className="bg-warning/10 text-warning text-xs whitespace-nowrap flex-shrink-0">
+              <Badge
+                variant="outline"
+                className="bg-warning/10 text-warning text-xs whitespace-nowrap flex-shrink-0"
+              >
                 Harvesting
               </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Bell Peppers</span>
-              <Badge variant="outline" className="bg-accent/10 text-accent text-xs whitespace-nowrap flex-shrink-0">
+              <Badge
+                variant="outline"
+                className="bg-accent/10 text-accent text-xs whitespace-nowrap flex-shrink-0"
+              >
                 Growing
               </Badge>
             </div>
@@ -150,15 +155,21 @@ export function RoleDashboard({
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Farm → Warehouse</span>
-              <Badge className="bg-verified text-white text-xs whitespace-nowrap flex-shrink-0">In Transit</Badge>
+              <Badge className="bg-verified text-white text-xs whitespace-nowrap flex-shrink-0">
+                In Transit
+              </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Warehouse → Market</span>
-              <Badge className="bg-warning text-white text-xs whitespace-nowrap flex-shrink-0">Loading</Badge>
+              <Badge className="bg-warning text-white text-xs whitespace-nowrap flex-shrink-0">
+                Loading
+              </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium text-sm truncate">Market → Store</span>
-              <Badge className="bg-accent text-white text-xs whitespace-nowrap flex-shrink-0">Scheduled</Badge>
+              <Badge className="bg-accent text-white text-xs whitespace-nowrap flex-shrink-0">
+                Scheduled
+              </Badge>
             </div>
           </div>
         </CardContent>
@@ -173,9 +184,7 @@ export function RoleDashboard({
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="text-sm text-muted-foreground break-words">
-            {(stats as any).alerts}
-          </div>
+          <div className="text-sm text-muted-foreground break-words">{(stats as any).alerts}</div>
         </CardContent>
       </Card>
     </div>
@@ -193,28 +202,23 @@ export function RoleDashboard({
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-3">
-            {(stats as any).topCategories.map(
-              (category: string, index: number) => (
-                <div
-                  key={category}
-                  className="flex items-center justify-between gap-2"
-                >
-                  <span className="font-medium text-sm truncate">{category}</span>
-                  <Badge
-                    variant="outline"
-                    className={`text-xs whitespace-nowrap flex-shrink-0 ${
-                      index === 0
-                        ? "bg-primary/10 text-primary"
-                        : index === 1
+            {(stats as any).topCategories.map((category: string, index: number) => (
+              <div key={category} className="flex items-center justify-between gap-2">
+                <span className="font-medium text-sm truncate">{category}</span>
+                <Badge
+                  variant="outline"
+                  className={`text-xs whitespace-nowrap flex-shrink-0 ${
+                    index === 0
+                      ? "bg-primary/10 text-primary"
+                      : index === 1
                         ? "bg-verified/10 text-verified"
                         : "bg-accent/10 text-accent"
-                    }`}
-                  >
-                    Best Seller
-                  </Badge>
-                </div>
-              )
-            )}
+                  }`}
+                >
+                  Best Seller
+                </Badge>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -341,7 +345,7 @@ export function RoleDashboard({
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              {(role === "farmer" || role === "distributor" || role =="retailer")  &&
+              {(role === "farmer" || role === "distributor" || role == "retailer") &&
                 onRegisterProduct && (
                   <Button
                     onClick={onRegisterProduct}
@@ -369,7 +373,7 @@ export function RoleDashboard({
           </div>
         </CardHeader>
       </Card>
-      
+
       {/* Ownership Management Panel - Show for roles that can transfer ownership */}
       {(role === "farmer" || role === "distributor" || role === "retailer") && (
         <div className="mb-4 md:mb-6">

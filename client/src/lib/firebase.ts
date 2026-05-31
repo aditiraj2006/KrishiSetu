@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { initializeApp } from "firebase/app";
+import { GoogleAuthProvider, getAuth, signInWithPopup } from "firebase/auth";
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -13,7 +13,6 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
@@ -21,4 +20,4 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Export the required Firebase objects
-export { app, analytics, auth, googleProvider, signInWithPopup };
+export { analytics, app, auth, googleProvider, signInWithPopup };

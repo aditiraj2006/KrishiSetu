@@ -1,8 +1,9 @@
 // components/PaymentProofModal.tsx
-import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import { Download } from "lucide-react";
+import React from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface PaymentProofModalProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ interface PaymentProofModalProps {
 }
 
 export function PaymentProofModal({ isOpen, onClose, imageUrl }: PaymentProofModalProps) {
-    const handleDownload = async () => {
+  const handleDownload = async () => {
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
@@ -41,20 +42,20 @@ export function PaymentProofModal({ isOpen, onClose, imageUrl }: PaymentProofMod
                 type="button"
                 onClick={handleDownload}
                 className="px-2"
-                >
+              >
                 <Download className="w-4 h-4 mr-1" />
                 Download
-             </Button>
+              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
         <div className="flex justify-center items-center p-6 bg-gray-100">
-          <img 
-            src={imageUrl} 
-            alt="Payment proof" 
+          <img
+            src={imageUrl}
+            alt="Payment proof"
             className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-md"
-            style={{ 
-              imageOrientation: 'from-image' 
+            style={{
+              imageOrientation: "from-image",
             }}
           />
         </div>

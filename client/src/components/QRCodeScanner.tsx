@@ -1,18 +1,13 @@
-import { useEffect, useState, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { getAuthHeaders } from "@/lib/authHeaders";
-import { useProductByBatch } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  Camera,
-  StopCircle,
-  AlertTriangle,
-  FlipHorizontal,
-} from "lucide-react";
+import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
+import { AlertTriangle, Camera, FlipHorizontal, StopCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useProductByBatch } from "@/hooks/useProducts";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 export function QRCodeScanner() {
   const [isScanning, setIsScanning] = useState(false);
@@ -21,9 +16,7 @@ export function QRCodeScanner() {
   const [cameraStatus, setCameraStatus] = useState<
     "idle" | "pending" | "granted" | "denied" | "notfound"
   >("idle");
-  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>(
-    []
-  );
+  const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const [, navigate] = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,9 +41,7 @@ export function QRCodeScanner() {
       setCameraStatus("granted");
 
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(
-        (device) => device.kind === "videoinput"
-      );
+      const videoDevices = devices.filter((device) => device.kind === "videoinput");
       setAvailableCameras(videoDevices);
 
       // Set default camera (prefer rear camera if available)
@@ -58,25 +49,17 @@ export function QRCodeScanner() {
         const rearCamera = videoDevices.find(
           (device) =>
             device.label.toLowerCase().includes("back") ||
-            device.label.toLowerCase().includes("rear")
+            device.label.toLowerCase().includes("rear"),
         );
-        setSelectedCamera(
-          rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId
-        );
+        setSelectedCamera(rearCamera ? rearCamera.deviceId : videoDevices[0].deviceId);
       } else {
         setCameraStatus("notfound");
         setIsScanning(false);
       }
     } catch (err: any) {
-      if (
-        err.name === "NotAllowedError" ||
-        err.name === "PermissionDeniedError"
-      ) {
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
         setCameraStatus("denied");
-      } else if (
-        err.name === "NotFoundError" ||
-        err.name === "DevicesNotFoundError"
-      ) {
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
         setCameraStatus("notfound");
       } else {
         setCameraStatus("denied");
@@ -87,13 +70,7 @@ export function QRCodeScanner() {
 
   // Scanning logic moved to useEffect
   useEffect(() => {
-    if (
-      !isScanning ||
-      cameraStatus !== "granted" ||
-      !selectedCamera ||
-      !videoRef.current
-    )
-      return;
+    if (!isScanning || cameraStatus !== "granted" || !selectedCamera || !videoRef.current) return;
 
     codeReaderRef.current = new BrowserQRCodeReader();
 
@@ -108,64 +85,57 @@ export function QRCodeScanner() {
     }, 20000);
 
     codeReaderRef.current
-      .decodeFromVideoDevice(
-        selectedCamera,
-        videoRef.current,
-        (result, err) => {
-          if (result) {
-            clearTimeout(scanTimeoutRef.current!);
-            const text = result.getText();
-            if (!text || text.trim() === "") {
-              setScanError("Scanned QR code does not contain a batch ID.");
-              toast({
-                title: "Invalid QR Code",
-                description: "Scanned QR code does not contain a batch ID.",
-                variant: "destructive",
-              });
-              stopScanning();
-              return;
-            }
-
-            // Extract batch ID from URL format: /product/{batchId}
-            const trimmedText = text.trim();
-            let batchId = trimmedText;
-
-            // Check if it's a full URL and extract the batch ID
-            const urlMatch = trimmedText.match(/\/product\/([a-f0-9\-]+)$/i);
-            if (urlMatch) {
-              batchId = urlMatch[1];
-            } else if (trimmedText.includes("/product/")) {
-              // Handle partial URLs
-              const parts = trimmedText.split("/product/");
-              if (parts.length > 1) {
-                batchId = parts[1].split("/")[0]; // Take only the batch ID part
-              }
-            }
-
-            if (!batchId || batchId === trimmedText) {
-              // If we couldn't extract a batch ID, assume the scanned text is the batch ID
-              batchId = trimmedText;
-            }
-
-            setScannedBatchId(batchId);
-            setScanError(null);
+      .decodeFromVideoDevice(selectedCamera, videoRef.current, (result, err) => {
+        if (result) {
+          clearTimeout(scanTimeoutRef.current!);
+          const text = result.getText();
+          if (!text || text.trim() === "") {
+            setScanError("Scanned QR code does not contain a batch ID.");
+            toast({
+              title: "Invalid QR Code",
+              description: "Scanned QR code does not contain a batch ID.",
+              variant: "destructive",
+            });
             stopScanning();
+            return;
           }
+
+          // Extract batch ID from URL format: /product/{batchId}
+          const trimmedText = text.trim();
+          let batchId = trimmedText;
+
+          // Check if it's a full URL and extract the batch ID
+          const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
+          if (urlMatch) {
+            batchId = urlMatch[1];
+          } else if (trimmedText.includes("/product/")) {
+            // Handle partial URLs
+            const parts = trimmedText.split("/product/");
+            if (parts.length > 1) {
+              batchId = parts[1].split("/")[0]; // Take only the batch ID part
+            }
+          }
+
+          if (!batchId || batchId === trimmedText) {
+            // If we couldn't extract a batch ID, assume the scanned text is the batch ID
+            batchId = trimmedText;
+          }
+
+          setScannedBatchId(batchId);
+          setScanError(null);
+          stopScanning();
         }
-      )
+      })
       .then((controls) => {
         controlsRef.current = controls;
       })
       .catch((error) => {
         toast({
           title: "Camera Error",
-          description:
-            "Unable to access camera. Please ensure camera permissions are granted.",
+          description: "Unable to access camera. Please ensure camera permissions are granted.",
           variant: "destructive",
         });
-        setScanError(
-          "Unable to access camera. Please ensure camera permissions are granted."
-        );
+        setScanError("Unable to access camera. Please ensure camera permissions are granted.");
         setIsScanning(false);
         console.error("Camera error:", error);
       });
@@ -206,9 +176,7 @@ export function QRCodeScanner() {
   // Switch between front and rear cameras (only when scanning)
   const switchCamera = () => {
     if (!isScanning || availableCameras.length < 2) return;
-    const currentIndex = availableCameras.findIndex(
-      (cam) => cam.deviceId === selectedCamera
-    );
+    const currentIndex = availableCameras.findIndex((cam) => cam.deviceId === selectedCamera);
     const nextIndex = (currentIndex + 1) % availableCameras.length;
     setSelectedCamera(availableCameras[nextIndex].deviceId);
   };
@@ -258,11 +226,13 @@ export function QRCodeScanner() {
           if ("geolocation" in navigator) {
             try {
               const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  timeout: 5000,
+                });
               });
               coordinates = {
                 latitude: position.coords.latitude,
-                longitude: position.coords.longitude
+                longitude: position.coords.longitude,
               };
             } catch (geoError) {
               console.warn("Geolocation failed:", geoError);
@@ -298,10 +268,7 @@ export function QRCodeScanner() {
         description: `${product.name} - ${product.batchId}`,
       });
     } else if (error && scannedBatchId) {
-      if (
-        error.message?.includes("not found") ||
-        error.message?.includes("404")
-      ) {
+      if (error.message?.includes("not found") || error.message?.includes("404")) {
         setScanError(`No product found with batch ID: ${scannedBatchId}`);
         toast({
           title: "Product Not Found",
@@ -333,20 +300,15 @@ export function QRCodeScanner() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Camera permission messages */}
       {cameraStatus === "pending" && (
-        <div className="text-center text-muted-foreground mb-4">
-          Checking camera permissions...
-        </div>
+        <div className="text-center text-muted-foreground mb-4">Checking camera permissions...</div>
       )}
       {cameraStatus === "denied" && (
         <div className="text-center text-red-600 mb-4">
-          Camera access denied. Please allow camera permission in your browser
-          settings.
+          Camera access denied. Please allow camera permission in your browser settings.
         </div>
       )}
       {cameraStatus === "notfound" && (
-        <div className="text-center text-red-600 mb-4">
-          No camera found on this device.
-        </div>
+        <div className="text-center text-red-600 mb-4">No camera found on this device.</div>
       )}
 
       {/* Only show scanner UI if scanning and camera is granted */}
@@ -415,9 +377,7 @@ export function QRCodeScanner() {
           <CardContent className="p-6">
             <div className="flex flex-col items-center justify-center h-full py-12">
               <Camera className="w-16 h-16 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
-                Camera is ready to scan QR codes
-              </p>
+              <p className="text-muted-foreground mb-4">Camera is ready to scan QR codes</p>
               <p className="text-xs text-muted-foreground">
                 Position the QR code within the frame to scan
               </p>
