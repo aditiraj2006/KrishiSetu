@@ -8,6 +8,16 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -57,6 +67,8 @@ export function OwnershipManagementPanel({
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(isOpen);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingData, setPendingData] = useState<z.infer<typeof transferFormSchema> | null>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const { toast } = useToast();
@@ -132,12 +144,15 @@ export function OwnershipManagementPanel({
 
   const onSubmit = async (data: z.infer<typeof transferFormSchema>) => {
     if (!user) return;
+    setPendingData(data);
+    setShowConfirmDialog(true);
+  };
 
+  const handleConfirmedTransfer = async () => {
+    if (!user || !pendingData) return;
+    const data = pendingData;
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
-
-    console.log("[FRONTEND] Form data:", data);
-    console.log("[FRONTEND] toUserId:", data.toUserId);
-    console.log("[FRONTEND] selectedUser:", selectedUser);
 
     try {
       const requestBody = {
@@ -146,7 +161,6 @@ export function OwnershipManagementPanel({
         transferType: data.transferType,
         notes: data.notes,
       };
-      console.log("[FRONTEND] Request body:", requestBody);
 
       const response = await fetch("/api/ownership-transfers", {
         method: "POST",
@@ -161,7 +175,7 @@ export function OwnershipManagementPanel({
         throw new Error(errorData.message || "Failed to transfer ownership");
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast({
         title: "Ownership Transfer Request Sent",
@@ -170,9 +184,11 @@ export function OwnershipManagementPanel({
       });
 
       setIsDialogOpen(false);
+      setShowConfirmDialog(false);
       form.reset();
       setSelectedUser(null);
       setSelectedProduct(null);
+      setPendingData(null);
     } catch (error: any) {
       toast({
         title: "Transfer Failed",
@@ -321,6 +337,25 @@ export function OwnershipManagementPanel({
           </Form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Ownership Transfer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to transfer ownership of <strong>{selectedProduct?.name}</strong> to <strong>{selectedUser?.name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedTransfer}>
+              Confirm Transfer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
