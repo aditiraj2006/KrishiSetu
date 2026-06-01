@@ -1,5 +1,5 @@
 // pages/About.tsx
-import { NavigationHeader } from "@/components/NavigationHeader";
+import LandingNavbar from "@/components/LandingNavbar";
 import type React from "react";
 import { Link } from "wouter";
 import "./about.css";
@@ -7,7 +7,7 @@ import "./about.css";
 const About: React.FC = () => {
   return (
     <>
-      <NavigationHeader />
+      <LandingNavbar />
     <div className="about-container">
       <h1 className="fade-in">About KrishiSetu</h1>
       <p className="fade-in delay-1">

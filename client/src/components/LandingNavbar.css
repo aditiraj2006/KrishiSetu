@@ -1,0 +1,130 @@
+/* LandingNavbar.css - Premium Glassmorphic Navigation Header */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: color-mix(in srgb, var(--background) 70%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar .logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.navbar .logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar .logo-icon img {
+  height: 28px;
+  width: auto;
+}
+
+.logo1 {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.logo2 {
+  color: var(--foreground);
+  font-weight: 800;
+}
+
+.navbar .logo {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--foreground) 60%, var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  position: relative;
+  padding: 6px 0;
+  transition: color 0.3s ease;
+}
+
+.nav-links li:hover {
+  color: var(--primary);
+}
+
+.nav-links li.active-link {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.nav-links li.active-link::after {
+  transform: scaleX(1);
+}
+
+.nav-links li::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
+}
+
+.nav-links li:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.navbar-btn {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-1px);
+}

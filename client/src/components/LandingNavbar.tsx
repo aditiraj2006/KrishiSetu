@@ -1,49 +1,70 @@
 import { useLocation } from "wouter";
 import { ModeToggle } from "./mode-toggle";
+import "./LandingNavbar.css";
 
 const LandingNavbar = () => {
   const [location, setLocation] = useLocation();
 
+  const handleGetStarted = () => {
+    setLocation("/dashboard");
+  };
+
+  const navigateTo = (path: string) => {
+    setLocation(path);
+  };
+
+  const handleFeaturesClick = () => {
+    if (location === "/") {
+      const element = document.getElementById("features");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      setLocation("/");
+      // Smooth scroll after navigation
+      setTimeout(() => {
+        const element = document.getElementById("features");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 300);
+    }
+  };
+
   return (
-    <nav style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "16px 50px",
-      background: "rgba(15, 23, 42, 0.95)",
-      position: "sticky",
-      top: 0,
-      zIndex: 1000,
-      width: "100vw",
-      marginLeft: "calc(-50vw + 50%)",
-      boxSizing: "border-box",
-    }}>
-      <div style={{ fontSize: "28px", fontWeight: "bold", color: "#28a745", cursor: "pointer" }}
-        onClick={() => setLocation("/")}>
-        KrishiSetu
+    <nav className="navbar">
+      <div className="logo-container" onClick={() => navigateTo("/")}>
+        <div className="logo-icon">
+          <img src="/logo.svg" alt="KrishiSetu Logo" className="w-6 h-6 object-contain" />
+        </div>
+        <span className="logo">
+          <span className="logo1">Krishi</span>
+          <span className="logo2">Setu</span>
+        </span>
       </div>
-      <ModeToggle />
-      <ul style={{ listStyle: "none", display: "flex", gap: "24px", margin: 0, padding: 0 }}>
-        {[
-          { label: "How it works", path: "/HowItWorks" },
-          { label: "About", path: "/about" },
-          { label: "Contact", path: "/contact" },
-        ].map(({ label, path }) => (
-          <li
-            key={path}
-            onClick={() => setLocation(path)}
-            style={{
-              cursor: "pointer",
-              color: location === path ? "#4ade80" : "#cbd5e1",
-              fontWeight: location === path ? "600" : "normal",
-              borderBottom: location === path ? "2px solid #4ade80" : "2px solid transparent",
-              paddingBottom: "4px",
-              transition: "color 0.3s ease",
-              fontSize: "16px",
-            }}
-          >{label}</li>
-        ))}
-      </ul>
+      
+      <div className="nav-actions">
+        <ul className="nav-links">
+          <li onClick={handleFeaturesClick}>Features</li>
+          <li 
+            onClick={() => navigateTo("/howitworks")}
+            className={location === "/howitworks" ? "active-link" : ""}
+          >How it works</li>
+          <li 
+            onClick={() => navigateTo("/about")}
+            className={location === "/about" ? "active-link" : ""}
+          >About</li>
+          <li 
+            onClick={() => navigateTo("/contact")}
+            className={location === "/contact" ? "active-link" : ""}
+          >Contact</li>
+        </ul>
+        
+        <ModeToggle />
+        <button className="navbar-btn" onClick={handleGetStarted}>
+          Launch App
+        </button>
+      </div>
     </nav>
   );
 };

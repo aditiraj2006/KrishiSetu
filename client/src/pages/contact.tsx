@@ -1,11 +1,14 @@
 // pages/Contact.tsx
+import LandingNavbar from "@/components/LandingNavbar";
 import type React from "react";
 import { Link } from "wouter";
 import "./contact.css";
 
 const Contact: React.FC = () => {
   return (
-    <div className="contact-container">
+    <>
+      <LandingNavbar />
+      <div className="contact-container">
       <h1>Get in Touch</h1>
       <p>
         We’d love to hear from you! Reach out with your questions or feedback and we’ll respond as
@@ -46,6 +49,7 @@ const Contact: React.FC = () => {
         ← Back{" "}
       </Link>
     </div>
+    </>
   );
 };
 
