@@ -15,7 +15,7 @@ import express, {
   type Request,
   type Response,
 } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import fs from "fs";
 import { createServer } from "http";
 import multer from "multer";
@@ -124,7 +124,7 @@ const translateRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many translation requests. Please try again in a minute." },
   keyGenerator: (req: Request) => {
-    return req.ip ?? "unknown";
+    return ipKeyGenerator(req.ip || "");
   },
 });
 
