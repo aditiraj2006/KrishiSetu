@@ -5,6 +5,10 @@ services:
     plan: free
     buildCommand: NODE_ENV=development npm install && npm run build
     startCommand: node dist/index.js
+    disk:
+      name: uploads
+      mountPath: /uploads
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production

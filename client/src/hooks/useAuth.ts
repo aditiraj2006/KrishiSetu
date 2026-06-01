@@ -1,10 +1,12 @@
 import type { User } from "@shared/schema";
 import {
-  createUserWithEmailAndPassword,
-  type User as FirebaseUser,
+  User as FirebaseUser,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -12,10 +14,26 @@ import { useEffect, useState } from "react";
 import { auth, googleProvider } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 
+// ─── Role persistence key (survives redirects, cleared on tab close) ─────────
+const PENDING_ROLE_KEY = 'krishisetu_pending_role';
+
+export type UserRole = 'farmer' | 'distributor' | 'retailer' | 'consumer';
+
+function savePendingRole(role: UserRole) {
+  sessionStorage.setItem(PENDING_ROLE_KEY, role);
+}
+function getPendingRole(): UserRole | null {
+  return sessionStorage.getItem(PENDING_ROLE_KEY) as UserRole | null;
+}
+function clearPendingRole() {
+  sessionStorage.removeItem(PENDING_ROLE_KEY);
+}
+
 export interface AuthState {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loading: boolean;
+  redirectResultLoading: boolean;
   error: string | null;
 }
 
@@ -24,57 +42,94 @@ export function useAuth() {
     user: null,
     firebaseUser: null,
     loading: true,
+    redirectResultLoading: true,
     error: null,
   });
 
-  const fetchUserProfile = async (firebaseUser: FirebaseUser) => {
+  // ── Fetch or register user in the backend ─────────────────────────────────
+  const fetchUserProfile = async (firebaseUser: FirebaseUser, role?: UserRole) => {
     const idToken = await firebaseUser.getIdToken();
+    const headers = {
+      Authorization: `Bearer ${idToken}`,
+    };
+
     try {
-      const response = await fetch("/api/user/profile", {
-        headers: {
-          "X-Firebase-UID": firebaseUser.uid,
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch("/api/user/profile", { headers });
       let user: User;
+
       if (response.ok) {
         user = await response.json();
       } else {
         user = await apiRequest("POST", "/api/user/register", {
-          email: firebaseUser.email || "",
-          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
-          firebaseUid: firebaseUser.uid,
+          email: firebaseUser.email!,
+          name: firebaseUser.displayName || firebaseUser.email!.split("@")[0],
           profileImage: firebaseUser.photoURL,
-          roleSelected: false,
+          role: role ?? null,
+          roleSelected: !!role,
         }).then((res) => res.json());
       }
-      setState({ user, firebaseUser, loading: false, error: null });
+
+      setState({ user, firebaseUser, loading: false, redirectResultLoading: false, error: null });
     } catch {
       setState((prev) => ({
         ...prev,
         loading: false,
+        redirectResultLoading: false,
         error: "Failed to load user profile",
       }));
     }
   };
 
+  // ── 1. Handle returning Google OAuth redirect (runs once on mount) ────────
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (cancelled) return;
+
+        if (result?.user) {
+          const pendingRole = getPendingRole();
+          clearPendingRole();
+          await fetchUserProfile(result.user, pendingRole ?? undefined);
+          return;
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setState((prev) => ({
+            ...prev,
+            redirectResultLoading: false,
+            error: err.message ?? "Google sign-in failed after redirect.",
+          }));
+        }
+      } finally {
+        if (!cancelled) {
+          setState((prev) => ({ ...prev, redirectResultLoading: false }));
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 2. Keep auth state in sync ────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
-        localStorage.setItem("firebase-uid", fbUser.uid);
         await fetchUserProfile(fbUser);
       } else {
-        localStorage.removeItem("firebase-uid");
         setState({
           user: null,
           firebaseUser: null,
           loading: false,
+          redirectResultLoading: false,
           error: null,
         });
       }
     });
     return unsubscribe;
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refetchUser = async () => {
     if (state.firebaseUser) {
@@ -88,10 +143,7 @@ export function useAuth() {
     const idToken = await state.firebaseUser.getIdToken();
     try {
       const response = await fetch("/api/user/profile", {
-        headers: {
-          "X-Firebase-UID": state.firebaseUser.uid,
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers: { Authorization: `Bearer ${idToken}` },
       });
       if (response.ok) {
         const updatedUser = await response.json();
@@ -104,15 +156,28 @@ export function useAuth() {
     return null;
   };
 
-  const loginWithGoogle = () => {
+  // ── Sign-in methods ───────────────────────────────────────────────────────
+
+  const loginWithGoogle = async (role: UserRole) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
-    signInWithPopup(auth, googleProvider).catch((error) =>
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await fetchUserProfile(result.user, role);
+    } catch (popupError: any) {
+      if (
+        popupError.code === "auth/popup-blocked" ||
+        popupError.code === "auth/popup-closed-by-user"
+      ) {
+        savePendingRole(role);
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: error.message || "Google login failed",
-      })),
-    );
+        error: popupError.message || "Google login failed",
+      }));
+    }
   };
 
   const loginWithEmail = async (email: string, password: string) => {
@@ -129,11 +194,17 @@ export function useAuth() {
     }
   };
 
-  const registerWithEmail = async (email: string, password: string, name: string) => {
+  const registerWithEmail = async (
+    email: string,
+    password: string,
+    name: string,
+    role: UserRole,
+  ) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
+      await fetchUserProfile(userCredential.user, role);
       return userCredential.user;
     } catch (error: any) {
       setState((prev) => ({
@@ -148,9 +219,15 @@ export function useAuth() {
   const logout = async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
+      clearPendingRole();
       await signOut(auth);
-      localStorage.removeItem("firebase-uid");
-      setState({ user: null, firebaseUser: null, loading: false, error: null });
+      setState({
+        user: null,
+        firebaseUser: null,
+        loading: false,
+        redirectResultLoading: false,
+        error: null,
+      });
     } catch (error: any) {
       setState((prev) => ({
         ...prev,
@@ -162,6 +239,7 @@ export function useAuth() {
 
   return {
     ...state,
+    loading: state.loading || state.redirectResultLoading,
     login: loginWithGoogle,
     loginWithGoogle,
     loginWithEmail,

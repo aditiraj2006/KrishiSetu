@@ -15,6 +15,7 @@ import express, {
   type Request,
   type Response,
 } from "express";
+import rateLimit from "express-rate-limit";
 import fs from "fs";
 import { createServer } from "http";
 import multer from "multer";
@@ -115,6 +116,17 @@ const requireFirebaseAuth = async (
     return res.status(401).json({ message: "Unauthorized" });
   }
 };
+
+const translateRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many translation requests. Please try again in a minute." },
+  keyGenerator: (req: Request) => {
+    return req.ip ?? "unknown";
+  },
+});
 
 export async function registerRoutes(app: Express) {
   app.use(
@@ -1696,20 +1708,23 @@ export async function registerRoutes(app: Express) {
   });
 
   // --- AI Routes ---
-  app.post("/api/ai/translate", async (req: Request, res: Response) => {
-    try {
-      const { text, targetLanguage } = req.body;
-      if (!text || !targetLanguage) {
-        return res
-          .status(400)
-          .json({ message: "Text and targetLanguage are required" });
+  app.post(
+    "/api/ai/translate",
+    requireFirebaseAuth,
+    translateRateLimiter,
+    async (req: Request, res: Response) => {
+      try {
+        const { text, targetLanguage } = req.body;
+        if (!text || !targetLanguage) {
+          return res.status(400).json({ message: "Text and targetLanguage are required" });
+        }
+        const translatedText = await translateText(text, targetLanguage);
+        return res.json({ translatedText });
+      } catch (error) {
+        return res.status(500).json({ message: "Translation failed" });
       }
-      const translatedText = await translateText(text, targetLanguage);
-      return res.json({ translatedText });
-    } catch (error) {
-      return res.status(500).json({ message: "Translation failed" });
-    }
-  });
+    },
+  );
 
   app.post("/api/ai/grammar", async (req: Request, res: Response) => {
     try {
