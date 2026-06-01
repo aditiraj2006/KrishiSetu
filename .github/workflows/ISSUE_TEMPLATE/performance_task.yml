@@ -1,0 +1,37 @@
+name: Performance Task
+description: Report or propose a performance improvement.
+title: "Performance: "
+labels: ["performance", "status: needs triage"]
+body:
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behaviour
+      description: What is slow or inefficient right now?
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target improvement
+      description: What should improve and how will we know it worked?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Improvement is measured before/after
+        - [ ] No regressions in existing functionality
+    validations:
+      required: true
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC Declaration
+      options:
+        - label: This issue is raised under GSSoC 2026
+          required: true
+        - label: I have not plagiarised any content
+          required: true

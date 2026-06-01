@@ -46,7 +46,9 @@ export function RecentProducts() {
     return (
       <Card className="lg:col-span-2">
         <CardHeader>
-          <h3 className="text-lg font-semibold text-foreground">Recent Products</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Recent Products
+          </h3>
         </CardHeader>
         <CardContent>
           <div className="text-destructive text-sm">
@@ -71,7 +73,9 @@ export function RecentProducts() {
     <Card className="lg:col-span-2 shadow-sm border border-border overflow-hidden">
       <CardHeader className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">Recent Products</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Recent Products
+          </h3>
           <Link href="/registered-products">
             <Button
               variant="link"

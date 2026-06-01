@@ -47,7 +47,9 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
         setOwners(data);
 
         // Verify the ownership chain
-        const verificationResponse = await fetch(`/api/products/${productId}/verify-ownership`);
+        const verificationResponse = await fetch(
+          `/api/products/${productId}/verify-ownership`,
+        );
         const verificationData = await verificationResponse.json();
 
         if (!verificationData.ownershipValid) {
@@ -123,7 +125,9 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h4 className="font-medium">{owner.name}</h4>
-                  <span className="text-xs text-muted-foreground">@{owner.username}</span>
+                  <span className="text-xs text-muted-foreground">
+                    @{owner.username}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {owner.role.charAt(0).toUpperCase() + owner.role.slice(1)}
@@ -137,7 +141,8 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
                     variant={index === 0 ? "default" : "outline"}
                     className={index === 0 ? "bg-primary" : ""}
                   >
-                    {owner.transferType.charAt(0).toUpperCase() + owner.transferType.slice(1)}
+                    {owner.transferType.charAt(0).toUpperCase() +
+                      owner.transferType.slice(1)}
                   </Badge>
                 </div>
               </div>

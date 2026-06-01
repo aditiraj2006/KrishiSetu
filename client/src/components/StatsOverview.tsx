@@ -1,4 +1,11 @@
-import { ArrowRightLeft, Medal, Package, ShieldCheck, TrendingUp, Truck } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Medal,
+  Package,
+  ShieldCheck,
+  TrendingUp,
+  Truck,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,8 +15,6 @@ export function StatsOverview() {
   const { user } = useAuth();
   const userId = user && user.role !== "consumer" ? user.id : undefined;
   const { data: stats, isLoading, error } = useStats(userId);
-
-
 
   if (isLoading) {
     return (
@@ -42,8 +47,6 @@ export function StatsOverview() {
   if (!stats) {
     return null;
   }
-
-
 
   const statCards =
     user && user.role !== "consumer"
@@ -127,7 +130,10 @@ export function StatsOverview() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {statCards.map((stat, index) => (
-        <Card key={index} className="hover-lift transition-all duration-200 hover:border-green-500/20 hover:shadow-md">
+        <Card
+          key={index}
+          className="hover-lift transition-all duration-200 hover:border-green-500/20 hover:shadow-md"
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -145,7 +151,9 @@ export function StatsOverview() {
                 </p>
                 <p className="text-xs text-verified flex items-center gap-1 mt-1">
                   <stat.trendIcon className="w-3 h-3" />
-                  <span data-testid={`text-${stat.label.toLowerCase().replace(" ", "-")}-trend`}>
+                  <span
+                    data-testid={`text-${stat.label.toLowerCase().replace(" ", "-")}-trend`}
+                  >
                     {stat.trend}
                   </span>
                 </p>

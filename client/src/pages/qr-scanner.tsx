@@ -22,7 +22,8 @@ export default function QRScannerPage() {
             Scan Product QR
           </h2>
           <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-            Position the KrishiSetu QR code within the frame to view verified product origin and complete blockchain traceability.
+            Position the KrishiSetu QR code within the frame to view verified
+            product origin and complete blockchain traceability.
           </p>
         </div>
 

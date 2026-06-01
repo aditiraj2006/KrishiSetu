@@ -31,7 +31,7 @@ body {
   flex-direction: column;
   gap: 1px;
   border-bottom: 1px solid gray;
-   background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -85,7 +85,6 @@ body {
     flex-direction: row;
     padding: 20px 50px;
     gap: 0;
-    
   }
   .nav-links {
     display: flex;
@@ -99,19 +98,19 @@ body {
     padding: 0;
     width: auto;
   }
-  .logo{
+  .logo {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 2px;
   }
-  .logo img{
+  .logo img {
     height: 35px;
   }
-  .logo1{
-    color:#16a34a;
+  .logo1 {
+    color: #16a34a;
   }
-  .logo2{
+  .logo2 {
     color: black;
   }
 }
@@ -124,8 +123,8 @@ body {
 }
 .hero-section .steps {
   display: flex;
-  justify-content:flex-start;
-  align-items:flex-start;
+  justify-content: flex-start;
+  align-items: flex-start;
   overflow-x: auto;
   width: 1265px;
   border: 2px solid rgb(216, 216, 216);
@@ -191,7 +190,7 @@ body {
   filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.4));
   background: white;
 }
-.step-heading{
+.step-heading {
   text-align: start;
 }
 .step h2 {
@@ -203,46 +202,43 @@ body {
   color: #969696;
 }
 
-.heading3 h1{
+.heading3 h1 {
   max-width: 550px;
   text-align: start;
   font-size: 20px;
   color: black;
   animation: fadeInUp 1.2s ease forwards;
-
 }
-.heading1{
-padding-bottom: 0px;
+.heading1 {
+  padding-bottom: 0px;
 }
-.heading1 h1{
+.heading1 h1 {
   color: black;
   animation: fadeInUp 1s ease forwards;
   font-weight: bold;
   font-size: 65px;
   text-align: start;
-  
 }
-.heading2 h1{
+.heading2 h1 {
   color: #16a34a;
   animation: fadeInUp 1s ease forwards;
   font-weight: bold;
   font-size: 65px;
   text-align: start;
 }
-.farmerimg{
+.farmerimg {
   position: absolute;
   top: 0;
   right: 0px;
   z-index: 0;
-  
 }
-.farmerimg img{
+.farmerimg img {
   height: 450px;
   border-radius: 300px;
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
 }
-.step-heading h2{
+.step-heading h2 {
   font-weight: bold;
 }
 
@@ -359,7 +355,7 @@ padding-bottom: 0px;
   }
 
   /* Center content and constrain max width for readability */
-  .hero-section{
+  .hero-section {
     padding: 60px 20px;
   }
   .info-cards {
@@ -374,8 +370,8 @@ padding-bottom: 0px;
 
   /* Increase gap between step icons */
   .hero-section .steps {
-    gap: 10px;            /* larger spacing on desktop */
-    overflow: visible;    /* show all icons without scroll */
+    gap: 10px; /* larger spacing on desktop */
+    overflow: visible; /* show all icons without scroll */
   }
 
   /* Increase step icon size slightly on desktop */

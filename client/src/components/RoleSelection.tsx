@@ -12,7 +12,8 @@ const roles = [
   {
     id: "farmer",
     title: "Farmer",
-    description: "Register products, track harvests, and manage supply chain origins",
+    description:
+      "Register products, track harvests, and manage supply chain origins",
     icon: Sprout,
     features: [
       "Product Registration",
@@ -25,7 +26,8 @@ const roles = [
   {
     id: "distributor",
     title: "Distributor",
-    description: "Manage transportation and logistics between supply chain stages",
+    description:
+      "Manage transportation and logistics between supply chain stages",
     icon: Truck,
     features: [
       "QR Code Scanning",
@@ -68,7 +70,10 @@ interface RoleSelectionProps {
   onRoleSelected: () => void;
 }
 
-export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps) {
+export function RoleSelection({
+  isVisible,
+  onRoleSelected,
+}: RoleSelectionProps) {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
   const { user, firebaseUser, refreshUser } = useAuth();
@@ -118,13 +123,16 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
           <CardHeader className="text-center pb-4 sm:pb-6">
             <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
               <Sprout className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">KrishiSetu</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                KrishiSetu
+              </h1>
             </div>
             <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
               Choose Your Role
             </h2>
             <p className="text-muted-foreground">
-              Select your role in the supply chain to customize your dashboard and features
+              Select your role in the supply chain to customize your dashboard
+              and features
             </p>
           </CardHeader>
 
@@ -148,7 +156,9 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className={`${role.color} p-3 rounded-lg flex-shrink-0`}>
+                        <div
+                          className={`${role.color} p-3 rounded-lg flex-shrink-0`}
+                        >
                           <IconComponent className="w-6 h-6" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -156,14 +166,20 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
                             <h3 className="font-semibold text-foreground text-base sm:text-lg">
                               {role.title}
                             </h3>
-                            {isSelected && <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />}
+                            {isSelected && (
+                              <Check className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                            )}
                           </div>
                           <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 leading-relaxed">
                             {role.description}
                           </p>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
                             {role.features.map((feature) => (
-                              <Badge key={feature} variant="secondary" className="text-xs">
+                              <Badge
+                                key={feature}
+                                variant="secondary"
+                                className="text-xs"
+                              >
                                 {feature}
                               </Badge>
                             ))}

@@ -60,12 +60,16 @@ export default function LoginPage() {
       toast.success("Successfully logged in with Google!");
       setLocation("/dashboard");
     } catch (err: any) {
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('Google Sign-In is not available on this domain. Please use Email login instead.');
-        toast.error('Google Sign-In is not available on this domain. Please use Email login instead.');
+      if (err.code === "auth/unauthorized-domain") {
+        setError(
+          "Google Sign-In is not available on this domain. Please use Email login instead.",
+        );
+        toast.error(
+          "Google Sign-In is not available on this domain. Please use Email login instead.",
+        );
       } else {
-        setError('Sign-in failed. Please try again.');
-        toast.error('Sign-in failed. Please try again.');
+        setError("Sign-in failed. Please try again.");
+        toast.error("Sign-in failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -111,19 +115,21 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex justify-center mb-2">
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "google"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                tab === "google"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-                }`}
+              }`}
               onClick={() => setTab("google")}
             >
               🌐 Google
             </button>
             <button
-              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "email"
+              className={`flex-1 py-2 font-medium border-b-2 transition-colors ${
+                tab === "email"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground"
-                }`}
+              }`}
               onClick={() => setTab("email")}
             >
               📧 Email
@@ -139,7 +145,7 @@ export default function LoginPage() {
                   type="text"
                   placeholder="Name"
                   value={name}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
               )}
@@ -155,7 +161,7 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="pr-10"
                 />
@@ -198,7 +204,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="Enter your email"
                 value={resetEmail}
-                onChange={e => setResetEmail(e.target.value)}
+                onChange={(e) => setResetEmail(e.target.value)}
                 required
               />
 
@@ -233,7 +239,9 @@ export default function LoginPage() {
         </CardContent>
       </Card>
 
-      {error && <div className="text-destructive mt-4 text-center">{error}</div>}
+      {error && (
+        <div className="text-destructive mt-4 text-center">{error}</div>
+      )}
     </div>
   );
 }

@@ -29,7 +29,11 @@ interface RoleDashboardProps {
   onScanQR?: () => void;
 }
 
-export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboardProps) {
+export function RoleDashboard({
+  user,
+  onRegisterProduct,
+  onScanQR,
+}: RoleDashboardProps) {
   const { role } = user;
 
   // Mock data - in real app this would come from API
@@ -87,7 +91,9 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">Organic Tomatoes</span>
+              <span className="font-medium text-sm truncate">
+                Organic Tomatoes
+              </span>
               <Badge
                 variant="outline"
                 className="bg-primary/10 text-primary text-xs whitespace-nowrap flex-shrink-0"
@@ -154,19 +160,25 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">Farm → Warehouse</span>
+              <span className="font-medium text-sm truncate">
+                Farm → Warehouse
+              </span>
               <Badge className="bg-verified text-white text-xs whitespace-nowrap flex-shrink-0">
                 In Transit
               </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">Warehouse → Market</span>
+              <span className="font-medium text-sm truncate">
+                Warehouse → Market
+              </span>
               <Badge className="bg-warning text-white text-xs whitespace-nowrap flex-shrink-0">
                 Loading
               </Badge>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-sm truncate">Market → Store</span>
+              <span className="font-medium text-sm truncate">
+                Market → Store
+              </span>
               <Badge className="bg-accent text-white text-xs whitespace-nowrap flex-shrink-0">
                 Scheduled
               </Badge>
@@ -184,7 +196,9 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="text-sm text-muted-foreground break-words">{(stats as any).alerts}</div>
+          <div className="text-sm text-muted-foreground break-words">
+            {(stats as any).alerts}
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -202,23 +216,30 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-3">
-            {(stats as any).topCategories.map((category: string, index: number) => (
-              <div key={category} className="flex items-center justify-between gap-2">
-                <span className="font-medium text-sm truncate">{category}</span>
-                <Badge
-                  variant="outline"
-                  className={`text-xs whitespace-nowrap flex-shrink-0 ${
-                    index === 0
-                      ? "bg-primary/10 text-primary"
-                      : index === 1
-                        ? "bg-verified/10 text-verified"
-                        : "bg-accent/10 text-accent"
-                  }`}
+            {(stats as any).topCategories.map(
+              (category: string, index: number) => (
+                <div
+                  key={category}
+                  className="flex items-center justify-between gap-2"
                 >
-                  Best Seller
-                </Badge>
-              </div>
-            ))}
+                  <span className="font-medium text-sm truncate">
+                    {category}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={`text-xs whitespace-nowrap flex-shrink-0 ${
+                      index === 0
+                        ? "bg-primary/10 text-primary"
+                        : index === 1
+                          ? "bg-verified/10 text-verified"
+                          : "bg-accent/10 text-accent"
+                    }`}
+                  >
+                    Best Seller
+                  </Badge>
+                </div>
+              ),
+            )}
           </div>
         </CardContent>
       </Card>
@@ -253,7 +274,10 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         <CardContent className="pt-0">
           <div className="space-y-3">
             {(stats as any).favoriteOrigins.map((origin: string) => (
-              <div key={origin} className="flex items-center justify-between gap-2">
+              <div
+                key={origin}
+                className="flex items-center justify-between gap-2"
+              >
                 <span className="font-medium text-sm truncate">{origin}</span>
                 <Badge
                   variant="outline"
@@ -338,14 +362,18 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
             <div className="flex items-center gap-3">
               {getRoleIcon()}
               <div>
-                <CardTitle className="text-lg md:text-xl">{getRoleTitle()}</CardTitle>
+                <CardTitle className="text-lg md:text-xl">
+                  {getRoleTitle()}
+                </CardTitle>
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
                   {getRoleDescription()}
                 </p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              {(role === "farmer" || role === "distributor" || role == "retailer") &&
+              {(role === "farmer" ||
+                role === "distributor" ||
+                role == "retailer") &&
                 onRegisterProduct && (
                   <Button
                     onClick={onRegisterProduct}

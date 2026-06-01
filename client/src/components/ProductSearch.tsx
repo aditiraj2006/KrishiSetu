@@ -38,7 +38,10 @@ export function ProductSearch({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setHighlightedIndex(-1);
       }
@@ -54,7 +57,9 @@ export function ProductSearch({
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
+          setHighlightedIndex((prev) =>
+            prev < results.length - 1 ? prev + 1 : prev,
+          );
           break;
         case "ArrowUp":
           e.preventDefault();
@@ -157,11 +162,17 @@ export function ProductSearch({
 
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
     const parts = text.split(regex);
     return parts.map((part, index) =>
       regex.test(part) ? (
-        <span key={index} className="bg-yellow-200 dark:bg-yellow-800 font-semibold">
+        <span
+          key={index}
+          className="bg-yellow-200 dark:bg-yellow-800 font-semibold"
+        >
           {part}
         </span>
       ) : (
@@ -195,7 +206,10 @@ export function ProductSearch({
         {isSearching && (
           <div className="p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 mb-2 animate-pulse">
+              <div
+                key={i}
+                className="flex items-center gap-2 mb-2 animate-pulse"
+              >
                 <div className="h-8 w-8 bg-muted rounded-full" />
                 <div className="flex-1 h-4 bg-muted rounded" />
               </div>
@@ -245,7 +259,9 @@ export function ProductSearch({
                       )}
                       <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        <span>Harvested: {formatDate(product.harvestDate)}</span>
+                        <span>
+                          Harvested: {formatDate(product.harvestDate)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -256,7 +272,9 @@ export function ProductSearch({
                 {isSearching ? (
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm text-muted-foreground">Searching...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Searching...
+                    </span>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
@@ -269,7 +287,9 @@ export function ProductSearch({
           </div>
         </div>
       )}
-      {searchError && <div className="p-4 text-center text-red-500">{searchError}</div>}
+      {searchError && (
+        <div className="p-4 text-center text-red-500">{searchError}</div>
+      )}
       {selectedProduct && !query && (
         <div className="mt-2 border border-border rounded-md p-3 bg-muted/30">
           <div className="flex items-center justify-between">
@@ -284,7 +304,8 @@ export function ProductSearch({
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {selectedProduct.farmName} • {formatDate(selectedProduct.harvestDate)}
+                {selectedProduct.farmName} •{" "}
+                {formatDate(selectedProduct.harvestDate)}
               </p>
             </div>
             <button

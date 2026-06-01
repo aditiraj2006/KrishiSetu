@@ -189,14 +189,14 @@ Please follow:
 ✅ Small reusable functions  
 ✅ Add comments for complex logic  
 ✅ Format code consistently  
-✅ Update documentation when required  
+✅ Update documentation when required
 
 Avoid:
 
 ❌ Unnecessary style changes  
 ❌ Large unrelated PRs  
 ❌ Leaving `console.log()` in production  
-❌ Committing sensitive credentials  
+❌ Committing sensitive credentials
 
 ---
 

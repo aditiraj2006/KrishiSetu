@@ -1,4 +1,13 @@
-import { Bell, ChevronDown, LogOut, Menu, Moon, Sprout, Sun, User } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Menu,
+  Moon,
+  Sprout,
+  Sun,
+  User,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -35,9 +44,8 @@ export function NavigationHeader() {
   const [showOwnershipPanel, setShowOwnershipPanel] = useState(false); // <-- new state
 
   // pending product id so we can redirect after form submit
-  const [pendingProductIdForRedirect, setPendingProductIdForRedirect] = useState<string | null>(
-    null,
-  );
+  const [pendingProductIdForRedirect, setPendingProductIdForRedirect] =
+    useState<string | null>(null);
 
   // store the transfer id & product id for the currently-open form
   const [currentTransferForForm, setCurrentTransferForForm] = useState<{
@@ -57,11 +65,11 @@ export function NavigationHeader() {
   const isActiveRoute = (path: string) => location === path;
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-useEffect(() => {
-  const handleScroll = () => setShowScrollTop(window.scrollY > 100);
-  window.addEventListener("scroll", handleScroll);
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 100);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Fetch unread notifications (we keep only unread in dropdown)
   useEffect(() => {
@@ -109,7 +117,8 @@ useEffect(() => {
     }
 
     // compute scrollbar width so content doesn't jump
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -350,7 +359,9 @@ useEffect(() => {
     }
   };
   const markNotificationReadLocal = (notifId: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === notifId ? { ...n, read: true } : n)));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notifId ? { ...n, read: true } : n)),
+    );
     setNotificationCount((prev) => Math.max(0, prev - 1));
   };
   // Default click behaviour for non-ownership notifications:
@@ -391,7 +402,10 @@ useEffect(() => {
   };
 
   // When form modal closes. result?: { submitted?: boolean, productId?: string }
-  const handleFormClose = (result?: { submitted?: boolean; productId?: string }) => {
+  const handleFormClose = (result?: {
+    submitted?: boolean;
+    productId?: string;
+  }) => {
     setShowDistributorForm(false);
     setShowRetailerForm(false);
 
@@ -456,9 +470,16 @@ useEffect(() => {
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 data-testid="button-theme-toggle"
               >
-                {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
               </Button>
-              <DropdownMenu open={notifDropdownOpen} onOpenChange={setNotifDropdownOpen}>
+              <DropdownMenu
+                open={notifDropdownOpen}
+                onOpenChange={setNotifDropdownOpen}
+              >
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -478,7 +499,10 @@ useEffect(() => {
                   </Button>
                 </DropdownMenuTrigger>
 
-                <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-auto">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-80 max-h-96 overflow-auto"
+                >
                   <div className="p-2 font-semibold">Notifications</div>
                   <DropdownMenuSeparator />
                   {sortedNotifications.length === 0 ? (
@@ -508,7 +532,9 @@ useEffect(() => {
                           >
                             <div className="flex justify-between items-start gap-2">
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">{notif.title}</div>
+                                <div className="font-medium truncate">
+                                  {notif.title}
+                                </div>
                                 <div className="text-xs text-muted-foreground truncate">
                                   {notif.message}
                                 </div>
@@ -534,7 +560,9 @@ useEffect(() => {
                                     Reject
                                   </Button>
                                 </div>
-                                <span className="text-xs text-accent">Pending</span>
+                                <span className="text-xs text-accent">
+                                  Pending
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -544,7 +572,9 @@ useEffect(() => {
                       return (
                         <DropdownMenuItem
                           key={notif.id}
-                          onClick={() => !isRead && handleNotificationClick(notif)}
+                          onClick={() =>
+                            !isRead && handleNotificationClick(notif)
+                          }
                           style={{ cursor: isRead ? "default" : "pointer" }}
                           className={notifClass}
                         >
@@ -570,8 +600,13 @@ useEffect(() => {
                     data-testid="button-user-menu"
                   >
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={firebaseUser.photoURL || undefined} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                      <AvatarImage
+                        src={firebaseUser.photoURL || undefined}
+                        alt={user.name}
+                      />
+                      <AvatarFallback>
+                        {user.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
                     </Avatar>
                     <div className="hidden md:block text-left max-w-[120px] truncate">
                       <div
@@ -594,7 +629,11 @@ useEffect(() => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   {/* FIX IMPLEMENTED HERE: Added asChild so wouter link routes correctly without breaking layout */}
-                  <DropdownMenuItem asChild className="cursor-pointer" data-testid="menu-profile">
+                  <DropdownMenuItem
+                    asChild
+                    className="cursor-pointer"
+                    data-testid="menu-profile"
+                  >
                     <Link href="/profile" className="flex items-center w-full">
                       <User className="mr-2 h-4 w-4" />
                       Profile
@@ -698,14 +737,14 @@ useEffect(() => {
         />
       )}
       {showScrollTop && (
-  <button
-    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-    className="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:opacity-90 transition-all"
-    aria-label="Scroll to top"
-  >
-    ↑
-  </button>
-)}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:opacity-90 transition-all"
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
+      )}
     </>
   );
 }

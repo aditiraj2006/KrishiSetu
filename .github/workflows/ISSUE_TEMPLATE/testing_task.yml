@@ -1,0 +1,39 @@
+name: Testing Task
+description: Add or improve unit, integration, or CI test coverage.
+title: "Test: "
+labels: ["testing", "status: needs triage"]
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: Coverage gap
+      description: Which behaviour is untested or weakly tested?
+    validations:
+      required: true
+  - type: textarea
+    id: cases
+    attributes:
+      label: Test cases to cover
+      placeholder: |
+        - ...
+        - ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Tests pass locally
+        - [ ] No regressions in existing tests
+    validations:
+      required: true
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC Declaration
+      options:
+        - label: This issue is raised under GSSoC 2026
+          required: true
+        - label: I have not plagiarised any content
+          required: true

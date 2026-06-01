@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -26,7 +30,10 @@ const safetySettings = [
 
 export async function translateText(text: string, targetLanguage: string) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      safetySettings,
+    });
     const prompt = `Translate the following agricultural product description to ${targetLanguage}. Keep the tone professional and informative. Only return the translated text:\n\n${text}`;
 
     const result = await model.generateContent(prompt);
@@ -41,7 +48,10 @@ export async function translateText(text: string, targetLanguage: string) {
 
 export async function improveGrammar(text: string) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      safetySettings,
+    });
     const prompt = `Improve the grammar and professional tone of the following agricultural product description while keeping its original meaning. Only return the improved text:\n\n${text}`;
 
     const result = await model.generateContent(prompt);
@@ -56,7 +66,10 @@ export async function improveGrammar(text: string) {
 
 export async function analyzeProductQuality(base64Image: string) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      safetySettings,
+    });
 
     // Convert base64 to the format expected by Gemini
     const part = {
@@ -84,7 +97,8 @@ export async function analyzeProductQuality(base64Image: string) {
     // Safety fallback: return a default safe score instead of crashing
     return {
       score: 5,
-      explanation: "Quality analysis is temporarily unavailable. A default neutral score has been applied.",
+      explanation:
+        "Quality analysis is temporarily unavailable. A default neutral score has been applied.",
     };
   }
 }

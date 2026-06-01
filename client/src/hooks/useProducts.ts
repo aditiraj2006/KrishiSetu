@@ -8,7 +8,9 @@ export function useProducts(ownerId?: string) {
   return useQuery({
     queryKey: ownerId ? ["/api/products", { ownerId }] : ["/api/products"],
     queryFn: async () => {
-      const url = ownerId ? `/api/products?ownerId=${ownerId}` : "/api/products";
+      const url = ownerId
+        ? `/api/products?ownerId=${ownerId}`
+        : "/api/products";
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch products");
       return response.json() as Promise<Product[]>;
@@ -91,9 +93,13 @@ export function useStats(userId?: string) {
 
 export function useRecentScans(userId?: string) {
   return useQuery({
-    queryKey: userId ? ["/api/scans/recent", { userId }] : ["/api/scans/recent"],
+    queryKey: userId
+      ? ["/api/scans/recent", { userId }]
+      : ["/api/scans/recent"],
     queryFn: async () => {
-      const url = userId ? `/api/scans/recent?userId=${userId}` : "/api/scans/recent";
+      const url = userId
+        ? `/api/scans/recent?userId=${userId}`
+        : "/api/scans/recent";
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch recent scans");
       return response.json();
@@ -103,7 +109,9 @@ export function useRecentScans(userId?: string) {
 
 export function useUserProducts(user?: User | null) {
   return useQuery({
-    queryKey: user ? ["/api/user/products/combined", { userId: user.id }] : ["/api/products"],
+    queryKey: user
+      ? ["/api/user/products/combined", { userId: user.id }]
+      : ["/api/products"],
     queryFn: async () => {
       if (!user) {
         // If no user, return all products
@@ -124,7 +132,8 @@ export function useUserProducts(user?: User | null) {
         fetch(`/api/user/products/scanned`, { headers }),
       ]);
 
-      if (!ownedRes.ok || !scannedRes.ok) throw new Error("Failed to fetch user products");
+      if (!ownedRes.ok || !scannedRes.ok)
+        throw new Error("Failed to fetch user products");
 
       const owned = (await ownedRes.json()) as Product[];
       const scanned = (await scannedRes.json()) as Product[];

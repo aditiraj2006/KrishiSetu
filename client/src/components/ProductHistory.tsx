@@ -61,7 +61,9 @@ const FIELD_ICONS: Record<string, React.ReactNode> = {
 export function ProductHistory({ productId }: ProductHistoryProps) {
   const [events, setEvents] = useState<RegistrationEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPaymentProof, setSelectedPaymentProof] = useState<string | null>(null);
+  const [selectedPaymentProof, setSelectedPaymentProof] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     async function fetchRegistrationEvents() {
@@ -71,7 +73,8 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
           const data = await res.json();
           // Filter for registration events only
           const registrationEvents = data.filter(
-            (event: RegistrationEvent) => event.eventType === "ownership_registration",
+            (event: RegistrationEvent) =>
+              event.eventType === "ownership_registration",
           );
           setEvents(registrationEvents);
         }
@@ -130,49 +133,46 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
     return String(value || "");
   };
 
- if (loading) {
-  return (
-    <Card className="shadow-sm border border-border">
-      <CardHeader>
-        <Skeleton className="h-7 w-72" />
-      </CardHeader>
+  if (loading) {
+    return (
+      <Card className="shadow-sm border border-border">
+        <CardHeader>
+          <Skeleton className="h-7 w-72" />
+        </CardHeader>
 
-      <CardContent>
-        <div className="space-y-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex gap-3">
-              <Skeleton className="w-5 h-5 rounded-full mt-1" />
+        <CardContent>
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex gap-3">
+                <Skeleton className="w-5 h-5 rounded-full mt-1" />
 
-              <div className="flex-1 space-y-3">
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-52" />
-                  <Skeleton className="h-3 w-44" />
-                  <Skeleton className="h-3 w-36" />
-                </div>
+                <div className="flex-1 space-y-3">
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-52" />
+                    <Skeleton className="h-3 w-44" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
 
-                <div className="bg-muted/50 rounded p-3 space-y-2">
-                  <Skeleton className="h-4 w-56" />
+                  <div className="bg-muted/50 rounded p-3 space-y-2">
+                    <Skeleton className="h-4 w-56" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {[1, 2, 3, 4].map((field) => (
-                      <div
-                        key={field}
-                        className="flex items-center gap-2"
-                      >
-                        <Skeleton className="h-3 w-28" />
-                        <Skeleton className="h-3 flex-1" />
-                      </div>
-                    ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {[1, 2, 3, 4].map((field) => (
+                        <div key={field} className="flex items-center gap-2">
+                          <Skeleton className="h-3 w-28" />
+                          <Skeleton className="h-3 flex-1" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -194,10 +194,14 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
           ) : (
             <ol className="space-y-6">
               {events.map((event) => {
-                const userName = event.extra?.userName || event.userName || "Unknown User";
-                const userRole = event.extra?.userRole || event.userRole || "Unknown Role";
-                const previousOwnerName = event.extra?.previousOwnerName || "Unknown";
-                const previousOwnerRole = event.extra?.previousOwnerRole || "Unknown";
+                const userName =
+                  event.extra?.userName || event.userName || "Unknown User";
+                const userRole =
+                  event.extra?.userRole || event.userRole || "Unknown Role";
+                const previousOwnerName =
+                  event.extra?.previousOwnerName || "Unknown";
+                const previousOwnerRole =
+                  event.extra?.previousOwnerRole || "Unknown";
 
                 return (
                   <li key={event.id} className="flex items-start gap-3">
@@ -210,15 +214,18 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
                     <div className="flex-1">
                       <div className="text-xs text-muted-foreground flex flex-col gap-1 mb-2">
                         <div>
-                          <span className="font-semibold">From:</span> {previousOwnerName} (
-                          {previousOwnerRole})
+                          <span className="font-semibold">From:</span>{" "}
+                          {previousOwnerName} ({previousOwnerRole})
                         </div>
                         <div>
-                          <span className="font-semibold">To:</span> {userName} ({userRole})
+                          <span className="font-semibold">To:</span> {userName}{" "}
+                          ({userRole})
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3 h-3" />
-                          <span>{new Date(event.createdAt).toLocaleString()}</span>
+                          <span>
+                            {new Date(event.createdAt).toLocaleString()}
+                          </span>
                         </div>
                       </div>
 
@@ -230,20 +237,27 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
                               Fields filled in this registration:
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                              {event.extra.registeredFields.map((field: string) => (
-                                <div key={field} className="flex items-start">
-                                  <div
-                                    className="flex items-center text-foreground font-medium mr-2"
-                                    style={{ minWidth: 120 }}
-                                  >
-                                    {FIELD_ICONS[field] || <Package className="w-3 h-3 mr-1" />}
-                                    {FIELD_LABELS[field] || field}:
+                              {event.extra.registeredFields.map(
+                                (field: string) => (
+                                  <div key={field} className="flex items-start">
+                                    <div
+                                      className="flex items-center text-foreground font-medium mr-2"
+                                      style={{ minWidth: 120 }}
+                                    >
+                                      {FIELD_ICONS[field] || (
+                                        <Package className="w-3 h-3 mr-1" />
+                                      )}
+                                      {FIELD_LABELS[field] || field}:
+                                    </div>
+                                    <div className="text-muted-foreground break-words">
+                                      {formatFieldValue(
+                                        field,
+                                        event.extra[field],
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="text-muted-foreground break-words">
-                                    {formatFieldValue(field, event.extra[field])}
-                                  </div>
-                                </div>
-                              ))}
+                                ),
+                              )}
                             </div>
                           </div>
                         )}

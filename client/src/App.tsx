@@ -27,7 +27,8 @@ function App() {
           position="top-center"
           toastOptions={{
             style: {
-              background: "linear-gradient(135deg, var(--verified), var(--primary))",
+              background:
+                "linear-gradient(135deg, var(--verified), var(--primary))",
               color: "#fff",
               fontWeight: "bold",
               borderRadius: "0.5rem",
@@ -44,12 +45,18 @@ function App() {
               <Route path="/about" component={about} />
               <Route path="/howitworks" component={HowItWorks} />
               <Route path="/dashboard" component={Dashboard} />
-              <Route path="/product-registration" component={ProductRegistration} />
+              <Route
+                path="/product-registration"
+                component={ProductRegistration}
+              />
               <Route path="/qr-scanner" component={QRScannerPage} />
               <Route path="/product/:id" component={ProductDetails} />
               <Route path="/profile" component={ProfilePage} />
               <Route path="/login" component={LoginPage} />
-              <Route path="/registered-products" component={RegisteredProductsPage} />
+              <Route
+                path="/registered-products"
+                component={RegisteredProductsPage}
+              />
               <Route path="/scanned-products" component={ScannedProductsPage} />
               <Route path="/request-products" component={RequestProductsPage} />
               <Route component={NotFound} />

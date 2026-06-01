@@ -1,4 +1,12 @@
-import { Github, Leaf, Linkedin, Mail, MapPin, Phone, Twitter } from "lucide-react";
+import {
+  Github,
+  Leaf,
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
+  Twitter,
+} from "lucide-react";
 import React from "react";
 import { Link } from "wouter";
 
@@ -21,7 +29,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Brand Section */}
           <div className="flex flex-col space-y-4">
-            <Link href="/" className="flex items-center gap-3 cursor-pointer w-fit group">
+            <Link
+              href="/"
+              className="flex items-center gap-3 cursor-pointer w-fit group"
+            >
               <div className="p-2.5 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20 group-hover:scale-105 transition-transform duration-300">
                 <Leaf className="w-5 h-5 text-white" />
               </div>
@@ -32,14 +43,16 @@ export function Footer() {
             </Link>
 
             <p className="text-sm leading-6 text-muted-foreground max-w-xs">
-              Empowering farmers with transparent supply chain visibility and smart agricultural
-              tracking from farm to market.
+              Empowering farmers with transparent supply chain visibility and
+              smart agricultural tracking from farm to market.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="flex flex-col space-y-4">
-            <h3 className="text-base font-semibold text-foreground">Quick Links</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              Quick Links
+            </h3>
 
             <ul className="space-y-2 text-sm">
               {[
@@ -124,10 +137,13 @@ export function Footer() {
 
           {/* Open Source */}
           <div className="flex flex-col space-y-4">
-            <h3 className="text-base font-semibold text-foreground">Open Source</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              Open Source
+            </h3>
 
             <p className="text-sm text-muted-foreground leading-6">
-              KrishiSetu is open source and community driven. Contributions are always welcome 🌱
+              KrishiSetu is open source and community driven. Contributions are
+              always welcome 🌱
             </p>
 
             <div className="flex gap-3">

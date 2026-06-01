@@ -1,0 +1,42 @@
+name: Refactor Task
+description: Propose a code refactor to improve maintainability or clarity.
+title: "Refactor: "
+labels: ["refactor", "status: needs triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current situation
+      description: What is the current state of the code that needs refactoring?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: How do you propose to refactor the code?
+    validations:
+      required: true
+  - type: textarea
+    id: benefit
+    attributes:
+      label: Expected benefit
+      description: Why is this refactor important?
+    validations:
+      required: true
+  - type: checkboxes
+    id: risk
+    attributes:
+      label: Risk assessment
+      options:
+        - label: This change is backwards-compatible
+          required: true
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC Declaration
+      options:
+        - label: This issue is raised under GSSoC 2026
+          required: true
+        - label: I have not plagiarised any content
+          required: true

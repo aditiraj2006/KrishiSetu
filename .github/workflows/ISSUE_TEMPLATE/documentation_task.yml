@@ -1,0 +1,40 @@
+name: Documentation Task
+description: Improve docs, examples, README, or contributor guidance.
+title: "Docs: "
+labels: ["documentation", "status: needs triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What documentation is missing or unclear?
+      description: Point to a file, README section, or page.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suggested scope
+      placeholder: |
+        - Add ...
+        - Update ...
+        - Include an example for ...
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Clear explanation added
+        - [ ] Links are valid
+    validations:
+      required: true
+  - type: checkboxes
+    id: gssoc
+    attributes:
+      label: GSSoC Declaration
+      options:
+        - label: This issue is raised under GSSoC 2026
+          required: true
+        - label: I have not plagiarised any content
+          required: true

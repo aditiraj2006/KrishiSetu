@@ -18,7 +18,9 @@ import { RetailerProductForm } from "../components/RetailerProductForm";
 export default function Dashboard() {
   const { theme, setTheme } = useTheme();
   const { user, loading, refreshUser } = useAuth();
-  const [activeForm, setActiveForm] = useState<"farmer" | "distributor" | "retailer" | null>(null);
+  const [activeForm, setActiveForm] = useState<
+    "farmer" | "distributor" | "retailer" | null
+  >(null);
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const formRef = useRef<HTMLDivElement>(null); // Ref to scroll to form
   const [, navigate] = useLocation();
@@ -80,7 +82,9 @@ export default function Dashboard() {
         <NavigationHeader />
 
         <main className="pt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-muted-foreground">Loading dashboard...</div>
+          <div className="text-center text-muted-foreground">
+            Loading dashboard...
+          </div>
         </main>
       </div>
     );
@@ -107,7 +111,9 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-foreground">Supply Chain Dashboard</h2>
+                <h2 className="text-3xl font-bold text-foreground">
+                  Supply Chain Dashboard
+                </h2>
                 <p className="text-sm text-muted-foreground italic mt-1">
                   Last updated: {lastUpdated}
                 </p>
@@ -139,7 +145,14 @@ export default function Dashboard() {
                 )}
                 {!user && (
                   <div className="bg-gradient-to-r from-primary/20 to-accent/20 text-foreground rounded-md px-3 py-2 text-sm flex items-center gap-1 shadow-sm border border-primary/20">
-                    📝 Want to register a product? <Link href="/auth" className="underline font-semibold hover:text-primary">Log in</Link> first to continue.
+                    📝 Want to register a product?{" "}
+                    <Link
+                      href="/auth"
+                      className="underline font-semibold hover:text-primary"
+                    >
+                      Log in
+                    </Link>{" "}
+                    first to continue.
                   </div>
                 )}
               </div>
@@ -166,9 +179,15 @@ export default function Dashboard() {
         {/* Floating Modal for Farmer */}
         {activeForm === "farmer" && (
           <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-auto">
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseForm} />
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={handleCloseForm}
+            />
             <div className="relative mt-12 mb-12 mx-4 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-white p-6 shadow-2xl z-[121]">
-              <ProductRegistrationForm isVisible={true} onClose={handleCloseForm} />
+              <ProductRegistrationForm
+                isVisible={true}
+                onClose={handleCloseForm}
+              />
             </div>
           </div>
         )}
@@ -176,9 +195,15 @@ export default function Dashboard() {
         {/* Floating Modal for Distributor */}
         {activeForm === "distributor" && (
           <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-auto">
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseForm} />
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={handleCloseForm}
+            />
             <div className="relative mt-12 mb-12 mx-4 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-white p-6 shadow-2xl z-[121]">
-              <DistributorProductForm isVisible={true} onClose={handleCloseForm} />
+              <DistributorProductForm
+                isVisible={true}
+                onClose={handleCloseForm}
+              />
             </div>
           </div>
         )}
@@ -186,7 +211,10 @@ export default function Dashboard() {
         {/* Floating Modal for Retailer */}
         {activeForm === "retailer" && (
           <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-auto">
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseForm} />
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={handleCloseForm}
+            />
             <div className="relative mt-12 mb-12 mx-4 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-white p-6 shadow-2xl z-[121]">
               <RetailerProductForm isVisible={true} onClose={handleCloseForm} />
             </div>

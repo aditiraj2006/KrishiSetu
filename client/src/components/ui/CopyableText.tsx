@@ -31,7 +31,11 @@ const CopyableText = ({ text }: Props) => {
         className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
         aria-label="Copy ID"
       >
-        {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+        {copied ? (
+          <Check size={16} className="text-green-500" />
+        ) : (
+          <Copy size={16} />
+        )}
       </button>
 
       {copied && <span className="text-xs text-green-500">Copied!</span>}

@@ -41,6 +41,7 @@ Built with modern web technologies and designed with **beginner-friendly contrib
 - 🔒 **Privacy-First Design** — User data encryption and privacy controls
 
 ### Coming Soon 🚀
+
 - 🤖 AI-powered product recommendations
 - 📲 Native mobile apps (iOS & Android)
 - ⛓️ Full blockchain integration for immutable records
@@ -60,30 +61,33 @@ Want to see it in action? Click the link above to explore the platform!
 ## 🛠 Tech Stack
 
 ### Frontend
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| **React** | 18.3+ | UI library with hooks |
-| **TypeScript** | 5.6+ | Type-safe development |
-| **Vite** | 6.1+ | Lightning-fast build tool |
-| **Tailwind CSS** | 3.4+ | Utility-first styling |
-| **shadcn/ui** | Latest | Accessible React components |
-| **React Router** | 7.9+ | Client-side routing |
-| **TanStack Query** | 5.60+ | Server state management |
-| **React Hook Form** | 7.55+ | Form handling & validation |
-| **Zod** | 3.24+ | TypeScript-first validation |
-| **Firebase SDK** | 12.2+ | Authentication & services |
+
+| Technology          | Version | Purpose                     |
+| ------------------- | ------- | --------------------------- |
+| **React**           | 18.3+   | UI library with hooks       |
+| **TypeScript**      | 5.6+    | Type-safe development       |
+| **Vite**            | 6.1+    | Lightning-fast build tool   |
+| **Tailwind CSS**    | 3.4+    | Utility-first styling       |
+| **shadcn/ui**       | Latest  | Accessible React components |
+| **React Router**    | 7.9+    | Client-side routing         |
+| **TanStack Query**  | 5.60+   | Server state management     |
+| **React Hook Form** | 7.55+   | Form handling & validation  |
+| **Zod**             | 3.24+   | TypeScript-first validation |
+| **Firebase SDK**    | 12.2+   | Authentication & services   |
 
 ### Backend & Infrastructure
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| **Node.js** | 18+ | JavaScript runtime |
-| **Express.js** | 4.21+ | Web server framework |
-| **TypeScript** | 5.6+ | Type-safe backend code |
-| **MongoDB** | 6.19+ | NoSQL database |
-| **Firebase** | 12.2+ | Auth, database, storage |
-| **Render** | - | Cloud deployment platform |
+
+| Technology     | Version | Purpose                   |
+| -------------- | ------- | ------------------------- |
+| **Node.js**    | 18+     | JavaScript runtime        |
+| **Express.js** | 4.21+   | Web server framework      |
+| **TypeScript** | 5.6+    | Type-safe backend code    |
+| **MongoDB**    | 6.19+   | NoSQL database            |
+| **Firebase**   | 12.2+   | Auth, database, storage   |
+| **Render**     | -       | Cloud deployment platform |
 
 ### AI & Services
+
 - **Google Gemini AI** — Language translation
 - **Firebase Authentication** — Secure user management
 - **Firestore** — Real-time database
@@ -243,6 +247,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
 
 1. **Fork the Repository** — Click the Fork button on GitHub
 2. **Clone Your Fork**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/KrishiSetu.git
    cd KrishiSetu
@@ -250,6 +255,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
    ```
 
 3. **Create a Feature Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -257,6 +263,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
 4. **Make Your Changes** — Write clean, well-documented code
 
 5. **Commit with Clear Messages**
+
    ```bash
    git commit -m "[feat] Add new QR code feature"
    git commit -m "[fix] Resolve product search bug"
@@ -264,6 +271,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
    ```
 
 6. **Push to Your Fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -273,6 +281,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
 ### Code Standards
 
 ✅ **Do's**
+
 - Follow TypeScript best practices
 - Write meaningful variable names (avoid `x`, `temp`, etc.)
 - Add comments for complex logic blocks
@@ -282,6 +291,7 @@ We welcome contributions from everyone! Whether you're fixing bugs, adding featu
 - Update documentation when needed
 
 ❌ **Don'ts**
+
 - Don't add multiple unrelated changes in one PR
 - Don't copy code without understanding it
 - Don't ignore code review feedback
@@ -319,16 +329,16 @@ Before submitting your PR, ensure:
 
 ### Understanding Issue Labels
 
-| Label | Color | Description | Best For |
-|-------|-------|-------------|----------|
-| 🟢 **good first issue** | `#90EE90` | Perfect for newcomers | First-time contributors |
-| 🆘 **help wanted** | `#FFD700` | Extra hands needed | Anyone wanting to help |
-| 🐛 **bug** | `#FF6B6B` | Something broken | Bug fixes |
-| ✨ **enhancement** | `#87CEEB` | New feature | Feature implementation |
-| 📚 **documentation** | `#DDA0DD` | Docs improvement | Writers |
-| 🔧 **refactor** | `#F0E68C` | Code cleanup | Optimization |
-| 🎨 **ui-ux** | `#FFA07A` | Design/UX | Frontend developers |
-| 🚀 **performance** | `#20B2AA` | Speed improvement | Performance optimization |
+| Label                   | Color     | Description           | Best For                 |
+| ----------------------- | --------- | --------------------- | ------------------------ |
+| 🟢 **good first issue** | `#90EE90` | Perfect for newcomers | First-time contributors  |
+| 🆘 **help wanted**      | `#FFD700` | Extra hands needed    | Anyone wanting to help   |
+| 🐛 **bug**              | `#FF6B6B` | Something broken      | Bug fixes                |
+| ✨ **enhancement**      | `#87CEEB` | New feature           | Feature implementation   |
+| 📚 **documentation**    | `#DDA0DD` | Docs improvement      | Writers                  |
+| 🔧 **refactor**         | `#F0E68C` | Code cleanup          | Optimization             |
+| 🎨 **ui-ux**            | `#FFA07A` | Design/UX             | Frontend developers      |
+| 🚀 **performance**      | `#20B2AA` | Speed improvement     | Performance optimization |
 
 ### How to Find Issues
 
@@ -494,11 +504,10 @@ If you witness or experience violations of our Code of Conduct, please report to
 
 For queries, feedback, or guidance regarding this project:
 
-| Name | Role | Contact |
-|------|------|---------|
+| Name         | Role         | Contact                                                                                                |
+| ------------ | ------------ | ------------------------------------------------------------------------------------------------------ |
 | **Mentor 1** | Project Lead | [LinkedIn](https://www.linkedin.com/in/aditi-raj-890358329/) \| [Email](mailto:aditiraj0205@gmail.com) |
-| **Mentor 2** | Tech Lead | [LinkedIn](https://www.linkedin.com/in/piyushydv08/) \| [Email](mailto:piyuhydv011@gmail.com) |
-
+| **Mentor 2** | Tech Lead    | [LinkedIn](https://www.linkedin.com/in/piyushydv08/) \| [Email](mailto:piyuhydv011@gmail.com)          |
 
 ### Ways to Connect
 
@@ -514,7 +523,8 @@ For queries, feedback, or guidance regarding this project:
 We're grateful to all our wonderful contributors! 💖
 
 <!-- Contributors go here when we have them -->
-*Be the first to contribute! 🚀*
+
+_Be the first to contribute! 🚀_
 
 ---
 
@@ -523,6 +533,7 @@ We're grateful to all our wonderful contributors! 💖
 This project is licensed under the **MIT License** - See the [LICENSE](LICENSE) file for details.
 
 **MIT License Summary:**
+
 - ✅ You can use this code commercially
 - ✅ You can modify and distribute the code
 - ✅ You can use this code privately

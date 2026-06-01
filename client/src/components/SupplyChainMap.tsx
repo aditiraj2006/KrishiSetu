@@ -1,5 +1,13 @@
 import type { Product } from "@shared/schema";
-import { Calendar, ExternalLink, Factory, MapPin, Sprout, Store, Warehouse } from "lucide-react";
+import {
+  Calendar,
+  ExternalLink,
+  Factory,
+  MapPin,
+  Sprout,
+  Store,
+  Warehouse,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -48,7 +56,9 @@ export function SupplyChainMap({
 }: SupplyChainMapProps = {}) {
   const { user } = useAuth();
   const { data: products, isLoading } = useProducts(user?.id);
-  const [selectedProductId, setSelectedProductId] = useState<string>(productId || "");
+  const [selectedProductId, setSelectedProductId] = useState<string>(
+    productId || "",
+  );
   const [journeySteps, setJourneySteps] = useState<JourneyStep[]>([]);
 
   // Update selectedProductId when productId prop changes
@@ -59,46 +69,52 @@ export function SupplyChainMap({
   }, [productId]);
 
   // If a product prop is provided, use it, otherwise find the product from the list
-  const selectedProduct = product || products?.find((p) => p.id === selectedProductId);
+  const selectedProduct =
+    product || products?.find((p) => p.id === selectedProductId);
 
-  const { data: journeyData, isLoading: isJourneyLoading } = useProductJourney(selectedProductId);
+  const { data: journeyData, isLoading: isJourneyLoading } =
+    useProductJourney(selectedProductId);
 
   // Update journey steps when journeyData changes
   useEffect(() => {
     if (journeyData && journeyData.length > 0) {
-      const updatedJourneySteps: JourneyStep[] = journeyData.map((point, idx) => {
-        let Icon = MapPin;
-        let bgColor = "bg-accent";
-        let textColor = "text-accent-foreground";
+      const updatedJourneySteps: JourneyStep[] = journeyData.map(
+        (point, idx) => {
+          let Icon = MapPin;
+          let bgColor = "bg-accent";
+          let textColor = "text-accent-foreground";
 
-        if (point.status === "Origin" || point.role === "farmer") {
-          Icon = Sprout;
-          bgColor = "bg-primary";
-          textColor = "text-primary-foreground";
-        } else if (point.role === "distributor") {
-          Icon = Factory;
-          bgColor = "bg-accent";
-          textColor = "text-accent-foreground";
-        } else if (point.role === "retailer") {
-          Icon = Store;
-          bgColor = "bg-secondary";
-          textColor = "text-secondary-foreground";
-        }
+          if (point.status === "Origin" || point.role === "farmer") {
+            Icon = Sprout;
+            bgColor = "bg-primary";
+            textColor = "text-primary-foreground";
+          } else if (point.role === "distributor") {
+            Icon = Factory;
+            bgColor = "bg-accent";
+            textColor = "text-accent-foreground";
+          } else if (point.role === "retailer") {
+            Icon = Store;
+            bgColor = "bg-secondary";
+            textColor = "text-secondary-foreground";
+          }
 
-        return {
-          id: point.id,
-          name: point.name || point.status,
-          location: point.location || `${point.latitude.toFixed(2)}, ${point.longitude.toFixed(2)}`,
-          date: new Date(point.timestamp).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-          }),
-          status: point.status,
-          icon: Icon,
-          bgColor,
-          textColor,
-        };
-      });
+          return {
+            id: point.id,
+            name: point.name || point.status,
+            location:
+              point.location ||
+              `${point.latitude.toFixed(2)}, ${point.longitude.toFixed(2)}`,
+            date: new Date(point.timestamp).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+            }),
+            status: point.status,
+            icon: Icon,
+            bgColor,
+            textColor,
+          };
+        },
+      );
       setJourneySteps(updatedJourneySteps);
     } else {
       setJourneySteps([]);
@@ -169,7 +185,8 @@ export function SupplyChainMap({
               <SelectTrigger className="w-full sm:w-64">
                 <SelectValue placeholder="Select a product">
                   {selectedProductId
-                    ? products?.find((p) => p.id === selectedProductId)?.batchId +
+                    ? products?.find((p) => p.id === selectedProductId)
+                        ?.batchId +
                       " – " +
                       products?.find((p) => p.id === selectedProductId)?.name
                     : "Select a product"}
@@ -223,7 +240,10 @@ export function SupplyChainMap({
                     const Icon = step.icon;
 
                     return (
-                      <div key={step.id} className="flex items-center justify-between w-full">
+                      <div
+                        key={step.id}
+                        className="flex items-center justify-between w-full"
+                      >
                         {/* Step content */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div
@@ -321,23 +341,33 @@ export function SupplyChainMap({
                   <div className="text-xl font-bold text-green-600">
                     {journeyStats.verifiedStages}
                   </div>
-                  <div className="text-xs text-muted-foreground">Verified Stages</div>
+                  <div className="text-xs text-muted-foreground">
+                    Verified Stages
+                  </div>
                 </div>
                 <div>
                   <div className="text-xl font-bold text-foreground">
                     {journeyStats.totalDistance}
                   </div>
-                  <div className="text-xs text-muted-foreground">Total Distance</div>
+                  <div className="text-xs text-muted-foreground">
+                    Total Distance
+                  </div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-accent">{journeyStats.journeyTime}</div>
-                  <div className="text-xs text-muted-foreground">Journey Time</div>
+                  <div className="text-xl font-bold text-accent">
+                    {journeyStats.journeyTime}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Journey Time
+                  </div>
                 </div>
                 <div>
                   <div className="text-xl font-bold text-primary">
                     {journeyStats.avgTemperature}
                   </div>
-                  <div className="text-xs text-muted-foreground">Avg Temperature</div>
+                  <div className="text-xs text-muted-foreground">
+                    Avg Temperature
+                  </div>
                 </div>
               </div>
             </div>

@@ -13,7 +13,9 @@ export default function NotFound() {
           <CardContent className="pt-6">
             <div className="flex mb-4 gap-2 items-center">
               <AlertCircle className="h-8 w-8 text-destructive" />
-              <h1 className="text-2xl font-bold text-foreground">404 Page Not Found</h1>
+              <h1 className="text-2xl font-bold text-foreground">
+                404 Page Not Found
+              </h1>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
               Oops! The page you're looking for doesn't exist or has been moved.

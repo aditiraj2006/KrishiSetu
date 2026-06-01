@@ -64,7 +64,11 @@ export class MongoStorage {
     const db = await getDb();
     const result = await db
       .collection<OwnershipTransfer>("ownershiptransfers")
-      .findOneAndUpdate({ id }, { $set: deliveryFields }, { returnDocument: "after" });
+      .findOneAndUpdate(
+        { id },
+        { $set: deliveryFields },
+        { returnDocument: "after" },
+      );
     if (!result) return null;
     return result as OwnershipTransfer;
   }
@@ -87,7 +91,9 @@ export class MongoStorage {
     return (lastOwner?.blockNumber || 0) + 1;
   }
 
-  private async getLastOwnershipHash(productId: string): Promise<string | null> {
+  private async getLastOwnershipHash(
+    productId: string,
+  ): Promise<string | null> {
     const db = await getDb();
     const lastOwner = await db
       .collection<ProductOwner>("product_owners")
@@ -159,7 +165,10 @@ export class MongoStorage {
 
   async getProductsByUser(userId: string): Promise<Product[]> {
     const db = await getDb();
-    return db.collection<Product>("products").find({ ownerId: userId }).toArray();
+    return db
+      .collection<Product>("products")
+      .find({ ownerId: userId })
+      .toArray();
   }
 
   async getAllProducts(limit?: number): Promise<Product[]> {
@@ -200,7 +209,12 @@ export class MongoStorage {
 
   async getRecentScans(limit: number = 5): Promise<any[]> {
     const db = await getDb();
-    return db.collection("scans").find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+    return db
+      .collection("scans")
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
   }
   async getUserScans(userId: string): Promise<Scan[]> {
     const db = await getDb();
@@ -227,7 +241,9 @@ export class MongoStorage {
   }
 
   // Create a notification
-  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+  async createNotification(
+    insertNotification: InsertNotification,
+  ): Promise<Notification> {
     const db = await getDb();
     const notification: Notification = {
       ...insertNotification,
@@ -265,7 +281,9 @@ export class MongoStorage {
     const batchId =
       insertProduct.batchId ||
       createHash("sha256")
-        .update(`${insertProduct.name}-${insertProduct.farmName}-${createdAt.toISOString()}`)
+        .update(
+          `${insertProduct.name}-${insertProduct.farmName}-${createdAt.toISOString()}`,
+        )
         .digest("hex")
         .slice(0, 10);
 
@@ -296,7 +314,10 @@ export class MongoStorage {
     return product;
   }
 
-  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
+  async updateProduct(
+    id: string,
+    updates: Partial<Product>,
+  ): Promise<Product | null> {
     const db = await getDb();
     const result = await db
       .collection<Product>("products")
@@ -323,7 +344,10 @@ export class MongoStorage {
   }
 
   // Search products by owner with filters
-  async searchProductsByOwner(ownerId: string, query: string): Promise<Product[]> {
+  async searchProductsByOwner(
+    ownerId: string,
+    query: string,
+  ): Promise<Product[]> {
     const db = await getDb();
     return db
       .collection<Product>("products")
@@ -342,7 +366,9 @@ export class MongoStorage {
   }
 
   // -------- Transaction Operations --------
-  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+  async createTransaction(
+    insertTransaction: InsertTransaction,
+  ): Promise<Transaction> {
     const db = await getDb();
     const transaction: Transaction = {
       ...insertTransaction,
@@ -363,7 +389,9 @@ export class MongoStorage {
   }
 
   // -------- QualityCheck Operations --------
-  async createQualityCheck(insertQualityCheck: InsertQualityCheck): Promise<QualityCheck> {
+  async createQualityCheck(
+    insertQualityCheck: InsertQualityCheck,
+  ): Promise<QualityCheck> {
     const db = await getDb();
     const qualityCheck: QualityCheck = {
       ...insertQualityCheck,
@@ -407,14 +435,18 @@ export class MongoStorage {
       blockchainHash: insertOwnershipTransfer.blockchainHash || null,
       timestamp: new Date(),
     };
-    await db.collection<OwnershipTransfer>("ownershiptransfers").insertOne(transfer);
+    await db
+      .collection<OwnershipTransfer>("ownershiptransfers")
+      .insertOne(transfer);
     return transfer;
   }
 
   // -------- OwnershipTransfer Operations --------
   async getOwnershipTransfer(id: string): Promise<OwnershipTransfer | null> {
     const db = await getDb();
-    return db.collection<OwnershipTransfer>("ownershiptransfers").findOne({ id });
+    return db
+      .collection<OwnershipTransfer>("ownershiptransfers")
+      .findOne({ id });
   }
 
   async updateOwnershipTransfer(
@@ -429,7 +461,9 @@ export class MongoStorage {
     return result as OwnershipTransfer;
   }
 
-  async getPendingTransfersForUser(userId: string): Promise<OwnershipTransfer[]> {
+  async getPendingTransfersForUser(
+    userId: string,
+  ): Promise<OwnershipTransfer[]> {
     const db = await getDb();
     return db
       .collection<OwnershipTransfer>("ownershiptransfers")
@@ -438,12 +472,18 @@ export class MongoStorage {
   }
 
   // -------- ProductOwner Operations (Blockchain-style) --------
-  async addProductOwner(insertProductOwner: InsertProductOwner): Promise<ProductOwner> {
+  async addProductOwner(
+    insertProductOwner: InsertProductOwner,
+  ): Promise<ProductOwner> {
     const db = await getDb();
 
     // Get blockchain-style data
-    const blockNumber = await this.getNextBlockNumber(insertProductOwner.productId);
-    const previousOwnerHash = await this.getLastOwnershipHash(insertProductOwner.productId);
+    const blockNumber = await this.getNextBlockNumber(
+      insertProductOwner.productId,
+    );
+    const previousOwnerHash = await this.getLastOwnershipHash(
+      insertProductOwner.productId,
+    );
     const ownershipHash = this.generateOwnershipHash(
       insertProductOwner.productId,
       insertProductOwner.ownerId,
@@ -457,7 +497,9 @@ export class MongoStorage {
       blockNumber,
       previousOwnerHash,
       ownershipHash,
-      transferType: insertProductOwner.transferType || (blockNumber === 1 ? "initial" : "transfer"),
+      transferType:
+        insertProductOwner.transferType ||
+        (blockNumber === 1 ? "initial" : "transfer"),
       createdAt: new Date(),
     };
 
@@ -520,7 +562,8 @@ export class MongoStorage {
           productId,
           productName: product.name,
           ownershipRecords: records.sort(
-            (a: ProductOwner, b: ProductOwner) => (a.blockNumber || 0) - (b.blockNumber || 0),
+            (a: ProductOwner, b: ProductOwner) =>
+              (a.blockNumber || 0) - (b.blockNumber || 0),
           ),
         });
       }
@@ -529,7 +572,10 @@ export class MongoStorage {
     return result;
   }
 
-  async hasUserOwnedProduct(productId: string, userId: string): Promise<boolean> {
+  async hasUserOwnedProduct(
+    productId: string,
+    userId: string,
+  ): Promise<boolean> {
     const db = await getDb();
 
     // Check if user has ever owned this product
@@ -585,7 +631,8 @@ export class MongoStorage {
       if (expectedHash !== currentBlock.ownershipHash) {
         errors.push({
           blockNumber: currentBlock.blockNumber!,
-          message: "Hash verification failed - data may have been tampered with",
+          message:
+            "Hash verification failed - data may have been tampered with",
         });
       }
     }
@@ -597,7 +644,9 @@ export class MongoStorage {
   }
 
   // -------- ProductComment Operations --------
-  async addProductComment(insertProductComment: InsertProductComment): Promise<ProductComment> {
+  async addProductComment(
+    insertProductComment: InsertProductComment,
+  ): Promise<ProductComment> {
     const db = await getDb();
     const comment: ProductComment = {
       ...insertProductComment,
@@ -629,7 +678,11 @@ export class MongoStorage {
 
   async getScansByProductId(productId: string): Promise<Scan[]> {
     const db = await getDb();
-    return db.collection<Scan>("scans").find({ productId }).sort({ timestamp: 1 }).toArray();
+    return db
+      .collection<Scan>("scans")
+      .find({ productId })
+      .sort({ timestamp: 1 })
+      .toArray();
   }
 
   async searchUsers(query: string, limit = 10): Promise<any[]> {
@@ -683,7 +736,9 @@ export class MongoStorage {
 
     // Add initial creation location (farm)
     if (product) {
-      const initialOwner = ownershipChain.find((owner) => owner.blockNumber === 1);
+      const initialOwner = ownershipChain.find(
+        (owner) => owner.blockNumber === 1,
+      );
 
       if (initialOwner) {
         journeyLocations.push({
@@ -731,8 +786,12 @@ export class MongoStorage {
           id: scan.id,
           name: userName,
           role: userRole,
-          latitude: scan.coordinates?.latitude || this.getRandomCoordinate(37.7749, 1.5),
-          longitude: scan.coordinates?.longitude || this.getRandomCoordinate(-122.4194, 1.5),
+          latitude:
+            scan.coordinates?.latitude ||
+            this.getRandomCoordinate(37.7749, 1.5),
+          longitude:
+            scan.coordinates?.longitude ||
+            this.getRandomCoordinate(-122.4194, 1.5),
           timestamp: scan.timestamp.toISOString(),
           status: "Scan",
         });
@@ -771,7 +830,11 @@ export class MongoStorage {
 
   async getProductEvents(productId: string): Promise<any[]> {
     const db = await getDb();
-    return db.collection("product_events").find({ productId }).sort({ createdAt: 1 }).toArray();
+    return db
+      .collection("product_events")
+      .find({ productId })
+      .sort({ createdAt: 1 })
+      .toArray();
   }
 }
 

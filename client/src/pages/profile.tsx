@@ -1,5 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Bell, Edit3, Globe, Shield, Sprout, Store, Truck, User, Users } from "lucide-react";
+import {
+  Bell,
+  Edit3,
+  Globe,
+  Shield,
+  Sprout,
+  Store,
+  Truck,
+  User,
+  Users,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -165,7 +175,9 @@ export default function ProfilePage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground">Profile Settings</h2>
+          <h2 className="text-3xl font-bold text-foreground">
+            Profile Settings
+          </h2>
           <p className="text-muted-foreground mt-1">
             Manage your account information and preferences
           </p>
@@ -177,7 +189,10 @@ export default function ProfilePage() {
             <Card className="shadow-sm border border-border">
               <CardHeader className="text-center pb-4">
                 <Avatar className="w-24 h-24 mx-auto mb-4">
-                  <AvatarImage src={firebaseUser.photoURL || undefined} alt={user.name} />
+                  <AvatarImage
+                    src={firebaseUser.photoURL || undefined}
+                    alt={user.name}
+                  />
                   <AvatarFallback className="text-2xl">
                     {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -188,32 +203,47 @@ export default function ProfilePage() {
                 >
                   {user.name}
                 </h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-profile-email">
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="text-profile-email"
+                >
                   {user.email}
                 </p>
-                <p className="text-sm text-muted-foreground" data-testid="text-profile-username">
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="text-profile-username"
+                >
                   @{user.username}
                 </p>
               </CardHeader>
 
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Role</span>
-                  <Badge className={`${currentRole?.color} text-white flex items-center gap-1`}>
+                  <span className="text-sm font-medium text-foreground">
+                    Role
+                  </span>
+                  <Badge
+                    className={`${currentRole?.color} text-white flex items-center gap-1`}
+                  >
                     <RoleIcon className="w-3 h-3" />
                     {currentRole?.title}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Language</span>
+                  <span className="text-sm font-medium text-foreground">
+                    Language
+                  </span>
                   <span className="text-sm text-muted-foreground">
-                    {languages.find((l) => l.id === user.language)?.name || "English"}
+                    {languages.find((l) => l.id === user.language)?.name ||
+                      "English"}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">Member Since</span>
+                  <span className="text-sm font-medium text-foreground">
+                    Member Since
+                  </span>
                   <span className="text-sm text-muted-foreground">
                     {new Date(user.createdAt!).toLocaleDateString()}
                   </span>
@@ -224,7 +254,9 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-verified" />
-                    <span className="text-sm font-medium text-foreground">Verified Account</span>
+                    <span className="text-sm font-medium text-foreground">
+                      Verified Account
+                    </span>
                   </div>
                   <Badge
                     variant="outline"
@@ -242,7 +274,9 @@ export default function ProfilePage() {
             <Card className="shadow-sm border border-border">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Account Information</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    Account Information
+                  </h3>
                   {!isEditing ? (
                     <Button
                       variant="outline"
@@ -259,7 +293,10 @@ export default function ProfilePage() {
 
               <CardContent>
                 <Form {...form}>
-                  <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+                  <form
+                    className="space-y-6"
+                    onSubmit={form.handleSubmit(onSubmit)}
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -268,7 +305,11 @@ export default function ProfilePage() {
                           <FormItem>
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={!isEditing} data-testid="input-name" />
+                              <Input
+                                {...field}
+                                disabled={!isEditing}
+                                data-testid="input-name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -281,7 +322,11 @@ export default function ProfilePage() {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={true} data-testid="input-name" />
+                              <Input
+                                {...field}
+                                disabled={true}
+                                data-testid="input-name"
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -470,8 +515,8 @@ export default function ProfilePage() {
                                 Email Notifications
                               </FormLabel>
                               <p className="text-sm text-muted-foreground">
-                                Receive alerts about product updates, price changes, and supply
-                                chain activities
+                                Receive alerts about product updates, price
+                                changes, and supply chain activities
                               </p>
                             </div>
                             <FormControl>

@@ -3,7 +3,12 @@
 import { Download } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PaymentProofModalProps {
   isOpen: boolean;
@@ -11,7 +16,11 @@ interface PaymentProofModalProps {
   imageUrl: string;
 }
 
-export function PaymentProofModal({ isOpen, onClose, imageUrl }: PaymentProofModalProps) {
+export function PaymentProofModal({
+  isOpen,
+  onClose,
+  imageUrl,
+}: PaymentProofModalProps) {
   const handleDownload = async () => {
     try {
       const response = await fetch(imageUrl);

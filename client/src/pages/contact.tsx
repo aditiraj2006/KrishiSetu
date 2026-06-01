@@ -8,8 +8,8 @@ const Contact: React.FC = () => {
     <div className="contact-container">
       <h1>Get in Touch</h1>
       <p>
-        We’d love to hear from you! Reach out with your questions or feedback and we’ll respond as
-        soon as possible.
+        We’d love to hear from you! Reach out with your questions or feedback
+        and we’ll respond as soon as possible.
       </p>
 
       <div className="contact-cards">

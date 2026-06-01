@@ -42,7 +42,10 @@ export function useAuth() {
       } else {
         user = await apiRequest("POST", "/api/user/register", {
           email: firebaseUser.email || "",
-          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+          name:
+            firebaseUser.displayName ||
+            firebaseUser.email?.split("@")[0] ||
+            "User",
           firebaseUid: firebaseUser.uid,
           profileImage: firebaseUser.photoURL,
           roleSelected: false,
@@ -129,10 +132,18 @@ export function useAuth() {
     }
   };
 
-  const registerWithEmail = async (email: string, password: string, name: string) => {
+  const registerWithEmail = async (
+    email: string,
+    password: string,
+    name: string,
+  ) => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       await updateProfile(userCredential.user, { displayName: name });
       return userCredential.user;
     } catch (error: any) {

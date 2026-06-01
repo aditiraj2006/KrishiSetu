@@ -47,7 +47,10 @@ export function UserSearch({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setHighlightedIndex(-1);
       }
@@ -65,7 +68,9 @@ export function UserSearch({
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
+          setHighlightedIndex((prev) =>
+            prev < results.length - 1 ? prev + 1 : prev,
+          );
           break;
         case "ArrowUp":
           e.preventDefault();
@@ -103,13 +108,18 @@ export function UserSearch({
 
       try {
         const headers = await getAuthHeaders();
-        const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-          headers,
-        });
+        const response = await fetch(
+          `/api/users/search?q=${encodeURIComponent(query)}`,
+          {
+            headers,
+          },
+        );
         if (response.ok) {
           const data = await response.json();
           // Filter out current user from results
-          const filteredData = data.filter((user: User) => user.id !== currentUserId);
+          const filteredData = data.filter(
+            (user: User) => user.id !== currentUserId,
+          );
           setResults(filteredData);
           setHighlightedIndex(-1);
         } else {
@@ -146,7 +156,10 @@ export function UserSearch({
     setHighlightedIndex(-1);
 
     // Update recent searches
-    const updated = [user, ...recentSearches.filter((u) => u.id !== user.id)].slice(0, 5);
+    const updated = [
+      user,
+      ...recentSearches.filter((u) => u.id !== user.id),
+    ].slice(0, 5);
     setRecentSearches(updated);
     localStorage.setItem("recentUserSearches", JSON.stringify(updated));
   };
@@ -167,12 +180,18 @@ export function UserSearch({
   const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
 
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi",
+    );
     const parts = text.split(regex);
 
     return parts.map((part, index) =>
       regex.test(part) ? (
-        <span key={index} className="bg-yellow-200 dark:bg-yellow-800 font-semibold">
+        <span
+          key={index}
+          className="bg-yellow-200 dark:bg-yellow-800 font-semibold"
+        >
           {part}
         </span>
       ) : (
@@ -206,7 +225,10 @@ export function UserSearch({
         {isSearching && (
           <div className="p-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 mb-2 animate-pulse">
+              <div
+                key={i}
+                className="flex items-center gap-2 mb-2 animate-pulse"
+              >
                 <div className="h-8 w-8 bg-muted rounded-full" />
                 <div className="flex-1 h-4 bg-muted rounded" />
               </div>
@@ -275,7 +297,9 @@ export function UserSearch({
                 {isSearching ? (
                   <div className="flex items-center justify-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    <span className="text-sm text-muted-foreground">Searching...</span>
+                    <span className="text-sm text-muted-foreground">
+                      Searching...
+                    </span>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground">
@@ -306,7 +330,9 @@ export function UserSearch({
               </Avatar>
               <div>
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">@{user.username}</p>
+                <p className="text-xs text-muted-foreground">
+                  @{user.username}
+                </p>
               </div>
             </div>
           ))}
@@ -322,7 +348,9 @@ export function UserSearch({
         </div>
       )}
 
-      {searchError && <div className="p-4 text-center text-red-500">{searchError}</div>}
+      {searchError && (
+        <div className="p-4 text-center text-red-500">{searchError}</div>
+      )}
 
       {selectedUser && !query && (
         <div className="mt-2 border border-border rounded-md p-3 bg-muted/30">
@@ -344,7 +372,12 @@ export function UserSearch({
                 </Badge>
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={clearSearch} className="h-8 w-8 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="h-8 w-8 p-0"
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
