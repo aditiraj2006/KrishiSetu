@@ -48,7 +48,6 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      try {
         await loginWithGoogle(selectedRole!);
         toast.success("Successfully logged in with Google!");
         setLocation("/dashboard");
