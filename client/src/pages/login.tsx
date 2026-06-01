@@ -48,12 +48,13 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await loginWithGoogle(selectedRole!);
-      toast.success("Successfully logged in with Google!");
-      setLocation("/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Google login failed");
-      toast.error(err.message || "Google login failed");
+      try {
+        await loginWithGoogle(selectedRole!);
+        toast.success("Successfully logged in with Google!");
+        setLocation("/dashboard");
+      } catch (err: any) {
+        setError(err.message || "Google login failed");
+        toast.error(err.message || "Google login failed");
     } finally {
       setSubmitting(false);
     }

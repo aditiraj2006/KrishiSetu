@@ -79,6 +79,7 @@ interface LocationSuggestion {
 
 export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrationFormProps) {
   const { user } = useAuth();
+  const token = localStorage.getItem("token"); // 👈 Grab the saved auth token
   const { mutate: createProduct, isPending } = useCreateProduct();
   const { toast } = useToast();
 
@@ -145,7 +146,10 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
     try {
       const response = await fetch("/api/ai/translate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`  // Pass the token here
+        },
         body: JSON.stringify({ text: description, targetLanguage: language }),
       });
       const data = await response.json();
@@ -221,7 +225,10 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
         try {
           const response = await fetch("/api/ai/analyze-quality", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}` //  Pass the token here
+            },
             body: JSON.stringify({ image: base64String }),
           });
           const data = await response.json();
@@ -317,6 +324,8 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`, // 👈 Critical fix for verification failure!
+
             },
             body: JSON.stringify(productData),
           });
@@ -669,10 +678,10 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
                                         return checked
                                           ? field.onChange([...field.value, certification])
                                           : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== certification,
-                                              ),
-                                            );
+                                            field.value?.filter(
+                                              (value) => value !== certification,
+                                            ),
+                                          );
                                       }}
                                       data-testid={`checkbox-${certification
                                         .toLowerCase()
