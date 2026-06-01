@@ -1,10 +1,13 @@
 // pages/About.tsx
+import { NavigationHeader } from "@/components/NavigationHeader";
 import type React from "react";
 import { Link } from "wouter";
 import "./about.css";
 
 const About: React.FC = () => {
   return (
+    <>
+      <NavigationHeader />
     <div className="about-container">
       <h1 className="fade-in">About KrishiSetu</h1>
       <p className="fade-in delay-1">
@@ -66,6 +69,7 @@ const About: React.FC = () => {
         ← Back{" "}
       </Link>
     </div>
+    </>
   );
 };
 
