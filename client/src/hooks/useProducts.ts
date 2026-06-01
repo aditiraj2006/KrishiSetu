@@ -45,20 +45,33 @@ export function useCreateProduct() {
 
   return useMutation({
     mutationFn: async (productData: InsertProduct) => {
-      // Get the UID from your auth system
       const firebaseUser = getAuth().currentUser;
       if (!firebaseUser) throw new Error("Not authenticated");
+      
+      // Get the token from local storage
+      const token = localStorage.getItem("token");
 
-      const response = await apiRequest("POST", "/api/products", productData);
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Pass the token here
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(productData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create product");
+      }
+      
       return response.json() as Promise<Product>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-      queryClient.invalidateQueries({
-        queryKey: ["/api/user/products/combined"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/products/combined"] });
     },
   });
 }
