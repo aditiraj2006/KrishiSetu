@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { ModeToggle } from "./mode-toggle";
+import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
 import "./LandingNavbar.css";
 
 const LandingNavbar = () => {
@@ -86,6 +87,7 @@ const LandingNavbar = () => {
           )}
         </ul>
 
+        <QuickLanguageSwitcher />
         <ModeToggle />
 
         <button className="navbar-btn" onClick={handleGetStarted}>
