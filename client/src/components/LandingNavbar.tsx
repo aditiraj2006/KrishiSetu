@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { ModeToggle } from "./mode-toggle";
+import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
 import "./LandingNavbar.css";
 
 const LandingNavbar = () => {
