@@ -97,6 +97,9 @@ export default function ProductDetails() {
 
   // --- Enhanced product info state ---
   const [enhancedProduct, setEnhancedProduct] = useState<EnhancedProduct | null>(null);
+  const [owners, setOwners] = useState<any[]>([]);
+  const [scansCount, setScansCount] = useState<number>(0);
+  const [qualityScore, setQualityScore] = useState<string>("95%");
 
   useEffect(() => {
     async function fetchEnhancedProductData() {
@@ -104,20 +107,22 @@ export default function ProductDetails() {
       try {
         // Fetch ownership history to get who registered what
         const ownersRes = await fetch(`/api/products/${productId}/owners`);
-        const owners = await ownersRes.json();
-
-        // Fetch product events for registration history (optional)
-        // const eventsRes = await fetch(`/api/products/${productId}/events`);
-        // const events = await eventsRes.json();
-
-        const enhanced: EnhancedProduct = {
-          ...product,
-          registeredBy: owners.length > 0 ? owners[0].name : "Unknown",
-          registrationType: owners.length > 0 ? owners[0].role : "farmer",
-        };
-        setEnhancedProduct(enhanced);
+        if (ownersRes.ok) {
+          const ownersData = await ownersRes.json();
+          setOwners(ownersData);
+          const enhanced: EnhancedProduct = {
+            ...product,
+            registeredBy: ownersData.length > 0 ? ownersData[0].name : "Unknown",
+            registrationType: ownersData.length > 0 ? ownersData[0].role : "farmer",
+          };
+          setEnhancedProduct(enhanced);
+        } else {
+          setOwners([]);
+          setEnhancedProduct(product as EnhancedProduct);
+        }
       } catch (error) {
         console.error("Error fetching enhanced product data:", error);
+        setOwners([]);
         setEnhancedProduct(product as EnhancedProduct);
       }
     }
@@ -125,6 +130,45 @@ export default function ProductDetails() {
       fetchEnhancedProductData();
     }
   }, [product, productId]);
+
+  useEffect(() => {
+    async function fetchScansCount() {
+      try {
+        const res = await fetch(`/api/products/${productId}/scans-count`);
+        if (res.ok) {
+          const data = await res.json();
+          setScansCount(data.count ?? 0);
+        }
+      } catch (error) {
+        console.error("Error fetching scans count:", error);
+      }
+    }
+    fetchScansCount();
+  }, [productId]);
+
+  useEffect(() => {
+    async function fetchQualityScore() {
+      try {
+        const res = await fetch(`/api/products/${productId}/quality-checks`);
+        if (res.ok) {
+          const checks = await res.json();
+          if (checks && checks.length > 0) {
+            const sum = checks.reduce((acc: number, qc: any) => acc + (parseFloat(qc.score) || 0), 0);
+            const avg = sum / checks.length;
+            setQualityScore(`${avg.toFixed(0)}%`);
+          } else {
+            setQualityScore("95%");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching quality checks:", error);
+      }
+    }
+    fetchQualityScore();
+  }, [productId]);
+
+  const transfersCount = owners.length > 0 ? owners.length - 1 : 0;
+  const currentHolderRole = owners.length > 0 ? owners[owners.length - 1].role : "farmer";
   // --- end enhanced info ---
 
   const currentUserRating = ratingsData?.ratings.find((rating) => rating.userId === user?.id);
@@ -227,7 +271,14 @@ export default function ProductDetails() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex gap-2 mb-4">
-            {new URLSearchParams(window.location.search).get("from") === "dashboard" ? (
+            {!user ? (
+              <Link href="/">
+                <Button variant="outline" className="primary-btn">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            ) : new URLSearchParams(window.location.search).get("from") === "dashboard" ? (
               <Link href="/dashboard">
                 <Button variant="outline" className="primary-btn">
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -319,6 +370,14 @@ export default function ProductDetails() {
                         <Button
                           className="bg-primary text-primary-foreground hover:bg-primary/90"
                           onClick={() => {
+                            if (!user) {
+                              toast({
+                                title: "Sign in required",
+                                description: "Please sign in to place an order.",
+                                variant: "destructive",
+                              });
+                              return;
+                            }
                             toast({
                               title: "Order Placed!",
                               description: `Your order for ${product.name} has been sent to the farmer.`,
@@ -363,6 +422,19 @@ export default function ProductDetails() {
                           data-testid="text-harvest-date"
                         >
                           {new Date(product.harvestDate).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="text-sm font-medium text-foreground">Registration Date</div>
+                        <div
+                          className="text-sm text-muted-foreground"
+                          data-testid="text-registration-date"
+                        >
+                          {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A"}
                         </div>
                       </div>
                     </div>
@@ -645,22 +717,28 @@ export default function ProductDetails() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Scans</span>
                   <span className="font-medium text-foreground" data-testid="text-scan-count">
-                    142
+                    {scansCount}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Transactions</span>
+                  <span className="text-sm text-muted-foreground">Transfers</span>
                   <span
                     className="font-medium text-foreground"
-                    data-testid="text-transaction-count"
+                    data-testid="text-transfer-count"
                   >
-                    5
+                    {transfersCount}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Quality Score</span>
                   <span className="font-medium text-verified" data-testid="text-quality-score">
-                    95%
+                    {qualityScore}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Current Holder Role</span>
+                  <span className="font-medium text-foreground capitalize" data-testid="text-current-holder-role">
+                    {currentHolderRole}
                   </span>
                 </div>
               </CardContent>
