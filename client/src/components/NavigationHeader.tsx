@@ -187,27 +187,6 @@ useEffect(() => {
                 >
                   Registered Products
                 </Link>
-                <Link
-                  href="/how-it-works"
-                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-                  data-testid="link-how-it-works"
-                >
-                  How It Works
-                </Link>
-                <Link
-                  href="/about"
-                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-                  data-testid="link-about"
-                >
-                  About
-                </Link>
-                <Link
-                  href="/contact"
-                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground"
-                  data-testid="link-contact"
-                >
-                  Contact
-                </Link>
               </div>
             </div>
 
