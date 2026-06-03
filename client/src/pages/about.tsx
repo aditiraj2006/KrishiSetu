@@ -1,13 +1,24 @@
-// pages/About.tsx
 import LandingNavbar from "@/components/LandingNavbar";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { useAuth } from "@/hooks/useAuth";
 import type React from "react";
 import { Link } from "wouter";
 import "./about.css";
 
 const About: React.FC = () => {
+  const { user, loading } = useAuth();
+
   return (
     <>
-      <LandingNavbar />
+      {loading ? (
+        <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm h-16 flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">KrishiSetu...</div>
+        </nav>
+      ) : user ? (
+        <NavigationHeader />
+      ) : (
+        <LandingNavbar />
+      )}
     <div className="about-container">
       <h1 className="fade-in">About KrishiSetu</h1>
       <p className="fade-in delay-1">
@@ -65,7 +76,7 @@ const About: React.FC = () => {
         ecosystem where every stakeholder benefits — from farm to fork.
       </p>
 
-      <Link href="/" className="back-link fade-in delay-4">
+      <Link href={user ? "/dashboard" : "/"} className="back-link fade-in delay-4">
         ← Back{" "}
       </Link>
     </div>
