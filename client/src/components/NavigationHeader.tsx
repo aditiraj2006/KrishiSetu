@@ -1,6 +1,6 @@
 import { Bell, ChevronDown, LogOut, Menu, Moon, Sprout, Sun, User } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,9 @@ export function NavigationHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
+  const isFirstFetchRef = useRef(true);
+  const prevNotifIdsRef = useRef<Set<string>>(new Set());
+
   // modal states (we'll show forms as overlays)
   const [showDistributorForm, setShowDistributorForm] = useState(false);
   const [showRetailerForm, setShowRetailerForm] = useState(false);
@@ -57,6 +60,9 @@ export function NavigationHeader() {
 
   const isActiveRoute = (path: string) => location === path;
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const hasPendingTransfers = notifications.some(
+    (n) => !n.read && (n.type === "ownership_request" || n.type === "product_request")
+  );
 
 useEffect(() => {
   const handleScroll = () => setShowScrollTop(window.scrollY > 100);
@@ -79,9 +85,28 @@ useEffect(() => {
         });
         if (!mounted) return;
         if (res.ok) {
-          const data = await res.json();
-          setNotifications(data || []); // Keep all notifications
-          setNotificationCount((data || []).filter((n: any) => !n.read).length); // Only unread count
+          const data: any[] = (await res.json()) || [];
+          setNotifications(data);
+          
+          const unread = data.filter((n: any) => !n.read);
+          setNotificationCount(unread.length);
+
+          // Toast only if it's not the initial load
+          if (!isFirstFetchRef.current) {
+            unread.forEach((notif) => {
+              if (!prevNotifIdsRef.current.has(notif.id)) {
+                toast({
+                  title: notif.title || "New Notification",
+                  description: notif.message,
+                });
+              }
+            });
+          } else {
+            isFirstFetchRef.current = false;
+          }
+
+          // Update the ref with all received notification IDs
+          prevNotifIdsRef.current = new Set(data.map((n) => n.id));
         } else {
           setNotifications([]);
           setNotificationCount(0);
@@ -98,7 +123,7 @@ useEffect(() => {
       mounted = false;
       clearInterval(interval);
     };
-  }, [firebaseUser]);
+  }, [firebaseUser, toast]);
 
   // Prevent background scroll & avoid layout shift when modal opens.
   useEffect(() => {
@@ -489,10 +514,13 @@ useEffect(() => {
                         isActiveRoute(link.href)
                           ? "text-primary border-b-2 border-primary bg-primary/10 font-semibold"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                      } truncate`}
+                      } truncate flex items-center gap-1.5`}
                       data-testid={link.testid}
                     >
                       {link.label}
+                      {link.href === "/dashboard" && hasPendingTransfers && (
+                        <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+                      )}
                     </Link>
                   ))}
               </div>
@@ -693,7 +721,12 @@ useEffect(() => {
                     }`}
                     data-testid={link.testid}
                   >
-                    {link.label}
+                    <span className="flex items-center gap-2">
+                      {link.label}
+                      {link.href === "/dashboard" && hasPendingTransfers && (
+                        <span className="h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
+                      )}
+                    </span>
                   </Link>
                 ))}
             </div>

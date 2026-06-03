@@ -25,6 +25,7 @@ import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { getDb, MongoStorage } from "./storage";
+import { sendEmailNotification } from "./email";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -761,6 +762,22 @@ export async function registerRoutes(app: Express) {
           { transferId: transfer.id },
         );
 
+        // Email notification to the recipient
+        const recipient = await storage.getUser(recipientUserId);
+        if (recipient && recipient.email && recipient.notificationsEnabled !== false) {
+          const emailSubject = "KrishiSetu - New Product Ownership Transfer Request";
+          const emailBody = `
+            <h2>New Ownership Transfer Request</h2>
+            <p>Hello <strong>${recipient.name}</strong>,</p>
+            <p><strong>${currentUser.name}</strong> has initiated a product ownership transfer request for <strong>${product.name}</strong> to you.</p>
+            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The KrishiSetu Team</p>
+          `;
+          await sendEmailNotification(recipient.email, emailSubject, emailBody);
+        }
+
         return res.status(201).json({
           message: "Transfer request sent. Waiting for acceptance.",
           transferId: transfer.id,
@@ -838,6 +855,22 @@ export async function registerRoutes(app: Express) {
           requester.id,
           { transferId: transfer.id },
         );
+
+        // Email notification to the product owner
+        const owner = await storage.getUser(product.ownerId);
+        if (owner && owner.email && owner.notificationsEnabled !== false) {
+          const emailSubject = "KrishiSetu - Product Ownership Request";
+          const emailBody = `
+            <h2>Product Ownership Requested</h2>
+            <p>Hello <strong>${owner.name}</strong>,</p>
+            <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
+            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The KrishiSetu Team</p>
+          `;
+          await sendEmailNotification(owner.email, emailSubject, emailBody);
+        }
 
         return res.status(201).json({
           message: "Ownership request sent. Waiting for acceptance.",
