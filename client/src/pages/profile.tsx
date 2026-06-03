@@ -29,6 +29,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/hooks/useLanguage";
+import { getLanguageMeta, languages as supportedLanguages } from "@/lib/languages";
 import { apiRequest } from "@/lib/queryClient";
 
 const roles = [
@@ -65,6 +67,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const { user, firebaseUser, refreshUser } = useAuth();
+  const { language, setLanguage } = useLanguage();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -101,6 +104,10 @@ export default function ProfilePage() {
       });
     }
   }, [user, form]);
+
+  useEffect(() => {
+    form.setValue("language", language);
+  }, [form, language]);
 
   if (!user || !firebaseUser) {
     return (
@@ -141,6 +148,7 @@ export default function ProfilePage() {
       }
 
       await refreshUser();
+      await setLanguage(data.language, { syncBackend: false });
 
       toast({
         title: "Profile Updated",
@@ -208,7 +216,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-foreground">Language</span>
                   <span className="text-sm text-muted-foreground">
-                    {languages.find((l) => l.id === user.language)?.name || "English"}
+                    {getLanguageMeta(language).name}
                   </span>
                 </div>
 
@@ -446,9 +454,17 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {languages.map((lang) => (
+                                  {supportedLanguages.map((lang) => (
                                     <SelectItem key={lang.id} value={lang.id}>
+                                      <div className="flex flex-col">
+                                      <span>{lang.nativeName}</span>
+
+                                      {lang.nativeName !== lang.name && (
+                                      <span className="text-xs text-muted-foreground">
                                       {lang.name}
+                                      </span>
+                                      )}
+                                      </div>
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
