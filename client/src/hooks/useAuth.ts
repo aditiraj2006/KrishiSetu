@@ -69,6 +69,7 @@ export function useAuth() {
         }).then((res) => res.json());
       }
 
+      localStorage.setItem("token", idToken);
       setState({ user, firebaseUser, loading: false, redirectResultLoading: false, error: null });
     } catch {
       setState((prev) => ({
@@ -136,6 +137,7 @@ export function useAuth() {
       if (fbUser) {
         await fetchUserProfile(fbUser);
       } else {
+        localStorage.removeItem("token");
         setState({
           user: null,
           firebaseUser: null,
@@ -267,6 +269,7 @@ export function useAuth() {
       if (auth) {
         await signOut(auth);
       }
+      localStorage.removeItem("token");
       setState({
         user: null,
         firebaseUser: null,
