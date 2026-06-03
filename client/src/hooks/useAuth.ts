@@ -185,19 +185,25 @@ export function useAuth() {
       return;
     }
 
+    // Save the pending role immediately so it survives redirects
+    savePendingRole(role);
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      // Popup succeeded, so we can clear the pending role selection
+      clearPendingRole();
       await fetchUserProfile(result.user, role);
     } catch (popupError: any) {
       if (
         popupError.code === "auth/popup-blocked" ||
         popupError.code === "auth/popup-closed-by-user"
       ) {
-        savePendingRole(role);
         await signInWithRedirect(auth, googleProvider);
         return;
       }
+      // Clear pending role on other popup failures
+      clearPendingRole();
       setState((prev) => ({
         ...prev,
         loading: false,
