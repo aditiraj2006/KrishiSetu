@@ -1414,6 +1414,87 @@ export async function registerRoutes(app: Express) {
     return res.json(comments);
   });
 
+  app.get("/api/products/:id/ratings", async (req: Request, res: Response) => {
+    try {
+      const productId = req.params.id;
+      const db = await getDb();
+      const ratings = await storage.getProductRatings(productId);
+      const userIds = Array.from(new Set(ratings.map((rating) => rating.userId)));
+      const users = userIds.length
+        ? await db
+            .collection("users")
+            .find({ id: { $in: userIds } })
+            .toArray()
+        : [];
+      const userMap = new Map(users.map((user) => [user.id, user]));
+
+      return res.json({
+        summary: await storage.getProductRatingSummary(productId),
+        ratings: ratings.map((rating) => ({
+          ...rating,
+          userName: userMap.get(rating.userId)?.name ?? "Anonymous",
+          userRole: userMap.get(rating.userId)?.role ?? null,
+          userProfileImage: userMap.get(rating.userId)?.profileImage ?? null,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching product ratings:", error);
+      return res.status(500).json({ message: "Failed to fetch product ratings" });
+    }
+  });
+
+  app.post(
+    "/api/products/:id/ratings",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const productId = req.params.id;
+        const payloadSchema = z.object({
+          rating: z.coerce.number().int().min(1).max(5),
+          review: z.string().trim().max(1000).nullable().optional(),
+        });
+
+        const parse = payloadSchema.safeParse(req.body);
+        if (!parse.success) {
+          return res.status(400).json({
+            message: "Invalid rating data",
+            errors: parse.error.format(),
+          });
+        }
+
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        const product = await storage.getProduct(productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        const existingRating = await storage.getProductRating(productId, user.id);
+        const rating = await storage.upsertProductRating({
+          productId,
+          userId: user.id,
+          rating: parse.data.rating,
+          review: parse.data.review ?? null,
+          createdAt: new Date(),
+        });
+
+        const summary = await storage.getProductRatingSummary(productId);
+
+        return res.status(existingRating ? 200 : 201).json({
+          rating,
+          summary,
+        });
+      } catch (error) {
+        console.error("Error saving product rating:", error);
+        return res.status(500).json({ message: "Failed to save product rating" });
+      }
+    },
+  );
+
   app.get("/api/products/:id/journey", async (req: Request, res: Response) => {
     try {
       const productId = req.params.id;
@@ -1574,8 +1655,23 @@ export async function registerRoutes(app: Express) {
         .collection("ownershiptransfers")
         .countDocuments({ fromUserId: userId, status: "completed" });
 
-      // Average rating - for now, placeholder as ratings not implemented
-      const averageRating = 0; // TODO: implement ratings system
+      const [ratingSummary] = await db
+        .collection("products")
+        .aggregate([
+          { $match: { ownerId: userId } },
+          {
+            $group: {
+              _id: null,
+              ratingCount: { $sum: "$ratingCount" },
+              ratingSum: { $sum: "$ratingSum" },
+            },
+          },
+        ])
+        .toArray();
+
+      const totalRatingCount = ratingSummary?.ratingCount ?? 0;
+      const totalRatingSum = ratingSummary?.ratingSum ?? 0;
+      const averageRating = totalRatingCount > 0 ? totalRatingSum / totalRatingCount : 0;
 
       console.log("User stats for", userId, {
         totalProducts,

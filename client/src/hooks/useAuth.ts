@@ -11,7 +11,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { auth, googleProvider } from "@/lib/firebase";
+import { auth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 
 // ─── Role persistence key (survives redirects, cleared on tab close) ─────────
@@ -82,11 +82,23 @@ export function useAuth() {
 
   // ── 1. Handle returning Google OAuth redirect (runs once on mount) ────────
   useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      setState({
+        user: null,
+        firebaseUser: null,
+        loading: false,
+        redirectResultLoading: false,
+        error: null,
+      });
+      return;
+    }
+
+    const firebaseAuth = auth;
     let cancelled = false;
 
     (async () => {
       try {
-        const result = await getRedirectResult(auth);
+        const result = await getRedirectResult(firebaseAuth);
         if (cancelled) return;
 
         if (result?.user) {
@@ -115,7 +127,12 @@ export function useAuth() {
 
   // ── 2. Keep auth state in sync ────────────────────────────────────────────
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+    const firebaseAuth = auth;
+    if (!firebaseAuth) {
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
       if (fbUser) {
         await fetchUserProfile(fbUser);
       } else {
@@ -159,6 +176,15 @@ export function useAuth() {
   // ── Sign-in methods ───────────────────────────────────────────────────────
 
   const loginWithGoogle = async (role: UserRole) => {
+    if (!isFirebaseConfigured || !auth) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+      }));
+      return;
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -181,6 +207,15 @@ export function useAuth() {
   };
 
   const loginWithEmail = async (email: string, password: string) => {
+    if (!isFirebaseConfigured || !auth) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+      }));
+      throw new Error("Firebase is not configured");
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -200,6 +235,15 @@ export function useAuth() {
     name: string,
     role: UserRole,
   ) => {
+    if (!isFirebaseConfigured || !auth) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+      }));
+      throw new Error("Firebase is not configured");
+    }
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -220,7 +264,9 @@ export function useAuth() {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       clearPendingRole();
-      await signOut(auth);
+      if (auth) {
+        await signOut(auth);
+      }
       setState({
         user: null,
         firebaseUser: null,

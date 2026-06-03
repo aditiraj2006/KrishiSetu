@@ -50,6 +50,9 @@ export const productSchema = z.object({
   warehouseLocation: z.string().nullable().optional(),
   storeName: z.string().nullable().optional(),
   storeLocation: z.string().nullable().optional(),
+  averageRating: z.number().min(0).max(5).optional(),
+  ratingCount: z.number().int().min(0).optional(),
+  ratingSum: z.number().min(0).optional(),
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -239,3 +242,22 @@ export const insertProductCommentSchema = productCommentSchema
     createdAt: z.date().optional(),
   });
 export type InsertProductComment = z.infer<typeof insertProductCommentSchema>;
+
+// -------------------- ProductRating --------------------
+export const productRatingSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  userId: z.string(),
+  rating: z.number().int().min(1).max(5),
+  review: z.string().trim().max(1000).nullable().optional(),
+  createdAt: z.date(),
+});
+export type ProductRating = z.infer<typeof productRatingSchema>;
+
+export const insertProductRatingSchema = productRatingSchema
+  .omit({ id: true, createdAt: true })
+  .extend({
+    review: z.string().trim().max(1000).nullable().optional(),
+    createdAt: z.date().optional(),
+  });
+export type InsertProductRating = z.infer<typeof insertProductRatingSchema>;
