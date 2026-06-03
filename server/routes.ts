@@ -50,10 +50,14 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
+    const allowedMimes = ["image/jpeg", "image/png", "application/pdf"];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+
+    if (allowedMimes.includes(file.mimetype) || allowedExtensions.includes(fileExt)) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed!"));
+      cb(new Error("Only .jpg, .jpeg, .png, and .pdf files are allowed!"));
     }
   },
 });
@@ -888,7 +892,19 @@ export async function registerRoutes(app: Express) {
   app.put(
     "/api/ownership-transfers/:id/accept",
     requireFirebaseAuth,
-    upload.single("paymentProof"),
+    (req: Request, res: Response, next: NextFunction) => {
+      upload.single("paymentProof")(req, res, (err: any) => {
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "File size exceeds the 5MB limit." });
+          }
+          return res.status(400).json({ message: err.message });
+        } else if (err) {
+          return res.status(400).json({ message: err.message });
+        }
+        next();
+      });
+    },
     async (req: Request, res: Response) => {
       const transferId = req.params.id;
       const firebaseUid = res.locals.firebaseUid as string;

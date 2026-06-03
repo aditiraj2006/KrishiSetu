@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { ModeToggle } from "./mode-toggle";
 import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
+import { useAuth } from "@/hooks/useAuth";
 import "./LandingNavbar.css";
 
 const LandingNavbar = () => {
@@ -34,11 +35,12 @@ const LandingNavbar = () => {
     }
   };
 
-  const isAuthenticated = !!localStorage.getItem("token");
+  const { user, logout } = useAuth();
+  const isAuthenticated = !!user;
 
   const handleLogout = () => {
     setMenuOpen(false);
-    localStorage.removeItem("token");
+    logout();
     setLocation("/login");
   };
 
@@ -105,9 +107,9 @@ const LandingNavbar = () => {
           Features
         </li>
         <li role="menuitem" tabIndex={0}
-          className={location === "/howitworks" ? "active-link" : ""}
-          onClick={() => navigateTo("/howitworks")}
-          onKeyDown={(e) => e.key === "Enter" && navigateTo("/howitworks")}>
+          className={location === "/how-it-works" ? "active-link" : ""}
+          onClick={() => navigateTo("/how-it-works")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("/how-it-works")}>
           How it works
         </li>
         <li role="menuitem" tabIndex={0}
@@ -207,8 +209,8 @@ const LandingNavbar = () => {
           </li>
           <li role="menuitem">
             <button
-              onClick={() => navigateTo("/howitworks")}
-              className={`drawer-link${location === "/howitworks" ? " active-link" : ""}`}
+              onClick={() => navigateTo("/how-it-works")}
+              className={`drawer-link${location === "/how-it-works" ? " active-link" : ""}`}
             >
               <span className="drawer-link-icon">🔄</span> How it works
             </button>
