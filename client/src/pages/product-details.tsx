@@ -5,6 +5,7 @@ import {
   Calendar,
   Clock,
   DollarSign,
+  Download,
   History,
   MapPin,
   Package,
@@ -14,6 +15,7 @@ import {
   Truck,
   User,
 } from "lucide-react";
+import { jsPDF } from "jspdf";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { NavigationHeader } from "@/components/NavigationHeader";
@@ -221,6 +223,191 @@ export default function ProductDetails() {
     }
   };
 
+  const generatePDFReport = () => {
+    if (!product) return;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const primaryColor = [34, 139, 34]; // Forest green
+    const lightGray = [245, 245, 245];
+    const borderGray = [220, 220, 220];
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPos = 15;
+
+    // Header Background Accent Banner
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, pageWidth, 25, "F");
+
+    // Header Text
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("KRISHISETU - CHAIN OF CUSTODY REPORT", margin, 16);
+
+    yPos = 35;
+
+    // QR Code Placement (Top Right)
+    const qrCanvas = document.getElementById("product-qr-canvas") as HTMLCanvasElement;
+    if (qrCanvas) {
+      try {
+        const qrDataUrl = qrCanvas.toDataURL("image/png");
+        doc.addImage(qrDataUrl, "PNG", pageWidth - margin - 40, yPos, 40, 40);
+      } catch (err) {
+        console.error("Failed to add QR code to PDF:", err);
+      }
+    }
+
+    // Product Title
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text(product.name, margin, yPos);
+    yPos += 8;
+
+    // Category
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Category: ${product.category}`, margin, yPos);
+    yPos += 6;
+
+    // Batch ID & Blockchain Hash
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Batch ID: ${product.batchId}`, margin, yPos);
+    yPos += 5;
+    
+    const hash = product.blockchainHash || "N/A";
+    doc.text(`Blockchain Hash: ${hash.substring(0, 40)}${hash.length > 40 ? "..." : ""}`, margin, yPos);
+    yPos += 12;
+
+    // Section 1: Overview
+    doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Product Specifications & Origin", margin, yPos);
+    yPos += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    const leftColX = margin;
+    const rightColX = pageWidth / 2;
+
+    doc.text(`Quantity: ${product.quantity} ${product.unit}`, leftColX, yPos);
+    doc.text(`Producer / Farm: ${product.farmName}`, rightColX, yPos);
+    yPos += 5;
+
+    doc.text(`Origin Location: ${product.location}`, leftColX, yPos);
+    doc.text(`Harvest Date: ${new Date(product.harvestDate).toLocaleDateString()}`, rightColX, yPos);
+    yPos += 5;
+
+    doc.text(`Registered Date: ${product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A"}`, leftColX, yPos);
+    if (product.price) {
+      doc.text(`Price: INR ${product.price}`, rightColX, yPos);
+    }
+    yPos += 5;
+    
+    if (product.description) {
+      doc.text(`Description: ${product.description}`, leftColX, yPos);
+      yPos += 5;
+    }
+    
+    yPos += 8;
+
+    // Section 2: Supply Chain Metrics
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Supply Chain Summary Metrics", margin, yPos);
+    yPos += 6;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+
+    doc.text(`Total Scans: ${scansCount}`, leftColX, yPos);
+    doc.text(`Transfers / Handovers: ${transfersCount}`, rightColX, yPos);
+    yPos += 5;
+
+    doc.text(`Audit Quality Score: ${qualityScore}`, leftColX, yPos);
+    doc.text(`Current Holder Role: ${currentHolderRole.charAt(0).toUpperCase() + currentHolderRole.slice(1)}`, rightColX, yPos);
+    yPos += 10;
+
+    // Section 3: Chain of Custody Timeline
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 6;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Chain of Custody Blockchain Ledgers", margin, yPos);
+    yPos += 6;
+
+    if (owners && owners.length > 0) {
+      owners.forEach((ownerBlock, index) => {
+        if (yPos > doc.internal.pageSize.getHeight() - 25) {
+          doc.addPage();
+          yPos = 20;
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.text("Chain of Custody Blockchain Ledgers (Continued)", margin, yPos);
+          yPos += 8;
+        }
+
+        doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
+        doc.rect(margin, yPos, pageWidth - (margin * 2), 16, "F");
+        doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+        doc.rect(margin, yPos, pageWidth - (margin * 2), 16, "S");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Block #${ownerBlock.blockNumber || (index + 1)} - ${ownerBlock.name} (${ownerBlock.role.toUpperCase()})`, margin + 4, yPos + 5);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(80, 80, 80);
+        
+        const blockDate = ownerBlock.createdAt ? new Date(ownerBlock.createdAt).toLocaleString() : "N/A";
+        doc.text(`Transaction Type: ${ownerBlock.transferType || "initial"}  |  Timestamp: ${blockDate}`, margin + 4, yPos + 9);
+        
+        const ownerHash = ownerBlock.ownershipHash || "N/A";
+        doc.text(`Block Signature Hash: ${ownerHash}`, margin + 4, yPos + 13);
+
+        yPos += 20;
+      });
+    } else {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text("No blockchain ownership records found.", margin, yPos);
+      yPos += 10;
+    }
+
+    // Page Footer
+    doc.line(margin, doc.internal.pageSize.getHeight() - 15, pageWidth - margin, doc.internal.pageSize.getHeight() - 15);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Report Generated: ${new Date().toLocaleString()}  |  KrishiSetu Verifiable Ledger System`, margin, doc.internal.pageSize.getHeight() - 10);
+    
+    doc.save(`KrishiSetu-Traceability-${product.batchId || product.id}.pdf`);
+  };
+
   const displayedRating = selectedRating || currentUserRating?.rating || 0;
 
   if (isLoading) {
@@ -294,15 +481,27 @@ export default function ProductDetails() {
               </Link>
             )}
           </div>
-          <h2 className="text-3xl font-bold text-foreground" data-testid="text-product-title">
-            {product.name}
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Batch #{product.batchId} • Registered{" "}
-            {formatDistanceToNow(new Date(product.createdAt!), {
-              addSuffix: true,
-            })}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-3xl font-bold text-foreground" data-testid="text-product-title">
+                {product.name}
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                Batch #{product.batchId} • Registered{" "}
+                {formatDistanceToNow(new Date(product.createdAt!), {
+                  addSuffix: true,
+                })}
+              </p>
+            </div>
+            <Button
+              onClick={generatePDFReport}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2 self-start sm:self-auto shadow-sm"
+              data-testid="button-download-pdf-report"
+            >
+              <Download className="w-4 h-4" />
+              Download Report
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
