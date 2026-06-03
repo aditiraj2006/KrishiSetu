@@ -8,6 +8,7 @@ import {
   History,
   MapPin,
   Package,
+  Star,
   Shield,
   ShieldCheck,
   Truck,
@@ -23,9 +24,12 @@ import { SupplyChainMap } from "@/components/SupplyChainMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useProduct } from "@/hooks/useProducts";
+import { useAuth } from "@/hooks/useAuth";
+import { useProduct, useProductRatings, useSubmitProductRating } from "@/hooks/useProducts";
 
 interface ProductEvent {
   id: string;
@@ -53,7 +57,11 @@ export default function ProductDetails() {
   const params = useParams();
   const productId = params.id as string;
   const { data: product, isLoading, error } = useProduct(productId);
+  const { data: ratingsData, isLoading: ratingsLoading } = useProductRatings(productId);
+  const submitRating = useSubmitProductRating(productId);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [selectedRating, setSelectedRating] = useState(0);
 
   // --- Add this state for the selected product in the supply chain map ---
   const [selectedProductIdForMap, setSelectedProductIdForMap] = useState<string>(productId);
@@ -118,6 +126,58 @@ export default function ProductDetails() {
     }
   }, [product, productId]);
   // --- end enhanced info ---
+
+  const currentUserRating = ratingsData?.ratings.find((rating) => rating.userId === user?.id);
+  const ratingSummary = ratingsData?.summary ?? {
+    averageRating: product?.averageRating ?? 0,
+    ratingCount: product?.ratingCount ?? 0,
+    ratingSum: product?.ratingSum ?? 0,
+  };
+
+  const handleRatingSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to rate products.",
+      });
+      return;
+    }
+
+    const formData = new FormData(event.currentTarget);
+    const review = String(formData.get("review") ?? "").trim();
+    const ratingValue = selectedRating || currentUserRating?.rating || 0;
+
+    if (!ratingValue) {
+      toast({
+        title: "Choose a rating",
+        description: "Select 1 to 5 stars before submitting.",
+      });
+      return;
+    }
+
+    try {
+      await submitRating.mutateAsync({
+        rating: ratingValue,
+        review: review || undefined,
+      });
+      setSelectedRating(0);
+      event.currentTarget.reset();
+      toast({
+        title: currentUserRating ? "Rating updated" : "Rating submitted",
+        description: `Saved your ${ratingValue}-star rating for ${product?.name}.`,
+      });
+    } catch (submitError) {
+      toast({
+        title: "Failed to save rating",
+        description: submitError instanceof Error ? submitError.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const displayedRating = selectedRating || currentUserRating?.rating || 0;
 
   if (isLoading) {
     return (
@@ -428,6 +488,128 @@ export default function ProductDetails() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <Card className="shadow-sm border border-border">
+              <CardHeader>
+                <h3 className="text-xl font-semibold text-foreground">Ratings & Reviews</h3>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold text-foreground">
+                    {(ratingSummary.averageRating ?? 0).toFixed(1)}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star
+                          key={index}
+                          className={`h-4 w-4 ${index < Math.round(ratingSummary.averageRating ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {ratingSummary.ratingCount ?? 0} review
+                      {(ratingSummary.ratingCount ?? 0) === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRatingSubmit} className="space-y-3">
+                  {user ? (
+                    <>
+                      <div>
+                        <div className="text-sm font-medium text-foreground mb-2">Your rating</div>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: 5 }).map((_, index) => {
+                            const value = index + 1;
+                            const isActive = value <= displayedRating;
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => setSelectedRating(value)}
+                                className="rounded-full p-1 transition-colors hover:bg-muted"
+                                aria-label={`Rate ${value} star${value === 1 ? "" : "s"}`}
+                              >
+                                <Star
+                                  className={`h-5 w-5 ${isActive ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <Textarea
+                        key={currentUserRating?.id ?? "new-rating"}
+                        name="review"
+                        defaultValue={currentUserRating?.review ?? ""}
+                        placeholder="Share your experience with this product"
+                        rows={4}
+                      />
+
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={submitRating.isPending}
+                      >
+                        {submitRating.isPending ? "Saving..." : currentUserRating ? "Update rating" : "Submit rating"}
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                      Sign in to leave a rating or review.
+                    </div>
+                  )}
+                </form>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-foreground">Recent reviews</h4>
+                    <span className="text-xs text-muted-foreground">
+                      {ratingsData?.ratings.length ?? 0} total
+                    </span>
+                  </div>
+
+                  {ratingsLoading ? (
+                    <div className="text-sm text-muted-foreground">Loading reviews...</div>
+                  ) : ratingsData?.ratings.length ? (
+                    <div className="space-y-3">
+                      {ratingsData.ratings.slice(0, 3).map((rating) => (
+                        <div key={rating.id} className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="font-medium text-sm text-foreground">{rating.userName}</div>
+                              <div className="text-xs text-muted-foreground capitalize">
+                                {rating.userRole ?? "user"}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: 5 }).map((_, index) => (
+                                <Star
+                                  key={index}
+                                  className={`h-3.5 w-3.5 ${index < rating.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          {rating.review ? (
+                            <p className="text-sm text-muted-foreground">{rating.review}</p>
+                          ) : null}
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(rating.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No reviews yet.</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* 5. QR Code */}
             <QRCodeGenerator product={product} />
 

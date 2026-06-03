@@ -13,36 +13,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase — guard against duplicate app init during HMR
-let app: FirebaseApp;
-try {
-  app = getApps().length > 0 ? getApps()[0] : initializeApp(firebaseConfig);
-} catch (err) {
-  console.warn("[Firebase] initializeApp failed:", err);
-  app = getApps()[0]; // fallback to any already-initialized app
-}
+const requiredFirebaseValues = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.appId,
+].every(
+  (value) => typeof value === "string" && value.trim().length > 0 && !value.startsWith("your_"),
+);
 
-// Analytics — only in production with valid config, safe to skip
-let analytics: ReturnType<typeof getAnalytics> | null = null;
-isSupported()
-  .then((supported) => {
-    if (supported && import.meta.env.VITE_FIREBASE_APP_ID) {
-      analytics = getAnalytics(app);
-    }
-  })
-  .catch(() => {
-    // Analytics not supported — safe to ignore
-  });
+export const isFirebaseConfigured = requiredFirebaseValues;
 
-// Auth — always initialize, even with placeholders (login will simply fail gracefully)
-let auth: Auth;
-try {
-  auth = getAuth(app);
-} catch (err) {
-  console.warn("[Firebase] getAuth failed:", err);
-  auth = {} as Auth; // type-safe stub so imports don't crash
-}
-
+// Initialize Firebase
+const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null;
+const analytics = app ? getAnalytics(app) : null;
+const auth = app ? getAuth(app) : null;
 const googleProvider = new GoogleAuthProvider();
 
 export { analytics, app, auth, googleProvider, signInWithPopup };

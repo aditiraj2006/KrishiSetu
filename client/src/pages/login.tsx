@@ -6,7 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
 import { useAuth, UserRole } from "@/hooks/useAuth";
 import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseConfigured } from "@/lib/firebase";
 
 // ─── Role options ─────────────────────────────────────────────────────────────
 const ROLES: { value: UserRole; label: string; icon: string; desc: string }[] = [
@@ -86,6 +86,12 @@ export default function LoginPage() {
   // ── Password reset ────────────────────────────────────────────────────────
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFirebaseConfigured || !auth) {
+      setError("Firebase is not configured yet. Set the VITE_FIREBASE_* values in .env first.");
+      toast.error("Firebase is not configured yet.");
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
     try {
