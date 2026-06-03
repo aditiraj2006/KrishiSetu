@@ -68,6 +68,7 @@
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
     "mongodb": "^6.19.0",
