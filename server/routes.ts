@@ -33,19 +33,7 @@ const __dirname = dirname(__filename);
 const storage = new MongoStorage();
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
@@ -57,6 +45,61 @@ const upload = multer({
     }
   },
 });
+
+async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
+  const isFirebaseConfigured = [
+    process.env.VITE_FIREBASE_API_KEY,
+    process.env.VITE_FIREBASE_AUTH_DOMAIN,
+    process.env.VITE_FIREBASE_PROJECT_ID,
+    process.env.VITE_FIREBASE_STORAGE_BUCKET,
+    process.env.VITE_FIREBASE_APP_ID,
+  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
+
+  if (isFirebaseConfigured) {
+    try {
+      console.log("Uploading payment proof to Firebase Storage...");
+      const { initializeApp, getApps } = await import("firebase/app");
+      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+
+      const firebaseConfig = {
+        apiKey: process.env.VITE_FIREBASE_API_KEY,
+        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.VITE_FIREBASE_APP_ID,
+      };
+
+      const apps = getApps();
+      const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
+      const storage = getStorage(app);
+
+      const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+      const storageRef = ref(storage, `payment-proofs/${uniqueFilename}`);
+      const metadata = { contentType: file.mimetype };
+
+      await uploadBytes(storageRef, file.buffer, metadata);
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log("Uploaded successfully to Firebase Storage:", downloadUrl);
+      return downloadUrl;
+    } catch (e) {
+      console.error("Failed to upload to Firebase Storage, falling back to local storage:", e);
+    }
+  }
+
+  // Fallback: Save to local directory
+  console.log("Falling back to local storage for payment proof...");
+  const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+  const filePath = path.join(uploadDir, uniqueFilename);
+  await fs.promises.writeFile(filePath, file.buffer);
+  
+  return `/uploads/payment-proofs/${uniqueFilename}`;
+}
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -969,8 +1012,9 @@ export async function registerRoutes(app: Express) {
       }
 
       // If you handle paymentProof file upload, set paymentProofUrl here
-      if (req.file && req.file.filename) {
-        filledFields.paymentProofUrl = `/uploads/payment-proofs/${req.file.filename}`;
+      if (req.file) {
+        const paymentProofUrl = await uploadPaymentProof(req.file);
+        filledFields.paymentProofUrl = paymentProofUrl;
         if (!registeredFields.includes("paymentProofUrl")) {
           registeredFields.push("paymentProofUrl");
         }
