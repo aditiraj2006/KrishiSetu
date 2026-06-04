@@ -143,8 +143,13 @@ export async function registerRoutes(app: Express) {
           req.body;
         const authFirebaseUid = res.locals.firebaseUid as string;
 
+        // Fix: trim email and name before validation/storage to prevent duplicate
+        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
+        const trimmedEmail = typeof email === "string" ? email.trim() : email;
+        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
+
         // Validate required fields
-        if (!email || !name) {
+        if (!trimmedEmail || !trimmedName) {
           return res.status(400).json({ message: "Missing required fields" });
         }
 
@@ -161,11 +166,11 @@ export async function registerRoutes(app: Express) {
         }
 
         // Create new user with username derived from email
-        const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
+        const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
 
         const user = await storage.createUser({
-          email,
-          name,
+          email: trimmedEmail,
+          name: trimmedName,
           username,
           role: "farmer", // default role
           firebaseUid: authFirebaseUid,

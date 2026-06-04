@@ -65,13 +65,20 @@ export default function LoginPage() {
     if (isSignUp && !requireRole()) return;
     setError(null);
     setSubmitting(true);
+
+    // Fix: trim whitespace from all text fields before submitting to prevent
+    // duplicate accounts (e.g. "alice " vs "alice") and login mismatches.
+    const trimmedEmail    = email.trim();
+    
+    const trimmedName     = name.trim();
+
     try {
       if (isSignUp) {
-        if (!name.trim()) throw new Error("Name is required for sign up.");
-        await registerWithEmail(email, password, name, selectedRole!);
+        if (!trimmedName) throw new Error("Name is required for sign up.");
+        await registerWithEmail(trimmedEmail, password, trimmedName, selectedRole!);
         toast.success("Account created successfully!");
       } else {
-        await loginWithEmail(email, password);
+        await loginWithEmail(trimmedEmail, password);
         toast.success("Successfully logged in!");
       }
       setLocation("/dashboard");
@@ -88,8 +95,12 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
+    // Fix: trim email before sending reset link.
+    const trimmedResetEmail = resetEmail.trim();
+
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(auth, trimmedResetEmail);
       toast.success("Password reset email sent!");
       setShowReset(false);
     } catch (err: any) {
