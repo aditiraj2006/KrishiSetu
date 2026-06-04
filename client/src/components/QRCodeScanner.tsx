@@ -142,6 +142,7 @@ export function QRCodeScanner() {
           variant: "destructive",
         });
         setScanError("Unable to access camera. Please ensure camera permissions are granted.");
+        setCameraStatus("denied");
         setIsScanning(false);
         console.error("Camera error:", error);
       });
@@ -426,11 +427,6 @@ export function QRCodeScanner() {
       {cameraStatus === "pending" && (
         <div className="text-center text-muted-foreground mb-4">Checking camera permissions...</div>
       )}
-      {cameraStatus === "denied" && (
-        <div className="text-center text-red-600 mb-4">
-          Camera access denied. Please allow camera permission in your browser settings.
-        </div>
-      )}
       {cameraStatus === "notfound" && (
         <div className="text-center text-red-600 mb-4">No camera found on this device.</div>
       )}
@@ -498,25 +494,47 @@ export function QRCodeScanner() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
           {/* Card 1: Camera Scanner */}
           <Card className="shadow-sm border border-border flex flex-col justify-between hover:shadow-md transition-all duration-300">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
-              <div className="p-4 bg-primary/10 rounded-full text-primary">
-                <Camera className="w-10 h-10" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground">Scan with Camera</h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Scan the QR code printed on the product packaging in real-time using your device webcam.
-              </p>
-              <div className="pt-2 w-full">
-                <Button
-                  onClick={startScanning}
-                  className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
-                  data-testid="button-start-camera"
-                >
-                  <Camera className="w-5 h-5" />
-                  Start Camera Scan
-                </Button>
-              </div>
-            </CardContent>
+            {cameraStatus === "denied" ? (
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
+                <div className="p-4 bg-red-100 dark:bg-red-950/30 rounded-full text-red-600">
+                  <AlertTriangle className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Camera Access Denied</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Camera access was denied. Please enable camera permissions in your browser settings to scan QR codes.
+                </p>
+                <div className="pt-2 w-full">
+                  <Button
+                    onClick={startScanning}
+                    className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
+                    data-testid="button-try-again-camera"
+                  >
+                    <Camera className="w-5 h-5" />
+                    Try Again
+                  </Button>
+                </div>
+              </CardContent>
+            ) : (
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
+                <div className="p-4 bg-primary/10 rounded-full text-primary">
+                  <Camera className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Scan with Camera</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Scan the QR code printed on the product packaging in real-time using your device webcam.
+                </p>
+                <div className="pt-2 w-full">
+                  <Button
+                    onClick={startScanning}
+                    className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
+                    data-testid="button-start-camera"
+                  >
+                    <Camera className="w-5 h-5" />
+                    Start Camera Scan
+                  </Button>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* OR separator for desktop / mobile */}
