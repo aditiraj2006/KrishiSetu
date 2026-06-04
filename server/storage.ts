@@ -3,6 +3,7 @@ import type {
   InsertOwnershipTransfer,
   InsertProduct,
   InsertProductComment,
+  InsertProductRating,
   InsertProductOwner,
   InsertQualityCheck,
   InsertScan,
@@ -12,6 +13,7 @@ import type {
   OwnershipTransfer,
   Product,
   ProductComment,
+  ProductRating,
   ProductOwner,
   QualityCheck,
   Scan,
@@ -200,7 +202,7 @@ export class MongoStorage {
 
   async getRecentScans(limit: number = 5): Promise<any[]> {
     const db = await getDb();
-    return db.collection("scans").find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+    return db.collection("scans").find({}).sort({ timestamp: -1 }).limit(limit).toArray();
   }
   async getUserScans(userId: string): Promise<Scan[]> {
     const db = await getDb();
@@ -290,6 +292,9 @@ export class MongoStorage {
       qrCode,
       blockchainHash,
       price: insertProduct.price || null, // Add price handling
+      averageRating: 0,
+      ratingCount: 0,
+      ratingSum: 0,
       createdAt,
     };
     await db.collection<Product>("products").insertOne(product);
@@ -606,6 +611,97 @@ export class MongoStorage {
     };
     await db.collection<ProductComment>("product_comments").insertOne(comment);
     return comment;
+  }
+
+  // -------- ProductRating Operations --------
+  async getProductRatingSummary(productId: string): Promise<{
+    averageRating: number;
+    ratingCount: number;
+    ratingSum: number;
+  }> {
+    const db = await getDb();
+    const [summary] = await db
+      .collection<ProductRating>("product_ratings")
+      .aggregate([
+        { $match: { productId } },
+        {
+          $group: {
+            _id: null,
+            ratingCount: { $sum: 1 },
+            ratingSum: { $sum: "$rating" },
+            averageRating: { $avg: "$rating" },
+          },
+        },
+      ])
+      .toArray();
+
+    return {
+      averageRating: summary?.averageRating ?? 0,
+      ratingCount: summary?.ratingCount ?? 0,
+      ratingSum: summary?.ratingSum ?? 0,
+    };
+  }
+
+  async refreshProductRatingSummary(productId: string): Promise<{
+    averageRating: number;
+    ratingCount: number;
+    ratingSum: number;
+  }> {
+    const db = await getDb();
+    const summary = await this.getProductRatingSummary(productId);
+
+    await db.collection<Product>("products").updateOne(
+      { id: productId },
+      {
+        $set: {
+          averageRating: summary.averageRating,
+          ratingCount: summary.ratingCount,
+          ratingSum: summary.ratingSum,
+        },
+      },
+    );
+
+    return summary;
+  }
+
+  async getProductRating(productId: string, userId: string): Promise<ProductRating | null> {
+    const db = await getDb();
+    return db.collection<ProductRating>("product_ratings").findOne({ productId, userId });
+  }
+
+  async upsertProductRating(
+    insertProductRating: InsertProductRating,
+  ): Promise<ProductRating> {
+    const db = await getDb();
+    const rating: ProductRating = {
+      ...insertProductRating,
+      id: randomUUID(),
+      review: insertProductRating.review ?? null,
+      createdAt: insertProductRating.createdAt ?? new Date(),
+    };
+
+    await db.collection<ProductRating>("product_ratings").updateOne(
+      {
+        productId: rating.productId,
+        userId: rating.userId,
+      },
+      {
+        $set: rating,
+      },
+      { upsert: true },
+    );
+
+    await this.refreshProductRatingSummary(rating.productId);
+    return rating;
+  }
+
+  async getProductRatings(productId: string): Promise<ProductRating[]> {
+    const db = await getDb();
+    return db
+      .collection<ProductRating>("product_ratings")
+      .find({ productId })
+      .sort({ createdAt: -1 })
+      .toArray();
   }
 
   async getProductComments(productId: string): Promise<ProductComment[]> {

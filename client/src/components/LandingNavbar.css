@@ -1,9 +1,11 @@
-/* LandingNavbar.css - Premium Glassmorphic Navigation Header */
+/* LandingNavbar.css — Premium Glassmorphic Navigation */
+
+/* ─── Base navbar ─────────────────────────────────────── */
 
 .navbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 16px 24px;
   background: color-mix(in srgb, var(--background) 70%, transparent);
   backdrop-filter: blur(16px);
@@ -13,16 +15,19 @@
   z-index: 1000;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s ease;
   width: 100%;
   box-sizing: border-box;
+  gap: 16px;
 }
+
+/* ─── Logo ────────────────────────────────────────────── */
 
 .navbar .logo-container {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .navbar .logo-icon {
@@ -55,11 +60,7 @@
   -webkit-text-fill-color: transparent;
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
+/* ─── Desktop nav links ───────────────────────────────── */
 
 .nav-links {
   list-style: none;
@@ -68,6 +69,7 @@
   gap: 24px;
   margin: 0;
   padding: 0;
+  flex: 1;
 }
 
 .nav-links li {
@@ -78,6 +80,7 @@
   position: relative;
   padding: 6px 0;
   transition: color 0.3s ease;
+  white-space: nowrap;
 }
 
 .nav-links li:hover {
@@ -87,10 +90,6 @@
 .nav-links li.active-link {
   color: var(--primary);
   font-weight: 600;
-}
-
-.nav-links li.active-link::after {
-  transform: scaleX(1);
 }
 
 .nav-links li::after {
@@ -106,10 +105,31 @@
   transition: transform 0.3s ease;
 }
 
+.nav-links li.active-link::after,
 .nav-links li:hover::after {
   transform: scaleX(1);
   transform-origin: left;
 }
+
+/* ─── Right-side controls — single unified group ─────── */
+/*
+  Structure:
+    [Logo]  [nav-links → flex:1]  [navbar-right]
+
+  navbar-right always renders:
+    • ModeToggle  (always visible)
+    • .desktop-only  (Launch App — hidden on mobile)
+    • .mobile-only   (Hamburger — hidden on desktop)
+*/
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ─── Launch App button ───────────────────────────────── */
 
 .navbar-btn {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
@@ -120,11 +140,261 @@
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
 }
 
 .navbar-btn:hover {
   background: var(--primary);
   color: white;
   transform: translateY(-1px);
+}
+
+/* desktop-only: visible on desktop, hidden on mobile */
+.desktop-only {
+  display: inline-flex;
+}
+
+/* mobile-only: hidden on desktop, visible on mobile */
+.mobile-only {
+  display: none;
+}
+
+/* ─── Hamburger button ────────────────────────────────── */
+
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.hamburger-bar {
+  display: block;
+  width: 100%;
+  height: 2.5px;
+  background: var(--foreground);
+  border-radius: 4px;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease;
+  transform-origin: center;
+}
+
+/* Animate to X when open */
+.hamburger-btn.open .hamburger-bar:nth-child(1) {
+  transform: translateY(8.75px) rotate(45deg);
+}
+.hamburger-btn.open .hamburger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-btn.open .hamburger-bar:nth-child(3) {
+  transform: translateY(-8.75px) rotate(-45deg);
+}
+
+/* ─── Mobile overlay ──────────────────────────────────── */
+
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 1100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ─── Mobile drawer ───────────────────────────────────── */
+
+.mobile-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: min(300px, 80vw);
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.15);
+  z-index: 1200;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+/* ─── Drawer header ───────────────────────────────────── */
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+}
+
+.drawer-close-btn {
+  background: color-mix(in srgb, var(--muted) 60%, transparent);
+  border: none;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.drawer-close-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.drawer-close-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Drawer nav links ────────────────────────────────── */
+
+.mobile-nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0;
+  flex: 1;
+}
+
+.mobile-nav-links li {
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 20%, transparent);
+}
+
+.mobile-nav-links li:last-child {
+  border-bottom: none;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 22px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease, background 0.2s ease;
+  position: relative;
+}
+
+.drawer-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+  border-radius: 0 3px 3px 0;
+}
+
+.drawer-link:hover,
+.drawer-link.active-link {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.drawer-link:hover::before,
+.drawer-link.active-link::before {
+  transform: scaleY(1);
+}
+
+.drawer-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.drawer-link-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ─── Drawer footer CTA ───────────────────────────────── */
+
+.drawer-footer {
+  padding: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+}
+
+.drawer-cta-btn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Responsive breakpoint ───────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Hide desktop nav links */
+  .nav-links {
+    display: none;
+  }
+
+  /* Hide Launch App from navbar (it lives in the drawer) */
+  .desktop-only {
+    display: none;
+  }
+
+  /* Show hamburger button */
+  .mobile-only {
+    display: flex;
+  }
+
+  /* Show overlay and drawer (flex needed for column layout) */
+  .mobile-overlay {
+    display: block;
+  }
+
+  .mobile-drawer {
+    display: flex;
+  }
 }

@@ -2,7 +2,29 @@ import type { InsertProduct, Product, User } from "@shared/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAuth } from "firebase/auth";
 import { getAuthHeaders } from "@/lib/authHeaders";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
+
+export type ProductRatingWithUser = {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  review?: string | null;
+  createdAt: string;
+  userName: string;
+  userRole: string | null;
+  userProfileImage: string | null;
+};
+
+export type ProductRatingsResponse = {
+  summary: {
+    averageRating: number;
+    ratingCount: number;
+    ratingSum: number;
+  };
+  ratings: ProductRatingWithUser[];
+};
 
 export function useProducts(ownerId?: string) {
   return useQuery({
@@ -126,6 +148,14 @@ export function useUserProducts(user?: User | null) {
       }
 
       // Get firebase uid
+      if (!isFirebaseConfigured) {
+        throw new Error("Firebase is not configured");
+      }
+
+      if (!isFirebaseConfigured) {
+        throw new Error("Firebase is not configured");
+      }
+
       const firebaseUser = getAuth().currentUser;
       if (!firebaseUser) throw new Error("Not authenticated");
 
@@ -162,5 +192,35 @@ export function useProductJourney(id: string) {
       return response.json() as Promise<any[]>;
     },
     enabled: !!id,
+  });
+}
+
+export function useProductRatings(id: string) {
+  return useQuery({
+    queryKey: ["/api/products", id, "ratings"],
+    queryFn: async () => {
+      const response = await fetch(`/api/products/${id}/ratings`);
+      if (!response.ok) throw new Error("Failed to fetch product ratings");
+      return response.json() as Promise<ProductRatingsResponse>;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useSubmitProductRating(productId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ratingData: { rating: number; review?: string }) => {
+      const response = await apiRequest("POST", `/api/products/${productId}/ratings`, ratingData);
+      return response.json() as Promise<ProductRatingsResponse>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products", productId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products", productId, "ratings"] });
+    },
   });
 }
