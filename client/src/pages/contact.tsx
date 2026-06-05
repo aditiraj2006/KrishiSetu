@@ -1,13 +1,24 @@
-// pages/Contact.tsx
 import LandingNavbar from "@/components/LandingNavbar";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { useAuth } from "@/hooks/useAuth";
 import type React from "react";
 import { Link } from "wouter";
 import "./contact.css";
 
 const Contact: React.FC = () => {
+  const { user, loading } = useAuth();
+
   return (
     <>
-      <LandingNavbar />
+      {loading ? (
+        <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm h-16 flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">KrishiSetu...</div>
+        </nav>
+      ) : user ? (
+        <NavigationHeader />
+      ) : (
+        <LandingNavbar />
+      )}
       <div className="contact-container">
       <h1>Get in Touch</h1>
       <p>
@@ -45,7 +56,7 @@ const Contact: React.FC = () => {
         </form>
       </div>
 
-      <Link href="/" className="back-link">
+      <Link href={user ? "/dashboard" : "/"} className="back-link">
         ← Back{" "}
       </Link>
     </div>

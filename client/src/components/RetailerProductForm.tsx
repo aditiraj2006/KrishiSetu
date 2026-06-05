@@ -55,7 +55,37 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
   const [certifications, setCertifications] = useState<string[]>([]);
   const [price, setPrice] = useState("");
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setFileError(null);
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+      const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+      const fileExt = file.name.split(".").pop()?.toLowerCase();
+      const isAllowedExt = fileExt && ["jpg", "jpeg", "png", "pdf"].includes(fileExt);
+
+      if (!allowedTypes.includes(file.type) && !isAllowedExt) {
+        setFileError("Only .jpg, .jpeg, .png, and .pdf files are accepted.");
+        setPaymentProofFile(null);
+        e.target.value = ""; // Reset the input
+        return;
+      }
+
+      if (file.size > maxSizeBytes) {
+        setFileError("File size exceeds the 5 MB limit.");
+        setPaymentProofFile(null);
+        e.target.value = ""; // Reset the input
+        return;
+      }
+
+      setPaymentProofFile(file);
+    } else {
+      setPaymentProofFile(null);
+    }
+  };
 
   // Update form fields when productData changes
   useEffect(() => {
@@ -89,6 +119,7 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
     if (!storeLocation.trim()) return "Store location is required";
     if (!arrivalDate) return "Arrival date is required";
     if (!price.trim()) return "Product purchase price is required";
+    if (fileError) return fileError;
     if (!paymentProofFile) return "Payment proof photo is required";
     if (!transferId) return "Missing transfer id";
     return null;
@@ -290,14 +321,22 @@ export const RetailerProductForm: React.FC<RetailerProductFormProps> = ({
                   />
                 </div>
                 <div>
-                  <Label>Payment Proof (Photo) *</Label>
+                  <Label>Payment Proof (Photo/PDF) *</Label>
                   <Input
                     type="file"
-                    accept="image/*"
-                    onChange={(e) => setPaymentProofFile(e.target.files?.[0] || null)}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={handleFileChange}
                     required
                   />
-                  {paymentProofFile && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Accepted formats: JPG, JPEG, PNG, PDF (Max 5 MB)
+                  </p>
+                  {fileError && (
+                    <p className="text-xs text-destructive font-medium mt-1">
+                      {fileError}
+                    </p>
+                  )}
+                  {paymentProofFile && !fileError && (
                     <div className="mt-2 text-xs text-muted-foreground">
                       Selected: {paymentProofFile.name}
                     </div>

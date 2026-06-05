@@ -202,7 +202,7 @@ export class MongoStorage {
 
   async getRecentScans(limit: number = 5): Promise<any[]> {
     const db = await getDb();
-    return db.collection("scans").find({}).sort({ createdAt: -1 }).limit(limit).toArray();
+    return db.collection("scans").find({}).sort({ timestamp: -1 }).limit(limit).toArray();
   }
   async getUserScans(userId: string): Promise<Scan[]> {
     const db = await getDb();

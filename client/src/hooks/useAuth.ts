@@ -69,6 +69,7 @@ export function useAuth() {
         }).then((res) => res.json());
       }
 
+      localStorage.setItem("token", idToken);
       setState({ user, firebaseUser, loading: false, redirectResultLoading: false, error: null });
     } catch {
       setState((prev) => ({
@@ -136,6 +137,7 @@ export function useAuth() {
       if (fbUser) {
         await fetchUserProfile(fbUser);
       } else {
+        localStorage.removeItem("token");
         setState({
           user: null,
           firebaseUser: null,
@@ -185,19 +187,25 @@ export function useAuth() {
       return;
     }
 
+    // Save the pending role immediately so it survives redirects
+    savePendingRole(role);
+
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      // Popup succeeded, so we can clear the pending role selection
+      clearPendingRole();
       await fetchUserProfile(result.user, role);
     } catch (popupError: any) {
       if (
         popupError.code === "auth/popup-blocked" ||
         popupError.code === "auth/popup-closed-by-user"
       ) {
-        savePendingRole(role);
         await signInWithRedirect(auth, googleProvider);
         return;
       }
+      // Clear pending role on other popup failures
+      clearPendingRole();
       setState((prev) => ({
         ...prev,
         loading: false,
@@ -267,6 +275,7 @@ export function useAuth() {
       if (auth) {
         await signOut(auth);
       }
+      localStorage.removeItem("token");
       setState({
         user: null,
         firebaseUser: null,
