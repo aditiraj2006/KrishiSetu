@@ -8,6 +8,8 @@ import "./LandingNavbar.css";
 const LandingNavbar = () => {
   const [location, setLocation] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
@@ -21,18 +23,24 @@ const LandingNavbar = () => {
     setLocation(path);
   };
 
+  const scrollToFeatures = () => {
+    const element = document.getElementById("features");
+    if (!element) return;
+    const navHeight = navRef.current?.offsetHeight ?? 0;
+    const targetTop = element.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
+  };
+
   const handleFeaturesClick = () => {
     setMenuOpen(false);
-    if (location === "/") {
-      const element = document.getElementById("features");
-      if (element) element.scrollIntoView({ behavior: "smooth" });
-    } else {
-      setLocation("/");
-      setTimeout(() => {
-        const element = document.getElementById("features");
-        if (element) element.scrollIntoView({ behavior: "smooth" });
-      }, 300);
+    if (location === "/" || location === "") {
+      window.location.hash = "features";
+      scrollToFeatures();
+      return;
     }
+
+    window.location.hash = "features";
+    setLocation("/");
   };
 
   const { user, logout } = useAuth();
@@ -43,6 +51,15 @@ const LandingNavbar = () => {
     logout();
     setLocation("/login");
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -79,7 +96,12 @@ const LandingNavbar = () => {
   }, [menuOpen]);
 
   return (
-    <nav className="navbar" role="navigation" aria-label="Main navigation">
+    <nav
+      ref={navRef}
+      className={`navbar landing-navbar${isScrolled ? " scrolled" : ""}`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
 
       {/* ── Logo ── */}
       <div

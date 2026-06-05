@@ -39,6 +39,22 @@ const LandingPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (window.location.hash !== "#features") {
+      return;
+    }
+
+    const element = document.getElementById("features");
+    if (!element) {
+      return;
+    }
+
+    const nav = document.querySelector<HTMLElement>(".landing-navbar");
+    const navHeight = nav?.offsetHeight ?? 0;
+    const targetTop = element.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
