@@ -45,6 +45,7 @@ function App() {
                 <Route path="/contact" component={Contact} />
                 <Route path="/about" component={about} />
                 <Route path="/howitworks" component={HowItWorks} />
+                <Route path="/how-it-works" component={HowItWorks} />
                 <Route path="/dashboard" component={Dashboard} />
                 <Route path="/product-registration" component={ProductRegistration} />
                 <Route path="/qr-scanner" component={QRScannerPage} />

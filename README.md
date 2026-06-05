@@ -224,6 +224,27 @@ Open [http://localhost:5001](http://localhost:5001) in your browser!
 
 ---
 
+### Firebase Setup (Required for OAuth Login)
+
+| Step | Action | Where |
+|------|--------|-------|
+| 1 | Firebase Console kholо | [console.firebase.google.com](https://console.firebase.google.com) |
+| 2 | Authentication → Settings → Authorized Domains | Firebase Console |
+| 3 | **Add Domain**: `your-app.onrender.com` | Authorized Domains list |
+| 4 | Save karo aur OAuth login test karo | Production URL par |
+
+> 💡 `localhost` development mein automatically authorized hota hai, but production domain manually add karna padta hai.
+
+### Common Errors & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `auth/unauthorized-domain` | Domain Firebase mein add nahi | Upar wala Step 3 follow karo |
+| OAuth popup band ho jaye | Same as above | Same fix |
+| Login locally kaam kare, production par na kare | Same as above | Same fix |
+
+---
+
 ## ▶️ Usage
 
 1. **Sign Up / Log In** — Create your account using Firebase authentication
@@ -314,6 +335,7 @@ Before submitting your PR, ensure:
 - [ ] Documentation updated
 - [ ] Related issues linked (use `Fixes #123`)
 - [ ] `.env` file is NOT included
+- [ ] Firebase Authorized Domains updated for production deployment (if auth changes made)
 
 ---
 
