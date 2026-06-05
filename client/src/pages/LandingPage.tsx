@@ -11,6 +11,7 @@ import {
   MoveRight 
 } from "lucide-react";
 import "./LandingPage.css";
+import UXMarquee from "../components/UXMarquee";
 
 interface SupplyChainStep {
   id: string;
@@ -208,6 +209,11 @@ const LandingPage = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* User Experience Marquee */}
+      <div className="ux-section">
+        <UXMarquee />
       </div>
 
       {/* High-Impact Glassmorphic CTA Banner */}
