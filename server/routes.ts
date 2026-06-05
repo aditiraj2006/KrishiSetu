@@ -106,7 +106,7 @@ const requireFirebaseAuth = async (
     const decoded = await verifyFirebaseIdToken(token);
     const headerUid =
       req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -320,6 +320,10 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
         }
 
         const productData = {
@@ -981,6 +985,18 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         console.log("User found:", user ? user.id : "null");
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
 
         console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
