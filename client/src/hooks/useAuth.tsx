@@ -10,14 +10,21 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { auth, googleProvider, isFirebaseConfigured } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
 
 // ─── Role persistence key (survives redirects, cleared on tab close) ─────────
-const PENDING_ROLE_KEY = 'krishisetu_pending_role';
+const PENDING_ROLE_KEY = "krishisetu_pending_role";
 
-export type UserRole = 'farmer' | 'distributor' | 'retailer' | 'consumer';
+export type UserRole = "farmer" | "distributor" | "retailer" | "consumer";
 
 function savePendingRole(role: UserRole) {
   sessionStorage.setItem(PENDING_ROLE_KEY, role);
@@ -37,7 +44,26 @@ export interface AuthState {
   error: string | null;
 }
 
-export function useAuth() {
+export interface AuthContextValue extends AuthState {
+  loading: boolean;
+  login: (role: UserRole) => Promise<void>;
+  loginWithGoogle: (role: UserRole) => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (
+    email: string,
+    password: string,
+    name: string,
+    role: UserRole
+  ) => Promise<FirebaseUser>;
+  logout: () => Promise<void>;
+  refetchUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+// ─── Provider ─────────────────────────────────────────────────────────────────
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     firebaseUser: null,
@@ -46,12 +72,17 @@ export function useAuth() {
     error: null,
   });
 
-  // ── Fetch or register user in the backend ─────────────────────────────────
-  const fetchUserProfile = async (firebaseUser: FirebaseUser, role?: UserRole) => {
+  // Keep a stable ref so async callbacks always have the latest firebaseUser
+  const firebaseUserRef = useRef<FirebaseUser | null>(null);
+  firebaseUserRef.current = state.firebaseUser;
+
+  // ── Fetch or register user in the backend ────────────────────────────────
+  const fetchUserProfile = async (
+    firebaseUser: FirebaseUser,
+    role?: UserRole
+  ) => {
     const idToken = await firebaseUser.getIdToken();
-    const headers = {
-      Authorization: `Bearer ${idToken}`,
-    };
+    const headers = { Authorization: `Bearer ${idToken}` };
 
     try {
       const response = await fetch("/api/user/profile", { headers });
@@ -62,14 +93,23 @@ export function useAuth() {
       } else {
         user = await apiRequest("POST", "/api/user/register", {
           email: firebaseUser.email!,
-          name: firebaseUser.displayName || firebaseUser.email!.split("@")[0],
+          name:
+            firebaseUser.displayName ||
+            firebaseUser.email!.split("@")[0],
           profileImage: firebaseUser.photoURL,
           role: role ?? null,
           roleSelected: !!role,
         }).then((res) => res.json());
       }
 
-      setState({ user, firebaseUser, loading: false, redirectResultLoading: false, error: null });
+      localStorage.setItem("token", idToken);
+      setState({
+        user,
+        firebaseUser,
+        loading: false,
+        redirectResultLoading: false,
+        error: null,
+      });
     } catch {
       setState((prev) => ({
         ...prev,
@@ -122,20 +162,20 @@ export function useAuth() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 2. Keep auth state in sync ────────────────────────────────────────────
   useEffect(() => {
-    const firebaseAuth = auth;
-    if (!firebaseAuth) {
-      return;
-    }
+    if (!auth) return;
 
-    const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       if (fbUser) {
         await fetchUserProfile(fbUser);
       } else {
+        localStorage.removeItem("token");
         setState({
           user: null,
           firebaseUser: null,
@@ -149,15 +189,17 @@ export function useAuth() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refetchUser = async () => {
-    if (state.firebaseUser) {
+    const fbUser = firebaseUserRef.current;
+    if (fbUser) {
       setState((prev) => ({ ...prev, loading: true }));
-      await fetchUserProfile(state.firebaseUser);
+      await fetchUserProfile(fbUser);
     }
   };
 
   const refreshUser = async (): Promise<User | null> => {
-    if (!state.firebaseUser) return null;
-    const idToken = await state.firebaseUser.getIdToken();
+    const fbUser = firebaseUserRef.current;
+    if (!fbUser) return null;
+    const idToken = await fbUser.getIdToken();
     try {
       const response = await fetch("/api/user/profile", {
         headers: { Authorization: `Bearer ${idToken}` },
@@ -180,24 +222,27 @@ export function useAuth() {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+        error:
+          "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
       }));
       return;
     }
 
+    savePendingRole(role);
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      clearPendingRole();
       await fetchUserProfile(result.user, role);
     } catch (popupError: any) {
       if (
         popupError.code === "auth/popup-blocked" ||
         popupError.code === "auth/popup-closed-by-user"
       ) {
-        savePendingRole(role);
         await signInWithRedirect(auth, googleProvider);
         return;
       }
+      clearPendingRole();
       setState((prev) => ({
         ...prev,
         loading: false,
@@ -211,7 +256,8 @@ export function useAuth() {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+        error:
+          "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
       }));
       throw new Error("Firebase is not configured");
     }
@@ -233,20 +279,25 @@ export function useAuth() {
     email: string,
     password: string,
     name: string,
-    role: UserRole,
+    role: UserRole
   ) => {
     if (!isFirebaseConfigured || !auth) {
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
+        error:
+          "Firebase is not configured. Set the VITE_FIREBASE_* values in .env before signing in.",
       }));
       throw new Error("Firebase is not configured");
     }
 
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       await updateProfile(userCredential.user, { displayName: name });
       await fetchUserProfile(userCredential.user, role);
       return userCredential.user;
@@ -264,9 +315,8 @@ export function useAuth() {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       clearPendingRole();
-      if (auth) {
-        await signOut(auth);
-      }
+      if (auth) await signOut(auth);
+      localStorage.removeItem("token");
       setState({
         user: null,
         firebaseUser: null,
@@ -283,7 +333,7 @@ export function useAuth() {
     }
   };
 
-  return {
+  const value: AuthContextValue = {
     ...state,
     loading: state.loading || state.redirectResultLoading,
     login: loginWithGoogle,
@@ -293,5 +343,16 @@ export function useAuth() {
     logout,
     refetchUser,
     refreshUser,
-  } as const;
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

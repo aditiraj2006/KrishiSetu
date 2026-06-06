@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getAuthHeaders } from "@/lib/authHeaders";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 
 export type ProductRatingWithUser = {
   id: string;
@@ -99,6 +100,7 @@ export function useCreateProduct() {
 }
 
 export function useStats(userId?: string) {
+  const { loading } = useAuth();
   return useQuery({
     queryKey: userId ? ["/api/user", userId, "stats"] : ["/api/stats"],
     queryFn: async () => {
@@ -120,11 +122,12 @@ export function useStats(userId?: string) {
         averageRating?: number;
       }>;
     },
-    enabled: userId === undefined || userId.length > 0,
+    enabled: !loading && (userId === undefined || userId.length > 0),
   });
 }
 
 export function useRecentScans(userId?: string) {
+  const { loading } = useAuth();
   return useQuery({
     queryKey: userId ? ["/api/scans/recent", { userId }] : ["/api/scans/recent"],
     queryFn: async () => {
@@ -133,10 +136,12 @@ export function useRecentScans(userId?: string) {
       if (!response.ok) throw new Error("Failed to fetch recent scans");
       return response.json();
     },
+    enabled: !loading,
   });
 }
 
 export function useUserProducts(user?: User | null) {
+  const { loading } = useAuth();
   return useQuery({
     queryKey: user ? ["/api/user/products/combined", { userId: user.id }] : ["/api/products"],
     queryFn: async () => {
@@ -180,7 +185,7 @@ export function useUserProducts(user?: User | null) {
 
       return Array.from(productMap.values());
     },
-    enabled: user !== undefined,
+    enabled: !loading && user !== undefined,
   });
 }
 export function useProductJourney(id: string) {
@@ -224,3 +229,30 @@ export function useSubmitProductRating(productId: string) {
     },
   });
 }
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`/api/products/${productId}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/products/combined"] });
+    },
+  });
+}
+

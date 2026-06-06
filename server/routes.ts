@@ -33,30 +33,77 @@ const __dirname = dirname(__filename);
 const storage = new MongoStorage();
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + path.extname(file.originalname));
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
+    const allowedMimes = ["image/jpeg", "image/png", "application/pdf"];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+
+    if (allowedMimes.includes(file.mimetype) || allowedExtensions.includes(fileExt)) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed!"));
+      cb(new Error("Only .jpg, .jpeg, .png, and .pdf files are allowed!"));
     }
   },
 });
+
+async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
+  const isFirebaseConfigured = [
+    process.env.VITE_FIREBASE_API_KEY,
+    process.env.VITE_FIREBASE_AUTH_DOMAIN,
+    process.env.VITE_FIREBASE_PROJECT_ID,
+    process.env.VITE_FIREBASE_STORAGE_BUCKET,
+    process.env.VITE_FIREBASE_APP_ID,
+  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
+
+  if (isFirebaseConfigured) {
+    try {
+      console.log("Uploading payment proof to Firebase Storage...");
+      const { initializeApp, getApps } = await import("firebase/app");
+      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+
+      const firebaseConfig = {
+        apiKey: process.env.VITE_FIREBASE_API_KEY,
+        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.VITE_FIREBASE_APP_ID,
+      };
+
+      const apps = getApps();
+      const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
+      const storage = getStorage(app);
+
+      const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+      const storageRef = ref(storage, `payment-proofs/${uniqueFilename}`);
+      const metadata = { contentType: file.mimetype };
+
+      await uploadBytes(storageRef, file.buffer, metadata);
+      const downloadUrl = await getDownloadURL(storageRef);
+      console.log("Uploaded successfully to Firebase Storage:", downloadUrl);
+      return downloadUrl;
+    } catch (e) {
+      console.error("Failed to upload to Firebase Storage, falling back to local storage:", e);
+    }
+  }
+
+  // Fallback: Save to local directory
+  console.log("Falling back to local storage for payment proof...");
+  const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
+  const filePath = path.join(uploadDir, uniqueFilename);
+  await fs.promises.writeFile(filePath, file.buffer);
+  
+  return `/uploads/payment-proofs/${uniqueFilename}`;
+}
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -106,7 +153,7 @@ const requireFirebaseAuth = async (
     const decoded = await verifyFirebaseIdToken(token);
     const headerUid =
       req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -322,6 +369,10 @@ export async function registerRoutes(app: Express) {
           return res.status(404).json({ message: "User not found" });
         }
 
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
+        }
+
         const productData = {
           ...parse.data,
           ownerId: user.id,
@@ -441,6 +492,211 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to fetch product" });
     }
   });
+
+  // Public product verification route (no auth)
+  app.get("/api/verify/:productId", async (req: Request, res: Response) => {
+    try {
+      const identifier = req.params.productId;
+      // Reuse same lookup logic as product detail endpoint
+      let product = await storage.getProduct(identifier);
+      if (!product) {
+        product = await storage.getProductByBatchId(identifier);
+      }
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      // Filter out sensitive/internal fields
+      const {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      } = product as any;
+      const publicProduct = {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      };
+      return res.json(publicProduct);
+    } catch (error) {
+      console.error("Error in public verify route:", error);
+      return res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  // Delete product route
+  app.delete(
+    "/api/products/:id",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const productId = req.params.id;
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Fetch product to verify ownership/role
+        const product = await storage.getProduct(productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Only the product owner or an admin can delete the product
+        if (product.ownerId !== user.id && user.role !== "admin") {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const success = await storage.deleteProduct(productId);
+        if (!success) {
+          return res.status(500).json({ message: "Failed to delete product" });
+        }
+
+        return res.json({ message: "Product deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        return res.status(500).json({ message: "Failed to delete product" });
+      }
+    }
+  );
+
+  // Farmer produce export route
+  app.get(
+    "/api/farmer/export",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can export produce records" });
+        }
+
+        const { from, to } = req.query;
+        let products = await storage.getProductsByOwner(user.id);
+
+        // Filter products by optional date range
+        if (from) {
+          const fromDate = new Date(from as string);
+          if (!isNaN(fromDate.getTime())) {
+            products = products.filter((p) => new Date(p.createdAt!) >= fromDate);
+          }
+        }
+        if (to) {
+          const toDate = new Date(to as string);
+          if (!isNaN(toDate.getTime())) {
+            toDate.setHours(23, 59, 59, 999);
+            products = products.filter((p) => new Date(p.createdAt!) <= toDate);
+          }
+        }
+
+        // Generate CSV rows
+        const db = await getDb();
+        const csvRows = [];
+        
+        // Header row
+        csvRows.push([
+          "Product Name",
+          "Category",
+          "Quantity",
+          "Registration Date",
+          "Current Status",
+          "Last Transaction Date",
+          "Buyer Name"
+        ]);
+
+        for (const product of products) {
+          // Find last completed transfer
+          const lastTransfer = await db
+            .collection("ownershiptransfers")
+            .find({ productId: product.id, status: "completed" })
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .next();
+
+          let lastTxDate = "N/A";
+          let buyerName = "N/A";
+
+          if (lastTransfer) {
+            lastTxDate = new Date(lastTransfer.timestamp).toLocaleDateString("en-IN");
+            if (lastTransfer.toUserId) {
+              const buyer = await storage.getUser(lastTransfer.toUserId);
+              if (buyer) {
+                buyerName = buyer.name;
+              }
+            }
+          }
+
+          const regDate = product.createdAt
+            ? new Date(product.createdAt).toLocaleDateString("en-IN")
+            : "N/A";
+
+          // Helper to escape values for CSV
+          const escapeCsv = (val: string) => {
+            const str = String(val ?? "");
+            if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          };
+
+          csvRows.push([
+            escapeCsv(product.name),
+            escapeCsv(product.category),
+            escapeCsv(`${product.quantity} ${product.unit}`),
+            escapeCsv(regDate),
+            escapeCsv(product.status),
+            escapeCsv(lastTxDate),
+            escapeCsv(buyerName)
+          ]);
+        }
+
+        const csvContent = csvRows.map((row) => row.join(",")).join("\n");
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+          "Content-Disposition",
+          "attachment; filename=farmer-produce-export.csv"
+        );
+        return res.status(200).send(csvContent);
+      } catch (error) {
+        console.error("Error exporting farmer records:", error);
+        return res.status(500).json({ message: "Failed to export records" });
+      }
+    }
+  );
 
   // List all products - used by dashboard
   app.get("/api/products", async (req: Request, res: Response) => {
@@ -888,7 +1144,19 @@ export async function registerRoutes(app: Express) {
   app.put(
     "/api/ownership-transfers/:id/accept",
     requireFirebaseAuth,
-    upload.single("paymentProof"),
+    (req: Request, res: Response, next: NextFunction) => {
+      upload.single("paymentProof")(req, res, (err: any) => {
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "File size exceeds the 5MB limit." });
+          }
+          return res.status(400).json({ message: err.message });
+        } else if (err) {
+          return res.status(400).json({ message: err.message });
+        }
+        next();
+      });
+    },
     async (req: Request, res: Response) => {
       const transferId = req.params.id;
       const firebaseUid = res.locals.firebaseUid as string;
@@ -969,8 +1237,9 @@ export async function registerRoutes(app: Express) {
       }
 
       // If you handle paymentProof file upload, set paymentProofUrl here
-      if (req.file && req.file.filename) {
-        filledFields.paymentProofUrl = `/uploads/payment-proofs/${req.file.filename}`;
+      if (req.file) {
+        const paymentProofUrl = await uploadPaymentProof(req.file);
+        filledFields.paymentProofUrl = paymentProofUrl;
         if (!registeredFields.includes("paymentProofUrl")) {
           registeredFields.push("paymentProofUrl");
         }
@@ -981,6 +1250,18 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         console.log("User found:", user ? user.id : "null");
         if (!user) return res.status(404).json({ message: "User not found" });
+
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
 
         console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);

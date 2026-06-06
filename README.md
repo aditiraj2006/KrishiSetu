@@ -212,6 +212,10 @@ GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
 
 > ⚠️ **IMPORTANT**: Never commit your `.env` file. It contains sensitive credentials!
 
+> 🔥 **FIREBASE IMPORTANT**: Production deploy karne ke baad, Firebase Console →
+> Authentication → Settings → Authorized Domains mein apna production domain
+> (e.g., `your-app.onrender.com`) zaroor add karo, warna OAuth login kaam nahi karega!
+
 ### Start Development Servers
 
 ```bash
@@ -219,6 +223,27 @@ npm run dev
 ```
 
 Open [http://localhost:5001](http://localhost:5001) in your browser!
+
+---
+
+### Firebase Setup (Required for OAuth Login)
+
+| Step | Action | Where |
+|------|--------|-------|
+| 1 | Firebase Console kholо | [console.firebase.google.com](https://console.firebase.google.com) |
+| 2 | Authentication → Settings → Authorized Domains | Firebase Console |
+| 3 | **Add Domain**: `your-app.onrender.com` | Authorized Domains list |
+| 4 | Save karo aur OAuth login test karo | Production URL par |
+
+> 💡 `localhost` development mein automatically authorized hota hai, but production domain manually add karna padta hai.
+
+### Common Errors & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `auth/unauthorized-domain` | Domain Firebase mein add nahi | Upar wala Step 3 follow karo |
+| OAuth popup band ho jaye | Same as above | Same fix |
+| Login locally kaam kare, production par na kare | Same as above | Same fix |
 
 ---
 
@@ -312,6 +337,7 @@ Before submitting your PR, ensure:
 - [ ] Documentation updated
 - [ ] Related issues linked (use `Fixes #123`)
 - [ ] `.env` file is NOT included
+- [ ] Firebase Authorized Domains updated for production deployment (if auth changes made)
 
 ---
 

@@ -26,7 +26,11 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 function getStoredLanguage() {
   if (typeof window === "undefined") return DEFAULT_LANGUAGE;
-  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  if (stored) return normalizeLanguage(stored);
+  // Fall back to the browser's preferred language
+  const browserLang = navigator.language?.split("-")[0] ?? DEFAULT_LANGUAGE;
+  return normalizeLanguage(browserLang);
 }
 
 function persistLanguage(language: LanguageId) {
