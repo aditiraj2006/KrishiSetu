@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 // IMPORT your form components (update paths if needed)
 import { DistributorProductForm } from "./DistributorProductForm";
 import { OwnershipManagementPanel } from "./OwnershipManagementPanel"; // Import at the top
+import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
 import { RetailerProductForm } from "./RetailerProductForm";
 
 export function NavigationHeader() {
@@ -201,7 +202,8 @@ useEffect(() => {
                   </Button>
                 </div>
 
-              <div className="flex items-center">
+              <div className="flex items-center gap-1">
+                <QuickLanguageSwitcher />
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                   className="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center"
@@ -242,6 +244,27 @@ useEffect(() => {
                 className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
               >
                 Registered Products
+              </Link>
+
+              <Link
+                href="/how-it-works"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                How It Works
+              </Link>
+
+              <Link
+                href="/about"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                About
+              </Link>
+
+              <Link
+                href="/contact"
+                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
+              >
+                Contact
               </Link>
 
               <Button
@@ -290,6 +313,24 @@ useEffect(() => {
       label: "Request Product",
       show: user.role === "retailer" || user.role === "distributor",
       testid: "link-request-products",
+    },
+    {
+      href: "/how-it-works",
+      label: "How It Works",
+      show: true,
+      testid: "link-how-it-works",
+    },
+    {
+      href: "/about",
+      label: "About",
+      show: true,
+      testid: "link-about",
+    },
+    {
+      href: "/contact",
+      label: "Contact",
+      show: true,
+      testid: "link-contact",
     },
   ];
 
@@ -498,6 +539,7 @@ useEffect(() => {
 
             {/* Right: Notifications, user menu, mobile toggle */}
             <div className="flex items-center gap-3 flex-shrink-0">
+              <QuickLanguageSwitcher />
               <Button
                 variant="ghost"
                 size="icon"

@@ -48,15 +48,16 @@ export function SupplyChainMap({
 }: SupplyChainMapProps = {}) {
   const { user } = useAuth();
   const { data: products, isLoading } = useProducts(user?.id);
-  const [selectedProductId, setSelectedProductId] = useState<string>(productId || "");
+  const [selectedProductId, setSelectedProductId] = useState<string>(productId || product?.id || "");
   const [journeySteps, setJourneySteps] = useState<JourneyStep[]>([]);
 
-  // Update selectedProductId when productId prop changes
+  // Update selectedProductId when productId or product changes
   useEffect(() => {
-    if (productId && productId !== selectedProductId) {
-      setSelectedProductId(productId);
+    const nextId = productId || product?.id || "";
+    if (nextId && nextId !== selectedProductId) {
+      setSelectedProductId(nextId);
     }
-  }, [productId]);
+  }, [productId, product, selectedProductId]);
 
   // If a product prop is provided, use it, otherwise find the product from the list
   const selectedProduct = product || products?.find((p) => p.id === selectedProductId);
@@ -133,7 +134,7 @@ export function SupplyChainMap({
     window.open(mapsUrl, "_blank");
   };
 
-  if (isLoading) {
+  if (isLoading || (selectedProductId && isJourneyLoading)) {
     return (
       <Card className="shadow-sm border border-border">
         <CardHeader>
@@ -211,7 +212,11 @@ export function SupplyChainMap({
         {journeySteps.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Select a product to view its supply chain journey</p>
+            <p>
+              {selectedProductId
+                ? "No transfers yet — this product is currently with the original farmer."
+                : "Select a product to view its supply chain journey"}
+            </p>
           </div>
         ) : (
           <>
