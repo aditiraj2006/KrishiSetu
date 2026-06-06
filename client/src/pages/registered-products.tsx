@@ -300,6 +300,8 @@ export default function RegisteredProductsPage() {
             const owners = ownersMap[product.id] || [];
             const currentOwner = owners.find((o) => o.ownerId === user?.id);
             const canEditFields = currentOwner?.canEditFields || [];
+            const isExpiringSoon = product.expiryDate ? new Date(product.expiryDate).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000 && new Date(product.expiryDate).getTime() >= new Date().getTime() : false;
+            const isExpired = product.expiryDate ? new Date(product.expiryDate).getTime() < new Date().getTime() : false;
 
             return (
               <Card key={product.id}>
@@ -315,6 +317,12 @@ export default function RegisteredProductsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg font-semibold">{product.name}</span>
+                      {isExpired && (
+                        <Badge variant="destructive" className="text-xs">Expired</Badge>
+                      )}
+                      {isExpiringSoon && (
+                        <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs">Expires Soon</Badge>
+                      )}
                       <Badge>{product.category}</Badge>
                       <Badge variant="outline">{product.status}</Badge>
                     </div>
@@ -369,6 +377,21 @@ export default function RegisteredProductsPage() {
                         "N/A"
                       )}
                     </div>
+                    {product.expiryDate && (
+                      <div className="text-sm text-muted-foreground mb-1">
+                        <span className="font-medium">Expiry Date:</span>{" "}
+                        {editingProductId === product.id && canEditFields.includes("expiryDate") ? (
+                          <input
+                            type="date"
+                            value={editData.expiryDate?.slice(0, 10)}
+                            onChange={(e) => handleEditChange("expiryDate", e.target.value)}
+                            className="border px-2 py-1 rounded w-32"
+                          />
+                        ) : (
+                          new Date(product.expiryDate).toLocaleDateString()
+                        )}
+                      </div>
+                    )}
                     {product.batchId && (
                       <div className="text-xs text-muted-foreground">
                         <span className="font-medium">Batch ID:</span> {product.batchId}

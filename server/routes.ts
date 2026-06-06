@@ -1544,6 +1544,46 @@ export async function registerRoutes(app: Express) {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+
+      // Check for expiring products if user is retailer
+      if (user.role === "retailer") {
+        const products = await storage.getProductsByOwner(user.id);
+        const now = new Date();
+        const twoDaysFromNow = new Date();
+        twoDaysFromNow.setDate(now.getDate() + 2);
+
+        const expiringProducts = products.filter((p) => {
+          if (!p.expiryDate) return false;
+          const expDate = new Date(p.expiryDate);
+          return expDate <= twoDaysFromNow && expDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        });
+
+        if (expiringProducts.length > 0) {
+          const existingNotifications = await storage.getUserNotifications(user.id);
+          
+          for (const product of expiringProducts) {
+            const alreadyNotified = existingNotifications.some((n) => 
+              n.type === "product_event" && 
+              n.productId === product.id && 
+              n.title === "Product Expiring Soon" &&
+              (now.getTime() - new Date(n.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000)
+            );
+
+            if (!alreadyNotified) {
+              await storage.createNotification({
+                userId: user.id,
+                title: "Product Expiring Soon",
+                message: `${product.name} is expiring soon (on ${new Date(product.expiryDate!).toLocaleDateString()}). Please take action.`,
+                type: "product_event",
+                productId: product.id,
+                read: false,
+                createdAt: new Date(),
+              });
+            }
+          }
+        }
+      }
+
       const notifications = await storage.getUserNotifications(user.id);
       return res.json(notifications);
     } catch (error) {

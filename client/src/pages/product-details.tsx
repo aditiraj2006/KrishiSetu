@@ -59,6 +59,9 @@ export default function ProductDetails() {
   const params = useParams();
   const productId = params.id as string;
   const { data: product, isLoading, error } = useProduct(productId);
+  
+  const isExpiringSoon = product?.expiryDate ? new Date(product.expiryDate).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000 && new Date(product.expiryDate).getTime() >= new Date().getTime() : false;
+  const isExpired = product?.expiryDate ? new Date(product.expiryDate).getTime() < new Date().getTime() : false;
   const { data: ratingsData, isLoading: ratingsLoading } = useProductRatings(productId);
   const submitRating = useSubmitProductRating(productId);
   const { user } = useAuth();
@@ -313,10 +316,17 @@ export default function ProductDetails() {
     yPos += 5;
 
     doc.text(`Registered Date: ${product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A"}`, leftColX, yPos);
-    if (product.price) {
+    if (product.expiryDate) {
+      doc.text(`Expiry Date: ${new Date(product.expiryDate).toLocaleDateString()}`, rightColX, yPos);
+    } else if (product.price) {
       doc.text(`Price: INR ${product.price}`, rightColX, yPos);
     }
     yPos += 5;
+    
+    if (product.expiryDate && product.price) {
+      doc.text(`Price: INR ${product.price}`, rightColX, yPos);
+      yPos += 5;
+    }
     
     if (product.description) {
       doc.text(`Description: ${product.description}`, leftColX, yPos);
@@ -483,8 +493,14 @@ export default function ProductDetails() {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-bold text-foreground" data-testid="text-product-title">
+              <h2 className="text-3xl font-bold text-foreground flex items-center gap-3" data-testid="text-product-title">
                 {product.name}
+                {isExpired && (
+                  <Badge variant="destructive" className="text-sm">Expired</Badge>
+                )}
+                {isExpiringSoon && (
+                  <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-sm">Expires Soon</Badge>
+                )}
               </h2>
               <p className="text-muted-foreground mt-1">
                 Batch #{product.batchId} • Registered{" "}
@@ -634,6 +650,19 @@ export default function ProductDetails() {
                           data-testid="text-registration-date"
                         >
                           {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : "N/A"}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <div className="text-sm font-medium text-foreground">Expiry Date</div>
+                        <div
+                          className="text-sm text-muted-foreground"
+                          data-testid="text-expiry-date"
+                        >
+                          {product.expiryDate ? new Date(product.expiryDate).toLocaleDateString() : "N/A"}
                         </div>
                       </div>
                     </div>

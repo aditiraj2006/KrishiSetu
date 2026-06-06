@@ -287,6 +287,7 @@ export class MongoStorage {
       quantity: String(insertProduct.quantity),
       description: insertProduct.description || null,
       certifications: insertProduct.certifications || null,
+      expiryDate: insertProduct.expiryDate || null,
       status: insertProduct.status || "registered",
       batchId,
       qrCode,
