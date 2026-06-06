@@ -6,6 +6,7 @@ import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import CopyableText from "@/components/ui/CopyableText";
 import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -265,14 +266,24 @@ export default function RegisteredProductsPage() {
                       )}
                     </div>
                     {product.batchId && (
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Batch ID:</span> {product.batchId}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="font-medium shrink-0">Batch ID:</span>
+                        <CopyableText
+                          text={product.batchId}
+                          copyText={product.batchId}
+                          ariaLabel="Copy batch ID"
+                        />
                       </div>
                     )}
                     {product.blockchainHash && (
-                      <div className="text-xs text-muted-foreground break-all">
-                        <span className="font-medium">Blockchain Hash:</span>{" "}
-                        {product.blockchainHash}
+                      <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                        <span className="font-medium shrink-0">Blockchain Hash:</span>
+                        <CopyableText
+                          text={product.blockchainHash}
+                          copyText={product.blockchainHash}
+                          ariaLabel="Copy blockchain hash"
+                          textClassName="break-all whitespace-normal overflow-visible"
+                        />
                       </div>
                     )}
 

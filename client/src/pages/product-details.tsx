@@ -26,6 +26,7 @@ import { SupplyChainMap } from "@/components/SupplyChainMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CopyableText from "@/components/ui/CopyableText";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -487,11 +488,35 @@ export default function ProductDetails() {
                 {product.name}
               </h2>
               <p className="text-muted-foreground mt-1">
-                Batch #{product.batchId} • Registered{" "}
-                {formatDistanceToNow(new Date(product.createdAt!), {
-                  addSuffix: true,
-                })}
+                Registered {formatDistanceToNow(new Date(product.createdAt!), { addSuffix: true })}
               </p>
+              <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {product.batchId && (
+                  <div className="flex items-center gap-1">
+                    <span className="font-medium shrink-0">Batch ID:</span>
+                    <CopyableText
+                      text={product.batchId}
+                      copyText={product.batchId}
+                      ariaLabel="Copy batch ID"
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <span className="font-medium shrink-0">Product ID:</span>
+                  <CopyableText text={product.id} copyText={product.id} ariaLabel="Copy product ID" />
+                </div>
+                {product.blockchainHash && (
+                  <div className="flex items-start gap-1">
+                    <span className="font-medium shrink-0">Blockchain Hash:</span>
+                    <CopyableText
+                      text={product.blockchainHash}
+                      copyText={product.blockchainHash}
+                      ariaLabel="Copy blockchain hash"
+                      textClassName="break-all whitespace-normal overflow-visible"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <Button
               onClick={generatePDFReport}
