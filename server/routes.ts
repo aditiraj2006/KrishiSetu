@@ -180,6 +180,16 @@ export async function registerRoutes(app: Express) {
     "/uploads/payment-proofs",
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
+
+  // Health check — used by the self-ping mechanism to prevent Render cold starts
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // --- Authentication Routes ---
   app.post(
     "/api/user/register",
