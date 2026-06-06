@@ -159,8 +159,12 @@
   }
 
   /* Smooth transitions for all elements */
-  * {
+  .hover-lift {
     transition: all 0.2s ease-in-out;
+  }
+
+  .primary-btn {
+    transition: 0.2s ease-in-out;
   }
 }
 /* Common Button Style */
