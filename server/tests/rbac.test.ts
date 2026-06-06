@@ -145,4 +145,55 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
       expect(res.body.message).toContain("Forbidden: Only retailers can register retailer details.");
     });
   });
+
+  describe("Delete Product (DELETE /api/products/:id)", () => {
+    beforeEach(() => {
+      // Re-seed mock product before each test
+      mockDb.products.set("prod-123", {
+        id: "prod-123",
+        name: "Organic Wheat",
+        category: "Grains",
+        quantity: "100",
+        unit: "kg",
+        ownerId: "user-farmer",
+        farmName: "Happy Valley Farms",
+        status: "registered",
+        createdAt: new Date(),
+      });
+    });
+
+    it("should allow the product owner (farmer) to delete the product", async () => {
+      const res = await request(app)
+        .delete("/api/products/prod-123")
+        .set("Authorization", "Bearer valid-token-farmer")
+        .set("firebase-uid", "uid123");
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Product deleted successfully");
+      expect(mockDb.products.has("prod-123")).toBe(false);
+    });
+
+    it("should allow an admin to delete any product", async () => {
+      const res = await request(app)
+        .delete("/api/products/prod-123")
+        .set("Authorization", "Bearer valid-token-admin")
+        .set("firebase-uid", "uid-admin");
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Product deleted successfully");
+      expect(mockDb.products.has("prod-123")).toBe(false);
+    });
+
+    it("should forbid a non-owner, non-admin distributor from deleting the product", async () => {
+      const res = await request(app)
+        .delete("/api/products/prod-123")
+        .set("Authorization", "Bearer valid-token-distributor")
+        .set("firebase-uid", "uid-distributor");
+
+      expect(res.status).toBe(403);
+      expect(res.body.message).toBe("Forbidden");
+      expect(mockDb.products.has("prod-123")).toBe(true);
+    });
+  });
 });
+

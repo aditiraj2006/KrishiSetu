@@ -46,6 +46,15 @@ mockDb.users.set("uid-consumer", {
   email: "charlie@consumer.com",
 });
 
+mockDb.users.set("uid-admin", {
+  id: "user-admin",
+  firebaseUid: "uid-admin",
+  role: "admin",
+  name: "Admin Alice",
+  username: "adminalice",
+  email: "alice@admin.com",
+});
+
 // Seed a mock ownership transfer for tests
 mockDb.transfers.set("transfer-123", {
   id: "transfer-123",
@@ -107,6 +116,13 @@ vi.mock("../storage", () => {
       mockDb.products.set(id, updated);
       return updated;
     }
+    async deleteProduct(id: string) {
+      const exists = mockDb.products.has(id);
+      if (exists) {
+        mockDb.products.delete(id);
+      }
+      return exists;
+    }
     async createNotification(data: any) {
       return data;
     }
@@ -133,6 +149,7 @@ vi.mock("../firebaseJwt", () => {
       if (token === "valid-token-distributor") return { uid: "uid-distributor" };
       if (token === "valid-token-retailer") return { uid: "uid-retailer" };
       if (token === "valid-token-consumer") return { uid: "uid-consumer" };
+      if (token === "valid-token-admin") return { uid: "uid-admin" };
       throw new Error("Invalid token");
     }),
   };

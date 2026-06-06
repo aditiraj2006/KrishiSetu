@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useDeleteProduct } from "@/hooks/useProducts";
 
 interface Owner {
   id: string;
@@ -21,7 +21,21 @@ interface Owner {
 
 export default function RegisteredProductsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { data: products, isLoading, isError, refetch } = useProducts(user?.id);
+  const { data: products, isLoading, isError, refetch } = useProducts(
+    user?.role === "admin" ? undefined : user?.id
+  );
+  const deleteMutation = useDeleteProduct();
+
+  const handleDelete = async (productId: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await deleteMutation.mutateAsync(productId);
+      toast.success("Product deleted successfully");
+      refetch?.();
+    } catch (err) {
+      toast.error("Failed to delete product");
+    }
+  };
   const [ownersMap, setOwnersMap] = useState<Record<string, Owner[]>>({});
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
@@ -321,6 +335,17 @@ export default function RegisteredProductsPage() {
                             </button>
                           )}
                         </>
+                      )}
+                      {(user?.role === "admin" || product.ownerId === user?.id) && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(product.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-product-${product.id}`}
+                        >
+                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                        </Button>
                       )}
                     </div>
                   </div>

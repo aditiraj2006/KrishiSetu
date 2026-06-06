@@ -287,13 +287,15 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
   const getRoleIcon = () => {
     switch (role) {
       case "farmer":
-        return <Sprout className="w-4 h-4 md:w-5 md:h-5" />;
+        return <Sprout className="w-4 h-4 md:w-5 md:h-5 text-primary" />;
       case "distributor":
-        return <Truck className="w-4 h-4 md:w-5 md:h-5" />;
+        return <Truck className="w-4 h-4 md:w-5 md:h-5 text-accent" />;
       case "retailer":
-        return <Store className="w-4 h-4 md:w-5 md:h-5" />;
+        return <Store className="w-4 h-4 md:w-5 md:h-5 text-warning" />;
       case "consumer":
-        return <Users className="w-4 h-4 md:w-5 md:h-5" />;
+        return <Users className="w-4 h-4 md:w-5 md:h-5 text-verified" />;
+      case "admin":
+        return <Shield className="w-4 h-4 md:w-5 md:h-5 text-destructive" />;
       default:
         return <Sprout className="w-4 h-4 md:w-5 md:h-5" />;
     }
@@ -309,6 +311,8 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         return "Retailer Dashboard";
       case "consumer":
         return "Consumer Dashboard";
+      case "admin":
+        return "Admin Dashboard";
       default:
         return "Dashboard";
     }
@@ -324,10 +328,13 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
         return "Manage inventory, track sales, and verify product authenticity";
       case "consumer":
         return "Trace product origins, track sustainability, and verify authenticity";
+      case "admin":
+        return "System administration dashboard - Manage users, delete invalid listings, and verify products";
       default:
         return "Welcome to your dashboard";
     }
   };
+
 
   return (
     <div className="space-y-4 md:space-y-6">
