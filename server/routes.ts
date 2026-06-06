@@ -292,11 +292,12 @@ export async function registerRoutes(app: Express) {
       }
 
       // Create new user with username derived from email
-      const username = email.split("@")[0] + Math.floor(Math.random() * 1000);
+      const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        email,
-        name,
+        
+        email: trimmedEmail,
+        name: trimmedName,
         username,
         role: "farmer", // default role
         firebaseUid: authFirebaseUid,
