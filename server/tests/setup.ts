@@ -132,10 +132,44 @@ vi.mock("../storage", () => {
     async getProduct(id: string) {
       return mockDb.products.get(id) || null;
     }
+    async getProductsByOwner(ownerId: string) {
+      return Array.from(mockDb.products.values()).filter((p) => p.ownerId === ownerId);
+    }
   }
 
+  const mockDbObj = {
+    collection: (name: string) => {
+      return {
+        find: (query: any) => {
+          let list: any[] = [];
+          if (name === "ownershiptransfers" || name === "transfers") {
+            list = Array.from(mockDb.transfers.values());
+            if (query && query.productId) {
+              list = list.filter((t) => t.productId === query.productId);
+            }
+            if (query && query.status) {
+              list = list.filter((t) => t.status === query.status);
+            }
+          } else if (name === "products") {
+            list = Array.from(mockDb.products.values());
+            if (query && query.ownerId && query.ownerId.$ne) {
+              list = list.filter((p) => p.ownerId !== query.ownerId.$ne);
+            }
+          }
+          const chain = {
+            sort: () => chain,
+            limit: () => chain,
+            next: async () => list[list.length - 1] || null,
+            toArray: async () => list,
+          };
+          return chain;
+        }
+      };
+    }
+  };
+
   return {
-    getDb: vi.fn(),
+    getDb: vi.fn().mockResolvedValue(mockDbObj),
     MongoStorage: MockMongoStorage,
   };
 });

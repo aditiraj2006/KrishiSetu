@@ -588,6 +588,116 @@ export async function registerRoutes(app: Express) {
     }
   );
 
+  // Farmer produce export route
+  app.get(
+    "/api/farmer/export",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can export produce records" });
+        }
+
+        const { from, to } = req.query;
+        let products = await storage.getProductsByOwner(user.id);
+
+        // Filter products by optional date range
+        if (from) {
+          const fromDate = new Date(from as string);
+          if (!isNaN(fromDate.getTime())) {
+            products = products.filter((p) => new Date(p.createdAt!) >= fromDate);
+          }
+        }
+        if (to) {
+          const toDate = new Date(to as string);
+          if (!isNaN(toDate.getTime())) {
+            toDate.setHours(23, 59, 59, 999);
+            products = products.filter((p) => new Date(p.createdAt!) <= toDate);
+          }
+        }
+
+        // Generate CSV rows
+        const db = await getDb();
+        const csvRows = [];
+        
+        // Header row
+        csvRows.push([
+          "Product Name",
+          "Category",
+          "Quantity",
+          "Registration Date",
+          "Current Status",
+          "Last Transaction Date",
+          "Buyer Name"
+        ]);
+
+        for (const product of products) {
+          // Find last completed transfer
+          const lastTransfer = await db
+            .collection("ownershiptransfers")
+            .find({ productId: product.id, status: "completed" })
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .next();
+
+          let lastTxDate = "N/A";
+          let buyerName = "N/A";
+
+          if (lastTransfer) {
+            lastTxDate = new Date(lastTransfer.timestamp).toLocaleDateString("en-IN");
+            if (lastTransfer.toUserId) {
+              const buyer = await storage.getUser(lastTransfer.toUserId);
+              if (buyer) {
+                buyerName = buyer.name;
+              }
+            }
+          }
+
+          const regDate = product.createdAt
+            ? new Date(product.createdAt).toLocaleDateString("en-IN")
+            : "N/A";
+
+          // Helper to escape values for CSV
+          const escapeCsv = (val: string) => {
+            const str = String(val ?? "");
+            if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          };
+
+          csvRows.push([
+            escapeCsv(product.name),
+            escapeCsv(product.category),
+            escapeCsv(`${product.quantity} ${product.unit}`),
+            escapeCsv(regDate),
+            escapeCsv(product.status),
+            escapeCsv(lastTxDate),
+            escapeCsv(buyerName)
+          ]);
+        }
+
+        const csvContent = csvRows.map((row) => row.join(",")).join("\n");
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+          "Content-Disposition",
+          "attachment; filename=farmer-produce-export.csv"
+        );
+        return res.status(200).send(csvContent);
+      } catch (error) {
+        console.error("Error exporting farmer records:", error);
+        return res.status(500).json({ message: "Failed to export records" });
+      }
+    }
+  );
+
   // List all products - used by dashboard
   app.get("/api/products", async (req: Request, res: Response) => {
     try {

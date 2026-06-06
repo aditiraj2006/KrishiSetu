@@ -195,5 +195,50 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
       expect(mockDb.products.has("prod-123")).toBe(true);
     });
   });
+
+  describe("Farmer Produce Export (GET /api/farmer/export)", () => {
+    beforeEach(() => {
+      mockDb.products.set("prod-farmer-export-test", {
+        id: "prod-farmer-export-test",
+        name: "Organic Honey",
+        category: "Food",
+        quantity: "50",
+        unit: "liters",
+        ownerId: "user-farmer",
+        farmName: "Sweet Bee Farms",
+        status: "registered",
+        createdAt: new Date(),
+      });
+    });
+
+    it("should reject unauthenticated request with 401", async () => {
+      const res = await request(app)
+        .get("/api/farmer/export");
+
+      expect(res.status).toBe(401);
+    });
+
+    it("should forbid a non-farmer distributor from exporting", async () => {
+      const res = await request(app)
+        .get("/api/farmer/export")
+        .set("Authorization", "Bearer valid-token-distributor")
+        .set("firebase-uid", "uid-distributor");
+
+      expect(res.status).toBe(403);
+      expect(res.body.message).toContain("Forbidden");
+    });
+
+    it("should allow a farmer to export their produce in CSV format", async () => {
+      const res = await request(app)
+        .get("/api/farmer/export")
+        .set("Authorization", "Bearer valid-token-farmer")
+        .set("firebase-uid", "uid123");
+
+      expect(res.status).toBe(200);
+      expect(res.headers["content-type"]).toContain("text/csv");
+      expect(res.text).toContain("Product Name,Category,Quantity,Registration Date,Current Status,Last Transaction Date,Buyer Name");
+      expect(res.text).toContain("Organic Honey");
+    });
+  });
 });
 
