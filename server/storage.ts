@@ -310,6 +310,24 @@ export class MongoStorage {
     return result as Product;
   }
 
+  async deleteProduct(id: string): Promise<boolean> {
+    const db = await getDb();
+    const result = await db.collection<Product>("products").deleteOne({ id });
+    
+    // Clean up all related collections to ensure consistency
+    await db.collection("product_owners").deleteMany({ productId: id });
+    await db.collection("product_comments").deleteMany({ productId: id });
+    await db.collection("product_ratings").deleteMany({ productId: id });
+    await db.collection("product_events").deleteMany({ productId: id });
+    await db.collection("qualitychecks").deleteMany({ productId: id });
+    await db.collection("scans").deleteMany({ productId: id });
+    await db.collection("ownershiptransfers").deleteMany({ productId: id });
+    await db.collection("notifications").deleteMany({ productId: id });
+    
+    return result.deletedCount > 0;
+  }
+
+
   // Get products by owner with sorting
   async getProductsByOwner(
     ownerId: string,
