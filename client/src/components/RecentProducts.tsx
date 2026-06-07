@@ -116,10 +116,15 @@ export function RecentProducts() {
 
                     <div>
                       <h4
-                        className="font-medium text-foreground"
+                        className="font-medium text-foreground flex items-center gap-2"
                         data-testid={`text-product-name-${product.id}`}
                       >
                         {product.name}
+                        {product.expiryDate && new Date(product.expiryDate).getTime() < new Date().getTime() ? (
+                          <Badge variant="destructive" className="text-[10px] px-1 py-0 h-4">Expired</Badge>
+                        ) : product.expiryDate && new Date(product.expiryDate).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000 ? (
+                          <Badge className="bg-orange-500 text-white text-[10px] px-1 py-0 h-4 hover:bg-orange-600">Expires Soon</Badge>
+                        ) : null}
                       </h4>
                       <div
                         className="text-sm text-muted-foreground"
@@ -158,6 +163,11 @@ export function RecentProducts() {
                         >
                           {product.location}
                         </span>
+                        {product.expiryDate && (
+                          <span className="text-xs text-muted-foreground border-l pl-2 border-border ml-1">
+                            Expires: {new Date(product.expiryDate).toLocaleDateString()}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

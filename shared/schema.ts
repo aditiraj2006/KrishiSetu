@@ -53,6 +53,7 @@ export const productSchema = z.object({
   averageRating: z.number().min(0).max(5).optional(),
   ratingCount: z.number().int().min(0).optional(),
   ratingSum: z.number().min(0).optional(),
+  expiryDate: z.date().nullable().optional(),
 });
 export type Product = z.infer<typeof productSchema>;
 
@@ -67,6 +68,7 @@ export const insertProductSchema = productSchema.omit({ id: true, createdAt: tru
     .refine((value) => Number(value) > 0, "Quantity must be a positive number"),
   harvestDate: z.preprocess((val) => (typeof val === "string" ? new Date(val) : val), z.date()),
   price: z.string().nullable().optional(), // Add to insert schema too
+  expiryDate: z.preprocess((val) => (typeof val === "string" && val ? new Date(val) : val), z.date().nullable().optional()),
 });
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 
