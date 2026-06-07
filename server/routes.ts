@@ -319,7 +319,49 @@ export async function registerRoutes(app: Express) {
   app.get("/api/users/:id", async (req: Request, res: Response) => {
     const user = await storage.getUser(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    return res.json(user);
+
+    // PII Masking Logic
+    let requestingUserRole = "anonymous";
+    let isSelf = false;
+
+    const token = getBearerToken(req);
+    if (token) {
+      try {
+        const decoded = await verifyFirebaseIdToken(token);
+        const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
+        if (headerUid && headerUid === decoded.uid) {
+          const requestingUser = await storage.getUserByFirebaseUid(decoded.uid);
+          if (requestingUser) {
+            requestingUserRole = requestingUser.role;
+            if (requestingUser.id === user.id) {
+              isSelf = true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Optional auth token verification failed in GET /api/users/:id:", error);
+      }
+    }
+
+    const userResponse = { ...user };
+
+    // Mask or exclude PII if the requesting user is a distributor, retailer, or anonymous
+    // Full contact details should only be visible to admins or the farmer themselves
+    if (user.role === "farmer" && !isSelf && requestingUserRole !== "admin") {
+      delete userResponse.phone;
+
+      if (userResponse.location) {
+        const parts = userResponse.location.split(",");
+        if (parts.length > 1) {
+          // e.g., show only the state
+          userResponse.location = parts[parts.length - 1].trim();
+        } else {
+          userResponse.location = "Location hidden for privacy";
+        }
+      }
+    }
+
+    return res.json(userResponse);
   });
   app.patch(
     "/api/users/:id",
