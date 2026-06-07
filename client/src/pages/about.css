@@ -114,3 +114,29 @@ ul li:hover {
     transform: translateY(0);
   }
 }
+
+/* Dark mode overrides: improve text contrast on dark backgrounds */
+.dark .about-container {
+  color: #e5e7eb; /* gray-200 */
+}
+
+.dark h1 {
+  color: #6ee07a; /* lighter green for heading */
+}
+
+.dark section h2 {
+  color: #7ee787; /* brighter green for section headings */
+}
+
+.dark section p,
+.dark ul li {
+  color: #d1d5db; /* readable paragraph/list color */
+}
+
+.dark .back-link {
+  color: #86efac;
+}
+
+.dark ul li:hover {
+  color: #9be7b7;
+}
