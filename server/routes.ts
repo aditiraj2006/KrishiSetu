@@ -19,6 +19,7 @@ import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,14 +50,23 @@ const upload = multer({
   },
 });
 
-async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
+async function uploadPaymentProofLocal(
+  file: Express.Multer.File,
+): Promise<string> {
   const isFirebaseConfigured = [
     process.env.VITE_FIREBASE_API_KEY,
     process.env.VITE_FIREBASE_AUTH_DOMAIN,
     process.env.VITE_FIREBASE_PROJECT_ID,
     process.env.VITE_FIREBASE_STORAGE_BUCKET,
     process.env.VITE_FIREBASE_APP_ID,
-  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
+  ].every(
+    (val) =>
+      val &&
+      val.trim().length > 0 &&
+      !val.startsWith("your_") &&
+      val !== "placeholder-api-key"
+  );
+
 
   if (isFirebaseConfigured) {
     try {
@@ -251,15 +261,6 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -275,31 +276,40 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
-      // Validate required fields
-      if (!email || !name) {
-        return res.status(400).json({ message: "Missing required fields" });
+      const trimmedEmail =
+        typeof email === "string" ? email.trim() : email;
+
+      const trimmedName =
+        typeof name === "string" ? name.trim() : name;
+
+      if (!trimmedEmail || !trimmedName) {
+        return res.status(400).json({
+          message: "Missing required fields",
+        });
       }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
       }
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByFirebaseUid(authFirebaseUid);
+      const existingUser =
+        await storage.getUserByFirebaseUid(authFirebaseUid);
 
       if (existingUser) {
-        return res.json(existingUser); // Return existing user if already registered
+        return res.json(existingUser);
       }
 
-      // Create new user with username derived from email
-      const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
+      const username =
+        trimmedEmail.split("@")[0] +
+        Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
         email: trimmedEmail,
         name: trimmedName,
         username,
-        role: "farmer", // default role
+        role: "farmer",
         firebaseUid: authFirebaseUid,
         profileImage,
         roleSelected: roleSelected || false,
@@ -310,9 +320,78 @@ export async function registerRoutes(app: Express) {
       return res.status(201).json(user);
     } catch (error) {
       console.error("Error registering user:", error);
-      return res.status(500).json({ message: "Failed to register user" });
+      return res.status(500).json({
+        message: "Failed to register user",
+      });
     }
   });
+  // Health check — used by the self-ping mechanism to prevent Render cold starts
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.status(200).json({
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // --- Authentication Routes ---
+ app.post("/api/user/register", requireFirebaseAuth, async (req: Request, res: Response) => {
+  try {
+    const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
+    const authFirebaseUid = res.locals.firebaseUid as string;
+
+    const trimmedEmail =
+      typeof email === "string" ? email.trim() : "";
+
+    const trimmedName =
+      typeof name === "string" ? name.trim() : "";
+
+    // Validate required fields
+    if (!trimmedEmail || !trimmedName) {
+      return res.status(400).json({
+        message: "Missing required fields",
+      });
+    }
+
+    if (firebaseUid && firebaseUid !== authFirebaseUid) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    // Check if user already exists
+    const existingUser =
+      await storage.getUserByFirebaseUid(authFirebaseUid);
+
+    if (existingUser) {
+      return res.json(existingUser);
+    }
+
+    // Create username from email
+    const username =
+      trimmedEmail.split("@")[0] +
+      Math.floor(Math.random() * 1000);
+
+    const user = await storage.createUser({
+      email: trimmedEmail,
+      name: trimmedName,
+      username,
+      role: "farmer",
+      firebaseUid: authFirebaseUid,
+      profileImage,
+      roleSelected: roleSelected || false,
+      language: "en",
+      notificationsEnabled: true,
+    });
+
+    return res.status(201).json(user);
+  } catch (error) {
+    console.error("Error registering user:", error);
+    return res.status(500).json({
+      message: "Failed to register user",
+    });
+  }
+});
 
   // Get user profile
   app.get("/api/user/profile", requireFirebaseAuth, async (req: Request, res: Response) => {
