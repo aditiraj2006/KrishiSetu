@@ -1,20 +1,23 @@
-
-.how-it-works-container {
-  margin-top: 0;
-  padding-top: 0;
-  width: "100%";
-}
-
 .how-it-works-container {
   font-family: "Arial", sans-serif;
   text-align: center;
+  width: 100%;
+  padding-top: 96px;   
+  box-sizing: border-box;
 }
 
-.how-it-works-container h1 {
-  color: #2c3e50;
-  font-size: 2.5rem;
-  margin-bottom: 30px;
+@media (max-width: 768px) {
+  .how-it-works-container {
+    padding-top: 72px;
+  }
 }
+
+  .how-it-works-container h1 {
+  color: #4caf50;  
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+}
+
 
 .role-selection p {
   font-size: 1.1rem;
