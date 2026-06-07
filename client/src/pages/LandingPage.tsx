@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import LandingNavbar from "../components/LandingNavbar";
 import { 
-  Leaf, 
   ArrowRight, 
   Search, 
   ShieldCheck, 
   BarChart3, 
   ChevronUp, 
-  MoveRight 
+  MoveRight, 
+  Star
 } from "lucide-react";
 import "./LandingPage.css";
 import UXMarquee from "../components/UXMarquee";
@@ -98,6 +98,45 @@ const LandingPage = () => {
       detail: "Verify ownership transfers to distributors and retailers securely, resolving payouts and clearing cargo.",
       icon: "/Delivery-icon.png" 
     }
+  ];
+
+  interface Review {
+    id: string;
+    name: string;
+    role?: string;
+    text: string;
+    stars?: number;
+  }
+
+  const reviews: Review[] = [
+    {
+      id: "review-1",
+      name: "Asha Patel",
+      role: "Farm Owner",
+      text: "Tracking my harvest to market reduced spoilage and got me paid faster.",
+      stars: 5,
+    },
+    {
+      id: "review-2",
+      name: "Randhir Raj",
+      role: "Distributor",
+      text: "The QR batches and live updates are a game changer for small farms.",
+      stars: 4,
+    },
+    {
+      id: "review-3",
+      name: "Meera Kaur",
+      role: "Supply Chain Manager",
+      text: "Easy to use and saved me time coordinating deliveries.",
+      stars: 5,
+    },
+    {
+      id: "review-4",
+      name: "Amit Rao",
+      role: "Retail Partner",
+      text: "Clear records and faster trust from buyers — highly recommend.",
+      stars: 5,
+    },
   ];
 
   return (
@@ -224,6 +263,43 @@ const LandingPage = () => {
               Utilize cryptographically signed digital handovers to prove crop authenticity and secure transparent, immediate payouts when assets change hands.
             </p>
           </div>
+        </div>
+      </div>
+
+      <div id="reviews" className="reviews-section">
+        <div className="reviews-header">
+          <span className="section-label">Reviews & Feedback</span>
+          <h2>What our users are saying</h2>
+          <p>Trusted by farmers, distributors, and retailers to bring transparency and speed to agricultural supply chains.</p>
+        </div>
+
+        <div className="reviews-grid">
+          {reviews.map((review) => (
+            <div key={review.name} className="review-card">
+              <div className="review-avatar">
+                {review.name
+                  .split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+              <div className="review-body">
+                <div className="review-header">
+                  <div>
+                    <div className="review-name">{review.name}</div>
+                    {review.role && <div className="review-role">{review.role}</div>}
+                  </div>
+                  <div className="review-stars" aria-label={`${review.stars ?? 0} out of 5 stars`}>
+                    {Array.from({ length: review.stars ?? 0 }).map((_, index) => (
+                      <Star key={index} className="star-icon" />
+                    ))}
+                  </div>
+                </div>
+                <p className="review-text">{review.text}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
