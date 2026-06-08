@@ -95,6 +95,24 @@ app.use((req, res, next) => {
     () => {
       log(`serving on port ${port}`);
       console.log(`Server is running at http://localhost:${port}`);
+
+      // Self-ping to prevent Render free tier cold starts (production only).
+      // RENDER_EXTERNAL_URL is automatically injected by Render in deployed environments.
+      const renderUrl = process.env.RENDER_EXTERNAL_URL;
+      if (app.get("env") === "production" && renderUrl) {
+        const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+
+        setInterval(async () => {
+          try {
+            const res = await fetch(`${renderUrl}/api/health`);
+            console.log(`[self-ping] status: ${res.status} at ${new Date().toISOString()}`);
+          } catch (err: any) {
+            console.error(`[self-ping] failed: ${err.message}`);
+          }
+        }, PING_INTERVAL_MS);
+
+        console.log(`[self-ping] enabled — pinging ${renderUrl}/api/health every 14 min`);
+      }
     },
   );
 })();

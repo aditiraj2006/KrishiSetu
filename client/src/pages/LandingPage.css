@@ -666,6 +666,131 @@
   }
 }
 
+/* ====== UX Marquee / Testimonials ====== */
+.ux-section {
+  max-width: 1200px;
+  margin: 40px auto 80px;
+  padding: 0 24px;
+}
+
+.ux-header {
+  text-align: center;
+  margin-bottom: 16px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ux-header h3 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  margin: 0 0 6px;
+  letter-spacing: -0.8px;
+}
+
+.ux-header p {
+  margin: 0 0 18px;
+  color: var(--muted-foreground);
+  font-size: 15px;
+}
+
+.marquee-viewport {
+  overflow-x: hidden;
+  overflow-y: visible;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.marquee-track {
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+  animation: marquee-left 22s linear infinite;
+}
+
+.marquee-track:hover,
+.marquee-track:focus-within {
+  animation-play-state: paused;
+}
+
+.testimonial-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  border-radius: 12px;
+  min-width: 320px;
+  max-width: 360px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.testimonial-card:focus,
+.testimonial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 50%, var(--accent)));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.testimonial-body {
+  flex: 1 1 auto;
+}
+
+.testimonial-text {
+  margin: 0 0 10px;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.testimonial-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star-icon {
+  width: 14px;
+  height: 14px;
+  color: #fbbf24;
+}
+
+@keyframes marquee-left {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+
 /* ====== Responsive Breakpoints ====== */
 
 @media (min-width: 640px) {

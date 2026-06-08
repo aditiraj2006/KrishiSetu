@@ -9,6 +9,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProductByBatch } from "@/hooks/useProducts";
 import { getAuthHeaders } from "@/lib/authHeaders";
 
+// Secure pattern to validate clean tracking batch IDs (Hex/UUID alphanumeric formats)
+const BATCH_ID_REGEX = /^[a-f0-9-]+$/i;
+
 export function QRCodeScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannedBatchId, setScannedBatchId] = useState<string>("");
@@ -32,6 +35,32 @@ export function QRCodeScanner() {
   const [isDragActive, setIsDragActive] = useState(false);
 
   const { data: product, isLoading, error } = useProductByBatch(scannedBatchId);
+
+  // Helper helper to validate and extract the tracking layout parameters safely
+  const processAndValidatePayload = (text: string | null): string | null => {
+    if (!text || text.trim() === "") return null;
+    
+    const trimmedText = text.trim();
+    let extractedId = trimmedText;
+
+    // Check if it's a full URL and extract the batch ID safely
+    const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
+    if (urlMatch) {
+      extractedId = urlMatch[1];
+    } else if (trimmedText.includes("/product/")) {
+      const parts = trimmedText.split("/product/");
+      if (parts.length > 1) {
+        extractedId = parts[1].split("/")[0];
+      }
+    }
+
+    // Fallback verification: Check if our derived ID meets system formats
+    if (!extractedId || !BATCH_ID_REGEX.test(extractedId)) {
+      return null;
+    }
+
+    return extractedId;
+  };
 
   // Start camera and enumerate devices only when scanning starts
   const startScanning = async () => {
@@ -94,42 +123,28 @@ export function QRCodeScanner() {
       .decodeFromVideoDevice(selectedCamera, videoRef.current, (result, err) => {
         if (result) {
           clearTimeout(scanTimeoutRef.current!);
-          const text = result.getText();
-          if (!text || text.trim() === "") {
-            setScanError("Scanned QR code does not contain a batch ID.");
+          
+          try {
+            const text = result.getText();
+            const validBatchId = processAndValidatePayload(text);
+
+            if (!validBatchId) {
+              throw new Error("Scanned link is invalid. Please look for an authorized tracking code.");
+            }
+
+            setScannedBatchId(validBatchId);
+            setScanError(null);
+          } catch (validationError: any) {
+            setScanError(validationError.message);
             toast({
               title: "Invalid QR Code",
-              description: "Scanned QR code does not contain a batch ID.",
+              description: validationError.message,
               variant: "destructive",
             });
+          } finally {
+            // Guarantee closure on scanner logic streams to eliminate freezing loops
             stopScanning();
-            return;
           }
-
-          // Extract batch ID from URL format: /product/{batchId}
-          const trimmedText = text.trim();
-          let batchId = trimmedText;
-
-          // Check if it's a full URL and extract the batch ID
-          const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
-          if (urlMatch) {
-            batchId = urlMatch[1];
-          } else if (trimmedText.includes("/product/")) {
-            // Handle partial URLs
-            const parts = trimmedText.split("/product/");
-            if (parts.length > 1) {
-              batchId = parts[1].split("/")[0]; // Take only the batch ID part
-            }
-          }
-
-          if (!batchId || batchId === trimmedText) {
-            // If we couldn't extract a batch ID, assume the scanned text is the batch ID
-            batchId = trimmedText;
-          }
-
-          setScannedBatchId(batchId);
-          setScanError(null);
-          stopScanning();
         }
       })
       .then((controls) => {
@@ -254,43 +269,19 @@ export function QRCodeScanner() {
           const result = await codeReader.decodeFromImageElement(img);
           const text = result.getText();
 
-          if (!text || text.trim() === "") {
-            setScanError("Uploaded QR code does not contain a batch ID.");
-            toast({
-              title: "Invalid QR Code",
-              description: "Uploaded QR code does not contain a batch ID.",
-              variant: "destructive",
-            });
-            setIsDecodingImage(false);
-            return;
+          const validBatchId = processAndValidatePayload(text);
+          if (!validBatchId) {
+            throw new Error("Uploaded QR image does not contain a recognized batch tracking ID.");
           }
 
-          // Extract batch ID
-          const trimmedText = text.trim();
-          let batchId = trimmedText;
-
-          const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
-          if (urlMatch) {
-            batchId = urlMatch[1];
-          } else if (trimmedText.includes("/product/")) {
-            const parts = trimmedText.split("/product/");
-            if (parts.length > 1) {
-              batchId = parts[1].split("/")[0];
-            }
-          }
-
-          if (!batchId || batchId === trimmedText) {
-            batchId = trimmedText;
-          }
-
-          setScannedBatchId(batchId);
+          setScannedBatchId(validBatchId);
           setScanError(null);
         } catch (err: any) {
           console.error("Decoding error:", err);
-          setScanError("No QR code detected in the uploaded image. Please try another image.");
+          setScanError(err.message || "No valid QR code detected in the uploaded image. Please try another image.");
           toast({
-            title: "No QR Code Detected",
-            description: "No QR code was found in the uploaded image. Please try again.",
+            title: "Scan Detection Error",
+            description: err.message || "No valid QR code was found in the uploaded image. Please try again.",
             variant: "destructive",
           });
         } finally {
