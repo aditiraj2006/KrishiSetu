@@ -11,6 +11,7 @@ import {
   MoveRight 
 } from "lucide-react";
 import "./LandingPage.css";
+import UXMarquee from "../components/UXMarquee";
 
 interface SupplyChainStep {
   id: string;
@@ -36,6 +37,22 @@ const LandingPage = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (window.location.hash !== "#features") {
+      return;
+    }
+
+    const element = document.getElementById("features");
+    if (!element) {
+      return;
+    }
+
+    const nav = document.querySelector<HTMLElement>(".landing-navbar");
+    const navHeight = nav?.offsetHeight ?? 0;
+    const targetTop = element.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
   }, []);
 
   const scrollToTop = () => {
@@ -208,6 +225,11 @@ const LandingPage = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* User Experience Marquee */}
+      <div className="ux-section">
+        <UXMarquee />
       </div>
 
       {/* High-Impact Glassmorphic CTA Banner */}

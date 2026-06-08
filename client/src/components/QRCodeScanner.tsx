@@ -9,6 +9,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProductByBatch } from "@/hooks/useProducts";
 import { getAuthHeaders } from "@/lib/authHeaders";
 
+// Secure pattern to validate clean tracking batch IDs (Hex/UUID alphanumeric formats)
+const BATCH_ID_REGEX = /^[a-f0-9-]+$/i;
+
 export function QRCodeScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [scannedBatchId, setScannedBatchId] = useState<string>("");
@@ -32,6 +35,32 @@ export function QRCodeScanner() {
   const [isDragActive, setIsDragActive] = useState(false);
 
   const { data: product, isLoading, error } = useProductByBatch(scannedBatchId);
+
+  // Helper helper to validate and extract the tracking layout parameters safely
+  const processAndValidatePayload = (text: string | null): string | null => {
+    if (!text || text.trim() === "") return null;
+    
+    const trimmedText = text.trim();
+    let extractedId = trimmedText;
+
+    // Check if it's a full URL and extract the batch ID safely
+    const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
+    if (urlMatch) {
+      extractedId = urlMatch[1];
+    } else if (trimmedText.includes("/product/")) {
+      const parts = trimmedText.split("/product/");
+      if (parts.length > 1) {
+        extractedId = parts[1].split("/")[0];
+      }
+    }
+
+    // Fallback verification: Check if our derived ID meets system formats
+    if (!extractedId || !BATCH_ID_REGEX.test(extractedId)) {
+      return null;
+    }
+
+    return extractedId;
+  };
 
   // Start camera and enumerate devices only when scanning starts
   const startScanning = async () => {
@@ -94,42 +123,28 @@ export function QRCodeScanner() {
       .decodeFromVideoDevice(selectedCamera, videoRef.current, (result, err) => {
         if (result) {
           clearTimeout(scanTimeoutRef.current!);
-          const text = result.getText();
-          if (!text || text.trim() === "") {
-            setScanError("Scanned QR code does not contain a batch ID.");
+          
+          try {
+            const text = result.getText();
+            const validBatchId = processAndValidatePayload(text);
+
+            if (!validBatchId) {
+              throw new Error("Scanned link is invalid. Please look for an authorized tracking code.");
+            }
+
+            setScannedBatchId(validBatchId);
+            setScanError(null);
+          } catch (validationError: any) {
+            setScanError(validationError.message);
             toast({
               title: "Invalid QR Code",
-              description: "Scanned QR code does not contain a batch ID.",
+              description: validationError.message,
               variant: "destructive",
             });
+          } finally {
+            // Guarantee closure on scanner logic streams to eliminate freezing loops
             stopScanning();
-            return;
           }
-
-          // Extract batch ID from URL format: /product/{batchId}
-          const trimmedText = text.trim();
-          let batchId = trimmedText;
-
-          // Check if it's a full URL and extract the batch ID
-          const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
-          if (urlMatch) {
-            batchId = urlMatch[1];
-          } else if (trimmedText.includes("/product/")) {
-            // Handle partial URLs
-            const parts = trimmedText.split("/product/");
-            if (parts.length > 1) {
-              batchId = parts[1].split("/")[0]; // Take only the batch ID part
-            }
-          }
-
-          if (!batchId || batchId === trimmedText) {
-            // If we couldn't extract a batch ID, assume the scanned text is the batch ID
-            batchId = trimmedText;
-          }
-
-          setScannedBatchId(batchId);
-          setScanError(null);
-          stopScanning();
         }
       })
       .then((controls) => {
@@ -142,6 +157,7 @@ export function QRCodeScanner() {
           variant: "destructive",
         });
         setScanError("Unable to access camera. Please ensure camera permissions are granted.");
+        setCameraStatus("denied");
         setIsScanning(false);
         console.error("Camera error:", error);
       });
@@ -253,43 +269,19 @@ export function QRCodeScanner() {
           const result = await codeReader.decodeFromImageElement(img);
           const text = result.getText();
 
-          if (!text || text.trim() === "") {
-            setScanError("Uploaded QR code does not contain a batch ID.");
-            toast({
-              title: "Invalid QR Code",
-              description: "Uploaded QR code does not contain a batch ID.",
-              variant: "destructive",
-            });
-            setIsDecodingImage(false);
-            return;
+          const validBatchId = processAndValidatePayload(text);
+          if (!validBatchId) {
+            throw new Error("Uploaded QR image does not contain a recognized batch tracking ID.");
           }
 
-          // Extract batch ID
-          const trimmedText = text.trim();
-          let batchId = trimmedText;
-
-          const urlMatch = trimmedText.match(/\/product\/([a-f0-9-]+)$/i);
-          if (urlMatch) {
-            batchId = urlMatch[1];
-          } else if (trimmedText.includes("/product/")) {
-            const parts = trimmedText.split("/product/");
-            if (parts.length > 1) {
-              batchId = parts[1].split("/")[0];
-            }
-          }
-
-          if (!batchId || batchId === trimmedText) {
-            batchId = trimmedText;
-          }
-
-          setScannedBatchId(batchId);
+          setScannedBatchId(validBatchId);
           setScanError(null);
         } catch (err: any) {
           console.error("Decoding error:", err);
-          setScanError("No QR code detected in the uploaded image. Please try another image.");
+          setScanError(err.message || "No valid QR code detected in the uploaded image. Please try another image.");
           toast({
-            title: "No QR Code Detected",
-            description: "No QR code was found in the uploaded image. Please try again.",
+            title: "Scan Detection Error",
+            description: err.message || "No valid QR code was found in the uploaded image. Please try again.",
             variant: "destructive",
           });
         } finally {
@@ -426,11 +418,6 @@ export function QRCodeScanner() {
       {cameraStatus === "pending" && (
         <div className="text-center text-muted-foreground mb-4">Checking camera permissions...</div>
       )}
-      {cameraStatus === "denied" && (
-        <div className="text-center text-red-600 mb-4">
-          Camera access denied. Please allow camera permission in your browser settings.
-        </div>
-      )}
       {cameraStatus === "notfound" && (
         <div className="text-center text-red-600 mb-4">No camera found on this device.</div>
       )}
@@ -498,25 +485,47 @@ export function QRCodeScanner() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
           {/* Card 1: Camera Scanner */}
           <Card className="shadow-sm border border-border flex flex-col justify-between hover:shadow-md transition-all duration-300">
-            <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
-              <div className="p-4 bg-primary/10 rounded-full text-primary">
-                <Camera className="w-10 h-10" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground">Scan with Camera</h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
-                Scan the QR code printed on the product packaging in real-time using your device webcam.
-              </p>
-              <div className="pt-2 w-full">
-                <Button
-                  onClick={startScanning}
-                  className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
-                  data-testid="button-start-camera"
-                >
-                  <Camera className="w-5 h-5" />
-                  Start Camera Scan
-                </Button>
-              </div>
-            </CardContent>
+            {cameraStatus === "denied" ? (
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
+                <div className="p-4 bg-red-100 dark:bg-red-950/30 rounded-full text-red-600">
+                  <AlertTriangle className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Camera Access Denied</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Camera access was denied. Please enable camera permissions in your browser settings to scan QR codes.
+                </p>
+                <div className="pt-2 w-full">
+                  <Button
+                    onClick={startScanning}
+                    className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
+                    data-testid="button-try-again-camera"
+                  >
+                    <Camera className="w-5 h-5" />
+                    Try Again
+                  </Button>
+                </div>
+              </CardContent>
+            ) : (
+              <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full space-y-4">
+                <div className="p-4 bg-primary/10 rounded-full text-primary">
+                  <Camera className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground">Scan with Camera</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Scan the QR code printed on the product packaging in real-time using your device webcam.
+                </p>
+                <div className="pt-2 w-full">
+                  <Button
+                    onClick={startScanning}
+                    className="w-full bg-primary hover:bg-primary/95 text-primary-foreground flex items-center justify-center gap-2 py-5 text-base font-medium rounded-xl"
+                    data-testid="button-start-camera"
+                  >
+                    <Camera className="w-5 h-5" />
+                    Start Camera Scan
+                  </Button>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* OR separator for desktop / mobile */}

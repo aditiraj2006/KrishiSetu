@@ -1,9 +1,10 @@
-// pages/HowItWorks.tsx
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import "./HowItWorks.css";
-import LandingNavbar from "../components/LandingNavbar";
+import LandingNavbar from "@/components/LandingNavbar";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 const roles = ["Farmer", "Retailer", "Distributor", "Consumer"] as const;
 type Role = (typeof roles)[number];
@@ -16,6 +17,7 @@ type Step = {
 const HowItWorks: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [showButton, setShowButton] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setShowButton(window.scrollY > 100);
@@ -52,9 +54,18 @@ const HowItWorks: React.FC = () => {
   };
 
   return (
-    <div className="how-it-works-container">
-      <LandingNavbar />
-      <h1>How KrishiSetu Works</h1>
+    <>
+      {loading ? (
+        <nav className="bg-card border-b border-border sticky top-0 z-50 shadow-sm h-16 flex items-center justify-center">
+          <div className="animate-pulse text-muted-foreground">KrishiSetu...</div>
+        </nav>
+      ) : user ? (
+        <NavigationHeader />
+      ) : (
+        <LandingNavbar />
+      )}
+      <div id="how-it-works" className="how-it-works-container">
+        <h1>How KrishiSetu Works</h1>
 
       {!selectedRole ? (
         <div className="role-selection">
@@ -85,7 +96,7 @@ const HowItWorks: React.FC = () => {
         </div>
       )}
 
-      <Link href="/" className="back-link">
+      <Link href={user ? "/dashboard" : "/"} className="back-link">
         ← Back
       </Link>
 
@@ -112,6 +123,7 @@ const HowItWorks: React.FC = () => {
         </button>
       )}
     </div>
+    </>
   );
 };
 

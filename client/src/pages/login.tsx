@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -17,11 +17,13 @@ const ROLES: { value: UserRole; label: string; icon: string; desc: string }[] = 
 ];
 
 export default function LoginPage() {
-  const { loginWithGoogle, loginWithEmail, registerWithEmail, loading } = useAuth();
+  const { user, loginWithGoogle, loginWithEmail, registerWithEmail, loading } = useAuth();
 
   const [tab, setTab]                   = useState<"email" | "google">("google");
   const [isSignUp, setIsSignUp]         = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [selectedRole, setSelectedRole] = useState<UserRole | null>(() => {
+    return sessionStorage.getItem("krishisetu_pending_role") as UserRole | null;
+  });
   const [name, setName]                 = useState("");
   const [email, setEmail]               = useState("");
   const [password, setPassword]         = useState("");
@@ -31,6 +33,12 @@ export default function LoginPage() {
   const [submitting, setSubmitting]     = useState(false);
 
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!loading && user) {
+      setLocation("/dashboard");
+    }
+  }, [user, loading, setLocation]);
 
   // ── Validate role selected before any auth attempt ────────────────────────
   const requireRole = (): boolean => {
@@ -65,13 +73,20 @@ export default function LoginPage() {
     if (isSignUp && !requireRole()) return;
     setError(null);
     setSubmitting(true);
+
+    // Fix: trim whitespace from all text fields before submitting to prevent
+    // duplicate accounts (e.g. "alice " vs "alice") and login mismatches.
+    const trimmedEmail    = email.trim();
+    
+    const trimmedName     = name.trim();
+
     try {
       if (isSignUp) {
-        if (!name.trim()) throw new Error("Name is required for sign up.");
-        await registerWithEmail(email, password, name, selectedRole!);
+        if (!trimmedName) throw new Error("Name is required for sign up.");
+        await registerWithEmail(trimmedEmail, password, trimmedName, selectedRole!);
         toast.success("Account created successfully!");
       } else {
-        await loginWithEmail(email, password);
+        await loginWithEmail(trimmedEmail, password);
         toast.success("Successfully logged in!");
       }
       setLocation("/dashboard");
@@ -94,8 +109,12 @@ export default function LoginPage() {
 
     setError(null);
     setSubmitting(true);
+
+    // Fix: trim email before sending reset link.
+    const trimmedResetEmail = resetEmail.trim();
+
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await sendPasswordResetEmail(auth, trimmedResetEmail);
       toast.success("Password reset email sent!");
       setShowReset(false);
     } catch (err: any) {
@@ -147,7 +166,11 @@ export default function LoginPage() {
               <button
                 key={r.value}
                 type="button"
-                onClick={() => { setSelectedRole(r.value); setError(null); }}
+                onClick={() => {
+                  setSelectedRole(r.value);
+                  sessionStorage.setItem("krishisetu_pending_role", r.value);
+                  setError(null);
+                }}
                 className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm transition-colors
                   ${selectedRole === r.value
                     ? "border-primary bg-primary/10 text-primary font-semibold"

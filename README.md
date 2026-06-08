@@ -224,6 +224,24 @@ To get a valid `EMAIL_PASS` App Password for Google:
 
 > ⚠️ **IMPORTANT**: Never commit your `.env` file. It contains sensitive credentials!
 
+#### Detailed Environment Variables Reference
+
+Below is a detailed breakdown of all environment variables supported by KrishiSetu, including their purpose, whether they are required, how to obtain them, and the application behavior when they are missing.
+
+| Variable | Required | Description | Where to Get / Default Value | Behavior If Absent |
+| :--- | :---: | :--- | :--- | :--- |
+| **`VITE_FIREBASE_API_KEY`** | **Yes** | Firebase project Web API Key. Used by frontend SDK to access Auth and Storage APIs. | Firebase Console → Project Settings → Web App Config. | User registration and logins will fail with configuration errors. |
+| **`VITE_FIREBASE_AUTH_DOMAIN`** | **Yes** | Firebase Auth domain for login redirects. | Firebase Console → Project Settings → Web App Config. | User logins and authentication redirect flows will not initialize. |
+| **`VITE_FIREBASE_PROJECT_ID`** | **Yes** | Firebase Project ID. Used by both client and backend for token verification. | Firebase Console → Project Settings. | Server-side validation of authenticated sessions will fail. |
+| **`VITE_FIREBASE_STORAGE_BUCKET`** | **Yes** | Firebase Cloud Storage bucket URL for uploading files. | Firebase Console → Project Settings → Storage. | Product payment proofs fallback to local server directory `/uploads/payment-proofs/`. |
+| **`VITE_FIREBASE_MESSAGING_SENDER_ID`** | No | Firebase Messaging Sender ID for push notifications. | Firebase Console → Project Settings. | Push notification subscription features will fail or remain inactive. |
+| **`VITE_FIREBASE_APP_ID`** | **Yes** | Unique identifier for your Firebase Web App. | Firebase Console → Project Settings → Web App Config. | Client-side Firebase SDK fails to initialize. |
+| **`FIREBASE_PROJECT_ID`** | No | Backup/legacy Project ID configuration for production deployment environments. | Same as `VITE_FIREBASE_PROJECT_ID`. | Standard server builds or deployments (e.g. on Render) might lack metadata. |
+| **`MONGODB_URI`** | **Yes** | MongoDB connection string. Supports Atlas cluster connection or local instances. | MongoDB Atlas dashboard or local: `mongodb://localhost:27017/krishisetu` | The backend Express server will throw a connection error and crash immediately. |
+| **`MONGO_DB_NAME`** | No | Target MongoDB database name. | Choose any string. Defaults to `"krishisetu"`. | Application database defaults to the name `"krishisetu"`. |
+| **`GOOGLE_GEMINI_API_KEY`** | No | API Key for Google Gemini AI features (translation, quality analysis). | Google AI Studio (Makersuite) | AI translation/grammar check falls back to original text; AI quality analysis returns a neutral default score (5/10). |
+
+
 ### Start Development Servers
 
 ```bash
@@ -231,6 +249,27 @@ npm run dev
 ```
 
 Open [http://localhost:5001](http://localhost:5001) in your browser!
+
+---
+
+### Firebase Setup (Required for OAuth Login)
+
+| Step | Action | Where |
+|------|--------|-------|
+| 1 | Firebase Console kholо | [console.firebase.google.com](https://console.firebase.google.com) |
+| 2 | Authentication → Settings → Authorized Domains | Firebase Console |
+| 3 | **Add Domain**: `your-app.onrender.com` | Authorized Domains list |
+| 4 | Save karo aur OAuth login test karo | Production URL par |
+
+> 💡 `localhost` development mein automatically authorized hota hai, but production domain manually add karna padta hai.
+
+### Common Errors & Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `auth/unauthorized-domain` | Domain Firebase mein add nahi | Upar wala Step 3 follow karo |
+| OAuth popup band ho jaye | Same as above | Same fix |
+| Login locally kaam kare, production par na kare | Same as above | Same fix |
 
 ---
 
@@ -324,6 +363,7 @@ Before submitting your PR, ensure:
 - [ ] Documentation updated
 - [ ] Related issues linked (use `Fixes #123`)
 - [ ] `.env` file is NOT included
+- [ ] Firebase Authorized Domains updated for production deployment (if auth changes made)
 
 ---
 

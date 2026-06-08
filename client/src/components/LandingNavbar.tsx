@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { ModeToggle } from "./mode-toggle";
 import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
+import { useAuth } from "@/hooks/useAuth";
 import "./LandingNavbar.css";
 
 const LandingNavbar = () => {
   const [location, setLocation] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
@@ -20,27 +23,43 @@ const LandingNavbar = () => {
     setLocation(path);
   };
 
-  const handleFeaturesClick = () => {
-    setMenuOpen(false);
-    if (location === "/") {
-      const element = document.getElementById("features");
-      if (element) element.scrollIntoView({ behavior: "smooth" });
-    } else {
-      setLocation("/");
-      setTimeout(() => {
-        const element = document.getElementById("features");
-        if (element) element.scrollIntoView({ behavior: "smooth" });
-      }, 300);
-    }
+  const scrollToFeatures = () => {
+    const element = document.getElementById("features");
+    if (!element) return;
+    const navHeight = navRef.current?.offsetHeight ?? 0;
+    const targetTop = element.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+    window.scrollTo({ top: targetTop, behavior: "smooth" });
   };
 
-  const isAuthenticated = !!localStorage.getItem("token");
+  const handleFeaturesClick = () => {
+    setMenuOpen(false);
+    if (location === "/" || location === "") {
+      window.location.hash = "features";
+      scrollToFeatures();
+      return;
+    }
+
+    window.location.hash = "features";
+    setLocation("/");
+  };
+
+  const { user, logout } = useAuth();
+  const isAuthenticated = !!user;
 
   const handleLogout = () => {
     setMenuOpen(false);
-    localStorage.removeItem("token");
+    logout();
     setLocation("/login");
   };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -77,7 +96,12 @@ const LandingNavbar = () => {
   }, [menuOpen]);
 
   return (
-    <nav className="navbar" role="navigation" aria-label="Main navigation">
+    <nav
+      ref={navRef}
+      className={`navbar landing-navbar${isScrolled ? " scrolled" : ""}`}
+      role="navigation"
+      aria-label="Main navigation"
+    >
 
       {/* ── Logo ── */}
       <div
@@ -105,9 +129,9 @@ const LandingNavbar = () => {
           Features
         </li>
         <li role="menuitem" tabIndex={0}
-          className={location === "/howitworks" ? "active-link" : ""}
-          onClick={() => navigateTo("/howitworks")}
-          onKeyDown={(e) => e.key === "Enter" && navigateTo("/howitworks")}>
+          className={location === "/how-it-works" ? "active-link" : ""}
+          onClick={() => navigateTo("/how-it-works")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("/how-it-works")}>
           How it works
         </li>
         <li role="menuitem" tabIndex={0}
@@ -207,8 +231,8 @@ const LandingNavbar = () => {
           </li>
           <li role="menuitem">
             <button
-              onClick={() => navigateTo("/howitworks")}
-              className={`drawer-link${location === "/howitworks" ? " active-link" : ""}`}
+              onClick={() => navigateTo("/how-it-works")}
+              className={`drawer-link${location === "/how-it-works" ? " active-link" : ""}`}
             >
               <span className="drawer-link-icon">🔄</span> How it works
             </button>
