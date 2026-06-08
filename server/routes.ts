@@ -233,8 +233,9 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = await verifyFirebaseIdToken(token);
-    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    const headerUid =
+      req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -403,13 +404,15 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "No valid fields to update" });
       }
 
-      const updatedUser = await storage.updateUser(id, updates);
-      return res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      return res.status(500).json({ message: "Failed to update user" });
-    }
-  });
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
+        }
+
+        const productData = {
+          ...parse.data,
+          ownerId: user.id,
+        };
+        const product = await storage.createProduct(productData);
 
   // --- Product Routes ---
   app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {
@@ -540,6 +543,101 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to fetch product" });
     }
   });
+
+  // Public product verification route (no auth)
+  app.get("/api/verify/:productId", async (req: Request, res: Response) => {
+    try {
+      const identifier = req.params.productId;
+      // Reuse same lookup logic as product detail endpoint
+      let product = await storage.getProduct(identifier);
+      if (!product) {
+        product = await storage.getProductByBatchId(identifier);
+      }
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      // Filter out sensitive/internal fields
+      const {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      } = product as any;
+      const publicProduct = {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      };
+      return res.json(publicProduct);
+    } catch (error) {
+      console.error("Error in public verify route:", error);
+      return res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  // Delete product route
+  app.delete(
+    "/api/products/:id",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const productId = req.params.id;
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Fetch product to verify ownership/role
+        const product = await storage.getProduct(productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Only the product owner or an admin can delete the product
+        if (product.ownerId !== user.id && user.role !== "admin") {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const success = await storage.deleteProduct(productId);
+        if (!success) {
+          return res.status(500).json({ message: "Failed to delete product" });
+        }
+
+        return res.json({ message: "Product deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        return res.status(500).json({ message: "Failed to delete product" });
+      }
+    }
+  );
 
   // List all products - used by dashboard
   app.get("/api/products", async (req: Request, res: Response) => {
@@ -926,6 +1024,19 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
+
+        console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
         if (!transfer) return res.status(404).json({ message: "Transfer not found" });
 

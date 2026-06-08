@@ -6,7 +6,7 @@ import { useStats } from "@/hooks/useProducts";
 
 export function StatsOverview() {
   const { user } = useAuth();
-  const userId = user && user.role !== "consumer" ? user.id : undefined;
+  const userId = user && user.role !== "consumer" && user.role !== "admin" ? user.id : undefined;
   const { data: stats, isLoading, error } = useStats(userId);
 
 
@@ -46,7 +46,7 @@ export function StatsOverview() {
 
 
   const statCards =
-    user && user.role !== "consumer"
+    user && user.role !== "consumer" && user.role !== "admin"
       ? [
           {
             label: "My Products",
