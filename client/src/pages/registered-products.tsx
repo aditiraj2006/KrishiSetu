@@ -1,16 +1,16 @@
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { useAuth } from "@/hooks/useAuth";
-import { useProducts } from "@/hooks/useProducts";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { QRCodeGenerator } from "@/components/QRCodeGenerator";
-import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { Link } from "wouter";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { QRCodeGenerator } from "@/components/QRCodeGenerator";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import CopyableText from "@/components/ui/CopyableText";
 import EmptyState from "@/components/ui/EmptyState";
-
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useProducts } from "@/hooks/useProducts";
 
 interface Owner {
   id: string;
@@ -27,6 +27,18 @@ export default function RegisteredProductsPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch owners for each product
   useEffect(() => {
@@ -78,9 +90,7 @@ export default function RegisteredProductsPage() {
       <>
         <NavigationHeader />
         <div className="max-w-4xl mx-auto py-8">
-          <div className="text-center text-muted-foreground">
-            Loading products...
-          </div>
+          <div className="text-center text-muted-foreground">Loading products...</div>
         </div>
       </>
     );
@@ -88,22 +98,26 @@ export default function RegisteredProductsPage() {
 
   const filteredProducts =
     products?.filter((product) => {
-      const query = searchQuery.toLowerCase();
-      return (
+      const query = debouncedSearch.toLowerCase();
+
+      const matchesSearch =
         product.name.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
-        product.farmName.toLowerCase().includes(query)
-      );
-    }) || [];
+        product.farmName.toLowerCase().includes(query);
 
+      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+
+      const matchesStatus = !selectedStatus || product.status.toLowerCase() === selectedStatus;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    }) || [];
   return (
     <>
       <NavigationHeader />
       <div className="max-w-4xl mx-auto py-8">
         <h1 className="text-2xl font-bold mb-4">Registered Products</h1>
         <p className="mb-2 px-8  text-muted-foreground">
-          {user?.role === "farmer" &&
-            "Here are all the products you have registered as a farmer."}
+          {user?.role === "farmer" && "Here are all the products you have registered as a farmer."}
           {user?.role === "distributor" &&
             "Here are all the products you have registered as a distributor."}
           {user?.role === "retailer" &&
@@ -116,27 +130,65 @@ export default function RegisteredProductsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <div className="flex flex-col md:flex-row gap-4 mb-4 pt-4">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="border rounded-lg px-4 py-2 bg-background"
+            >
+              <option value="">All Categories</option>
+              {Array.from(new Set(products?.map((p) => p.category))).map((category: string) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="border rounded-lg px-4 py-2 bg-background"
+            >
+              <option value="">All Status</option>
+              <option value="verified">Verified</option>
+              <option value="pending">Pending</option>
+            </select>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("");
+                setSelectedStatus("");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
         </div>
-        {isLoading && (
-          <div className="text-center text-muted-foreground">
-            Loading products...
-          </div>
-        )}
-        {isError && (
-          <div className="text-center text-red-500">
-            Failed to load products.
-          </div>
-        )}
+        {isLoading && <div className="text-center text-muted-foreground">Loading products...</div>}
+        {isError && <div className="text-center text-red-500">Failed to load products.</div>}
         {!isLoading && !isError && filteredProducts.length === 0 && (
-          <EmptyState
-           title="No matching results found"
-          description="Try adjusting your search or filters."
-          />
-          )}
+          <div className="bg-muted p-8 rounded-lg text-center">
+            <h3 className="text-lg font-semibold mb-2">No matching results found</h3>
+
+            <p className="text-muted-foreground mb-4">Try adjusting your search or filters.</p>
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery("");
+                setSelectedCategory("");
+                setSelectedStatus("");
+              }}
+            >
+              Reset Filters
+            </Button>
+          </div>
+        )}
         {!isLoading && !isError && products?.length === 0 && !searchQuery && (
           <EmptyState
-          title="No products found"
-           description="Products you register will appear here."
+            title="No products found"
+            description="Products you register will appear here."
           />
         )}
         <div className="space-y-6">
@@ -158,21 +210,16 @@ export default function RegisteredProductsPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg font-semibold">
-                        {product.name}
-                      </span>
+                      <span className="text-lg font-semibold">{product.name}</span>
                       <Badge>{product.category}</Badge>
                       <Badge variant="outline">{product.status}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground mb-1">
                       <span className="font-medium">Quantity:</span>{" "}
-                      {editingProductId === product.id &&
-                      canEditFields.includes("quantity") ? (
+                      {editingProductId === product.id && canEditFields.includes("quantity") ? (
                         <input
                           value={editData.quantity}
-                          onChange={(e) =>
-                            handleEditChange("quantity", e.target.value)
-                          }
+                          onChange={(e) => handleEditChange("quantity", e.target.value)}
                           className="border px-2 py-1 rounded w-20"
                         />
                       ) : (
@@ -181,13 +228,10 @@ export default function RegisteredProductsPage() {
                     </div>
                     <div className="text-sm text-muted-foreground mb-1">
                       <span className="font-medium">Farm:</span>{" "}
-                      {editingProductId === product.id &&
-                      canEditFields.includes("farmName") ? (
+                      {editingProductId === product.id && canEditFields.includes("farmName") ? (
                         <input
                           value={editData.farmName}
-                          onChange={(e) =>
-                            handleEditChange("farmName", e.target.value)
-                          }
+                          onChange={(e) => handleEditChange("farmName", e.target.value)}
                           className="border px-2 py-1 rounded w-32"
                         />
                       ) : (
@@ -196,13 +240,10 @@ export default function RegisteredProductsPage() {
                     </div>
                     <div className="text-sm text-muted-foreground mb-1">
                       <span className="font-medium">Location:</span>{" "}
-                      {editingProductId === product.id &&
-                      canEditFields.includes("location") ? (
+                      {editingProductId === product.id && canEditFields.includes("location") ? (
                         <input
                           value={editData.location}
-                          onChange={(e) =>
-                            handleEditChange("location", e.target.value)
-                          }
+                          onChange={(e) => handleEditChange("location", e.target.value)}
                           className="border px-2 py-1 rounded w-32"
                         />
                       ) : (
@@ -211,14 +252,11 @@ export default function RegisteredProductsPage() {
                     </div>
                     <div className="text-sm text-muted-foreground mb-1">
                       <span className="font-medium">Harvest Date:</span>{" "}
-                      {editingProductId === product.id &&
-                      canEditFields.includes("harvestDate") ? (
+                      {editingProductId === product.id && canEditFields.includes("harvestDate") ? (
                         <input
                           type="date"
                           value={editData.harvestDate?.slice(0, 10)}
-                          onChange={(e) =>
-                            handleEditChange("harvestDate", e.target.value)
-                          }
+                          onChange={(e) => handleEditChange("harvestDate", e.target.value)}
                           className="border px-2 py-1 rounded w-32"
                         />
                       ) : product.harvestDate ? (
@@ -228,15 +266,24 @@ export default function RegisteredProductsPage() {
                       )}
                     </div>
                     {product.batchId && (
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium">Batch ID:</span>{" "}
-                        {product.batchId}
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="font-medium shrink-0">Batch ID:</span>
+                        <CopyableText
+                          text={product.batchId}
+                          copyText={product.batchId}
+                          ariaLabel="Copy batch ID"
+                        />
                       </div>
                     )}
                     {product.blockchainHash && (
-                      <div className="text-xs text-muted-foreground break-all">
-                        <span className="font-medium">Blockchain Hash:</span>{" "}
-                        {product.blockchainHash}
+                      <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                        <span className="font-medium shrink-0">Blockchain Hash:</span>
+                        <CopyableText
+                          text={product.blockchainHash}
+                          copyText={product.blockchainHash}
+                          ariaLabel="Copy blockchain hash"
+                          textClassName="break-all whitespace-normal overflow-visible"
+                        />
                       </div>
                     )}
 
@@ -246,8 +293,7 @@ export default function RegisteredProductsPage() {
                       <ul className="ml-4 list-disc text-xs">
                         {owners.map((owner) => (
                           <li key={owner.id}>
-                            {owner.username} ({owner.role})
-                            {owner.ownerId === user?.id && " (You)"}
+                            {owner.username} ({owner.role}){owner.ownerId === user?.id && " (You)"}
                           </li>
                         ))}
                       </ul>
@@ -256,7 +302,7 @@ export default function RegisteredProductsPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-2 mt-4">
                       <Link href={`/product/${product.id}?from=registered-products`}>
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="primary-btn">
                           View Details
                         </Button>
                       </Link>
@@ -265,13 +311,13 @@ export default function RegisteredProductsPage() {
                           {editingProductId === product.id ? (
                             <>
                               <button
-                                className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                                className="primary-btn bg-green-600 text-white hover:bg-green-700"
                                 onClick={() => handleEditSave(product.id)}
                               >
                                 Save
                               </button>
                               <button
-                                className="px-3 py-1 rounded bg-gray-400 text-white hover:bg-gray-500"
+                                className="primary-btn bg-gray-400 text-white hover:bg-gray-500"
                                 onClick={() => setEditingProductId(null)}
                               >
                                 Cancel
@@ -279,7 +325,7 @@ export default function RegisteredProductsPage() {
                             </>
                           ) : (
                             <button
-                              className="px-3 py-1 rounded bg-yellow-500 text-white hover:bg-yellow-600"
+                              className="primary-btn bg-yellow-500 text-white hover:bg-yellow-600"
                               onClick={() => handleEdit(product)}
                             >
                               Edit

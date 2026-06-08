@@ -1,13 +1,14 @@
-import { NavigationHeader } from "@/components/NavigationHeader";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import type { Product } from "@shared/schema";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
-import { ProductSearch } from "@/components/ProductSearch";
-import { Product } from "@shared/schema";
 import { Link } from "wouter";
+import { NavigationHeader } from "@/components/NavigationHeader";
+import { ProductSearch } from "@/components/ProductSearch";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 interface Owner {
   id: string;
@@ -33,10 +34,8 @@ export default function RequestProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Helper to get auth headers
-  const getAuthHeaders = () => ({
-    "firebase-uid": user?.firebaseUid || "",
-    "Content-Type": "application/json",
-  });
+  const getHeaders = async (includeJson = false) =>
+    getAuthHeaders(includeJson ? { "Content-Type": "application/json" } : {});
 
   // Fetch all products except those owned by the current user
   useEffect(() => {
@@ -44,7 +43,7 @@ export default function RequestProductsPage() {
       try {
         setIsLoading(true);
         const res = await fetch("/api/products/available/search", {
-          headers: getAuthHeaders(),
+          headers: await getHeaders(),
         });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
@@ -52,7 +51,7 @@ export default function RequestProductsPage() {
           data.map((p: any) => ({
             ...p,
             harvestDate: p.harvestDate ? new Date(p.harvestDate) : undefined,
-          }))
+          })),
         );
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -79,22 +78,19 @@ export default function RequestProductsPage() {
       for (const product of products) {
         try {
           const res = await fetch(`/api/products/${product.id}/owners`, {
-            headers: getAuthHeaders(),
+            headers: await getHeaders(),
           });
           map[product.id] = await res.json();
 
           // Get owner details
           const ownerRes = await fetch(`/api/users/${product.ownerId}`, {
-            headers: getAuthHeaders(),
+            headers: await getHeaders(),
           });
           if (ownerRes.ok) {
             details[product.ownerId] = await ownerRes.json();
           }
         } catch (error) {
-          console.error(
-            `Error fetching data for product ${product.id}:`,
-            error
-          );
+          console.error(`Error fetching data for product ${product.id}:`, error);
           map[product.id] = [];
         }
       }
@@ -115,12 +111,12 @@ export default function RequestProductsPage() {
         productId,
         user: user?.name,
         firebaseUid: user?.firebaseUid,
-        headers: getAuthHeaders(),
+        headers: await getHeaders(),
       });
 
       const res = await fetch("/api/request-product", {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: await getHeaders(true),
         body: JSON.stringify({
           productId,
           transferType: "request",
@@ -130,9 +126,7 @@ export default function RequestProductsPage() {
 
       if (!res.ok) throw new Error("Failed to request ownership");
 
-      toast.success(
-        "Ownership request sent! The current owner will be notified."
-      );
+      toast.success("Ownership request sent! The current owner will be notified.");
     } catch (error) {
       console.error("Error requesting ownership:", error);
       toast.error("Could not request ownership");
@@ -170,16 +164,11 @@ export default function RequestProductsPage() {
             searchEndpoint="/api/products/available/search"
           />
           <p className="mt-4 mb-2 text-muted-foreground text-center text-lg max-w-xl">
-            Browse products available from all users and request ownership
-            transfer.
+            Browse products available from all users and request ownership transfer.
           </p>
         </div>
 
-        {isLoading && (
-          <div className="text-center text-muted-foreground">
-            Loading products...
-          </div>
-        )}
+        {isLoading && <div className="text-center text-muted-foreground">Loading products...</div>}
 
         {isError && (
           <div className="text-center bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
@@ -200,8 +189,8 @@ export default function RequestProductsPage() {
               <h3 className="text-lg font-semibold">Unable to Load Products</h3>
             </div>
             <p className="text-red-700 mb-4">
-              We're having trouble loading the available products. This might be
-              due to a network issue or server problem.
+              We're having trouble loading the available products. This might be due to a network
+              issue or server problem.
             </p>
             <button
               onClick={() => {
@@ -211,17 +200,15 @@ export default function RequestProductsPage() {
                 const fetchAvailableProducts = async () => {
                   try {
                     const res = await fetch("/api/products/available/search", {
-                      headers: getAuthHeaders(),
+                      headers: await getHeaders(),
                     });
                     if (!res.ok) throw new Error("Failed to fetch products");
                     const data = await res.json();
                     setProducts(
                       data.map((p: any) => ({
                         ...p,
-                        harvestDate: p.harvestDate
-                          ? new Date(p.harvestDate)
-                          : undefined,
-                      }))
+                        harvestDate: p.harvestDate ? new Date(p.harvestDate) : undefined,
+                      })),
                     );
                     setIsError(false);
                   } catch (error) {
@@ -234,7 +221,7 @@ export default function RequestProductsPage() {
                 };
                 fetchAvailableProducts();
               }}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              className="primary-btn bg-red-600 text-white hover:bg-red-700"
             >
               Try Again
             </button>
@@ -258,26 +245,22 @@ export default function RequestProductsPage() {
                   <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-semibold">
-                          {product.name}
-                        </span>
+                        <span className="text-lg font-semibold">{product.name}</span>
                         <Badge>{product.category}</Badge>
                         <Badge variant="outline">{product.status}</Badge>
                       </div>
 
                       <div className="text-sm text-muted-foreground mb-1">
-                        <span className="font-medium">Quantity:</span>{" "}
-                        {product.quantity} {product.unit}
+                        <span className="font-medium">Quantity:</span> {product.quantity}{" "}
+                        {product.unit}
                       </div>
 
                       <div className="text-sm text-muted-foreground mb-1">
-                        <span className="font-medium">Farm:</span>{" "}
-                        {product.farmName}
+                        <span className="font-medium">Farm:</span> {product.farmName}
                       </div>
 
                       <div className="text-sm text-muted-foreground mb-1">
-                        <span className="font-medium">Location:</span>{" "}
-                        {product.location}
+                        <span className="font-medium">Location:</span> {product.location}
                       </div>
 
                       <div className="text-sm text-muted-foreground mb-1">
@@ -289,16 +272,13 @@ export default function RequestProductsPage() {
 
                       {product.batchId && (
                         <div className="text-xs text-muted-foreground">
-                          <span className="font-medium">Batch ID:</span>{" "}
-                          {product.batchId}
+                          <span className="font-medium">Batch ID:</span> {product.batchId}
                         </div>
                       )}
 
                       {/* Current owner information */}
                       <div className="mt-4">
-                        <span className="font-semibold text-sm">
-                          Current Owner:
-                        </span>
+                        <span className="font-semibold text-sm">Current Owner:</span>
                         <div className="text-sm">
                           {currentOwner
                             ? `${currentOwner.name} (${currentOwner.role})`
@@ -309,9 +289,7 @@ export default function RequestProductsPage() {
                       {/* Ownership history */}
                       {owners.length > 0 && (
                         <div className="mt-2">
-                          <span className="font-semibold text-sm">
-                            Ownership History:
-                          </span>
+                          <span className="font-semibold text-sm">Ownership History:</span>
                           <ul className="ml-4 list-disc text-xs">
                             {owners.map((owner) => (
                               <li key={owner.id}>
@@ -325,15 +303,13 @@ export default function RequestProductsPage() {
 
                     <div className="flex flex-row gap-2">
                       <button
-                        className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                        className="primary-btn bg-blue-600 text-white hover:bg-blue-700"
                         onClick={() => handleRequestOwnership(product.id)}
                       >
                         Request Ownership
                       </button>
-                      <Link
-                        href={`/product/${product.id}?from=request-products`}
-                      >
-                        <Button size="sm" variant="outline">
+                      <Link href={`/product/${product.id}?from=request-products`}>
+                        <Button size="sm" variant="outline" className="primary-btn">
                           View Details
                         </Button>
                       </Link>
