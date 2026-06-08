@@ -187,34 +187,32 @@ npm install
 
 ### Configure Environment Variables
 
-1. Create a `.env` file in the root directory
-2. Copy values from `.env.example`
-3. Add your Firebase credentials:
-
-```env
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
-VITE_FIREBASE_PROJECT_ID=your_project_id_here
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id_here
-VITE_FIREBASE_APP_ID=your_app_id_here
-FIREBASE_PROJECT_ID=your_project_id_here
-
-# MongoDB Connection
-MONGODB_URI=your_mongodb_connection_string_here
-MONGO_DB_NAME=mongo_db_name
-
-#Gemini Api key
-GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
-
-```
+1. Create a `.env` file in the root directory.
+2. Copy values from `.env.example`:
+   ```bash
+   cp .env.example .env
+   ```
+3. Fill in your API keys and configuration strings in `.env`.
 
 > ⚠️ **IMPORTANT**: Never commit your `.env` file. It contains sensitive credentials!
 
-> 🔥 **FIREBASE IMPORTANT**: Production deploy karne ke baad, Firebase Console →
-> Authentication → Settings → Authorized Domains mein apna production domain
-> (e.g., `your-app.onrender.com`) zaroor add karo, warna OAuth login kaam nahi karega!
+#### Detailed Environment Variables Reference
+
+Below is a detailed breakdown of all environment variables supported by KrishiSetu, including their purpose, whether they are required, how to obtain them, and the application behavior when they are missing.
+
+| Variable | Required | Description | Where to Get / Default Value | Behavior If Absent |
+| :--- | :---: | :--- | :--- | :--- |
+| **`VITE_FIREBASE_API_KEY`** | **Yes** | Firebase project Web API Key. Used by frontend SDK to access Auth and Storage APIs. | Firebase Console → Project Settings → Web App Config. | User registration and logins will fail with configuration errors. |
+| **`VITE_FIREBASE_AUTH_DOMAIN`** | **Yes** | Firebase Auth domain for login redirects. | Firebase Console → Project Settings → Web App Config. | User logins and authentication redirect flows will not initialize. |
+| **`VITE_FIREBASE_PROJECT_ID`** | **Yes** | Firebase Project ID. Used by both client and backend for token verification. | Firebase Console → Project Settings. | Server-side validation of authenticated sessions will fail. |
+| **`VITE_FIREBASE_STORAGE_BUCKET`** | **Yes** | Firebase Cloud Storage bucket URL for uploading files. | Firebase Console → Project Settings → Storage. | Product payment proofs fallback to local server directory `/uploads/payment-proofs/`. |
+| **`VITE_FIREBASE_MESSAGING_SENDER_ID`** | No | Firebase Messaging Sender ID for push notifications. | Firebase Console → Project Settings. | Push notification subscription features will fail or remain inactive. |
+| **`VITE_FIREBASE_APP_ID`** | **Yes** | Unique identifier for your Firebase Web App. | Firebase Console → Project Settings → Web App Config. | Client-side Firebase SDK fails to initialize. |
+| **`FIREBASE_PROJECT_ID`** | No | Backup/legacy Project ID configuration for production deployment environments. | Same as `VITE_FIREBASE_PROJECT_ID`. | Standard server builds or deployments (e.g. on Render) might lack metadata. |
+| **`MONGODB_URI`** | **Yes** | MongoDB connection string. Supports Atlas cluster connection or local instances. | MongoDB Atlas dashboard or local: `mongodb://localhost:27017/krishisetu` | The backend Express server will throw a connection error and crash immediately. |
+| **`MONGO_DB_NAME`** | No | Target MongoDB database name. | Choose any string. Defaults to `"krishisetu"`. | Application database defaults to the name `"krishisetu"`. |
+| **`GOOGLE_GEMINI_API_KEY`** | No | API Key for Google Gemini AI features (translation, quality analysis). | Google AI Studio (Makersuite) | AI translation/grammar check falls back to original text; AI quality analysis returns a neutral default score (5/10). |
+
 
 ### Start Development Servers
 
