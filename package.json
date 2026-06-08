@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
+    "prebuild": "node scripts/validate-env.js",
+    "build": "npm run prebuild && vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
     "start": "NODE_ENV=production node dist/index.js",
     "lint": "echo \"No lint configured (biome removed)\"",
     "format": "echo \"No formatter configured (biome removed)\"",
@@ -66,6 +67,7 @@
     "express-session": "^1.18.1",
     "fastify": "^5.6.0",
     "firebase": "^12.2.1",
+    "firebase-admin": "^13.10.0",
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",

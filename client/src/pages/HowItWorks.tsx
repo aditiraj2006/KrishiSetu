@@ -64,7 +64,7 @@ const HowItWorks: React.FC = () => {
       ) : (
         <LandingNavbar />
       )}
-      <div className="how-it-works-container">
+      <div id="how-it-works" className="how-it-works-container">
         <h1>How KrishiSetu Works</h1>
 
       {!selectedRole ? (
