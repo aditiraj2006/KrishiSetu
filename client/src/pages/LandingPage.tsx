@@ -16,17 +16,21 @@ const LandingPage = () => {
   return (
     <div className="landing-page">
       <nav className="navbar">
-        <div className="logo">KrishiSetu</div>
-        <ul className="nav-links">
-          
-          <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
-          <li onClick={() => navigateTo("/about")}>About</li>
-          <li onClick={() => navigateTo("/contact")}>Contact</li>
-          
-          
-          
-        </ul>
-      </nav>
+  <div className="logo">KrishiSetu</div>
+
+  <ul className="nav-links">
+    <li onClick={() => navigateTo("/HowItWorks")}>How it works</li>
+    <li onClick={() => navigateTo("/about")}>About</li>
+    <li onClick={() => navigateTo("/contact")}>Contact</li>
+  </ul>
+
+  <button
+    className="nav-login-btn"
+    onClick={() => navigateTo("/login")}
+  >
+    Login
+  </button>
+</nav>
 
       <div className="hero-section">
         <div className="steps">
