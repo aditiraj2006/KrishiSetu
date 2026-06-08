@@ -10,7 +10,8 @@ import CopyableText from "@/components/ui/CopyableText";
 import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useDeleteProduct } from "@/hooks/useProducts";
+import { getAuthHeaders } from "@/lib/authHeaders";
 
 interface Owner {
   id: string;
@@ -22,7 +23,21 @@ interface Owner {
 
 export default function RegisteredProductsPage() {
   const { user, loading: authLoading } = useAuth();
-  const { data: products, isLoading, isError, refetch } = useProducts(user?.id);
+  const { data: products, isLoading, isError, refetch } = useProducts(
+    user?.role === "admin" ? undefined : user?.id
+  );
+  const deleteMutation = useDeleteProduct();
+
+  const handleDelete = async (productId: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      await deleteMutation.mutateAsync(productId);
+      toast.success("Product deleted successfully");
+      refetch?.();
+    } catch (err) {
+      toast.error("Failed to delete product");
+    }
+  };
   const [ownersMap, setOwnersMap] = useState<Record<string, Owner[]>>({});
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
@@ -30,6 +45,40 @@ export default function RegisteredProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const handleDownloadCSV = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const queryParams = new URLSearchParams();
+      if (fromDate) queryParams.append("from", fromDate);
+      if (toDate) queryParams.append("to", toDate);
+
+      const url = `/api/farmer/export?${queryParams.toString()}`;
+      const response = await fetch(url, {
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export CSV");
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `farmer-produce-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("CSV downloaded successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to download CSV");
+    }
+  };
 
   // Debounce search input
   useEffect(() => {
@@ -109,7 +158,25 @@ export default function RegisteredProductsPage() {
 
       const matchesStatus = !selectedStatus || product.status.toLowerCase() === selectedStatus;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      let matchesDate = true;
+      if (fromDate || toDate) {
+        if (product.createdAt) {
+          const productDate = new Date(product.createdAt);
+          if (fromDate) {
+            const from = new Date(fromDate);
+            if (productDate < from) matchesDate = false;
+          }
+          if (toDate) {
+            const to = new Date(toDate);
+            to.setHours(23, 59, 59, 999);
+            if (productDate > to) matchesDate = false;
+          }
+        } else {
+          matchesDate = false;
+        }
+      }
+
+      return matchesSearch && matchesCategory && matchesStatus && matchesDate;
     }) || [];
   return (
     <>
@@ -130,11 +197,11 @@ export default function RegisteredProductsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <div className="flex flex-col md:flex-row gap-4 mb-4 pt-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-4 pt-4 items-center">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border rounded-lg px-4 py-2 bg-background"
+              className="border rounded-lg px-4 py-2 bg-background w-full md:w-auto"
             >
               <option value="">All Categories</option>
               {Array.from(new Set(products?.map((p) => p.category))).map((category: string) => (
@@ -147,7 +214,7 @@ export default function RegisteredProductsPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border rounded-lg px-4 py-2 bg-background"
+              className="border rounded-lg px-4 py-2 bg-background w-full md:w-auto"
             >
               <option value="">All Status</option>
               <option value="verified">Verified</option>
@@ -159,11 +226,47 @@ export default function RegisteredProductsPage() {
                 setSearchQuery("");
                 setSelectedCategory("");
                 setSelectedStatus("");
+                setFromDate("");
+                setToDate("");
               }}
+              className="w-full md:w-auto"
             >
               Clear Filters
             </Button>
           </div>
+
+          {user?.role === "farmer" && (
+            <div className="flex flex-col md:flex-row gap-4 pt-4 border-t items-end w-full">
+              <div className="flex-1 w-full">
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  From Date
+                </label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex-1 w-full">
+                <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                  To Date
+                </label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button
+                onClick={handleDownloadCSV}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium w-full md:w-auto"
+              >
+                Download CSV
+              </Button>
+            </div>
+          )}
         </div>
         {isLoading && <div className="text-center text-muted-foreground">Loading products...</div>}
         {isError && <div className="text-center text-red-500">Failed to load products.</div>}
@@ -179,6 +282,8 @@ export default function RegisteredProductsPage() {
                 setSearchQuery("");
                 setSelectedCategory("");
                 setSelectedStatus("");
+                setFromDate("");
+                setToDate("");
               }}
             >
               Reset Filters
@@ -332,6 +437,17 @@ export default function RegisteredProductsPage() {
                             </button>
                           )}
                         </>
+                      )}
+                      {(user?.role === "admin" || product.ownerId === user?.id) && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(product.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-product-${product.id}`}
+                        >
+                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                        </Button>
                       )}
                     </div>
                   </div>

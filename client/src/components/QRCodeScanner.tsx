@@ -1,5 +1,5 @@
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
-import { AlertTriangle, Camera, FlipHorizontal, StopCircle, Upload, FileImage, Loader2 } from "lucide-react";
+import { AlertTriangle, Camera, FlipHorizontal, StopCircle, Upload, FileImage, Loader2, HelpCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -494,6 +494,10 @@ export function QRCodeScanner() {
                 <p className="text-sm text-muted-foreground max-w-xs">
                   Camera access was denied. Please enable camera permissions in your browser settings to scan QR codes.
                 </p>
+                <a href="https://support.google.com/chrome/answer/2693767" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:text-primary/80 text-sm font-medium transition-colors">
+                  <HelpCircle className="w-4 h-4" />
+                  How to enable camera
+                </a>
                 <div className="pt-2 w-full">
                   <Button
                     onClick={startScanning}
