@@ -42,6 +42,7 @@ import { LoadingStates } from "./LoadingStates";
 // Create a stricter schema with required fields
 const formSchema = insertProductSchema.extend({
   harvestDate: z.string().min(1, "Harvest date is required"),
+  expiryDate: z.string().optional(),
   quantity: z
     .string()
     .trim()
@@ -263,6 +264,7 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
       farmName: "",
       location: "",
       harvestDate: "",
+      expiryDate: "",
       certifications: [],
       status: "registered",
       ownerId: user?.id || "",
@@ -291,6 +293,7 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
         farmName: data.farmName.trim(),
         location: data.location,
         harvestDate: new Date(data.harvestDate),
+        expiryDate: data.expiryDate ? new Date(data.expiryDate) : null,
         certifications: data.certifications,
         status: "registered" as const,
         ownerId: user.id,
@@ -643,6 +646,25 @@ export function ProductRegistrationForm({ isVisible, onClose }: ProductRegistrat
                               {...field}
                               data-testid="input-harvest-date"
                               required
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="expiryDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Expiry/Best-Before Date (Optional)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              {...field}
+                              value={field.value || ""}
+                              data-testid="input-expiry-date"
                             />
                           </FormControl>
                           <FormMessage />

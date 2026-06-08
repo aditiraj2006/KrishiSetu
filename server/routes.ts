@@ -233,8 +233,9 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = await verifyFirebaseIdToken(token);
-    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    const headerUid =
+      req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -403,13 +404,15 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "No valid fields to update" });
       }
 
-      const updatedUser = await storage.updateUser(id, updates);
-      return res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      return res.status(500).json({ message: "Failed to update user" });
-    }
-  });
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
+        }
+
+        const productData = {
+          ...parse.data,
+          ownerId: user.id,
+        };
+        const product = await storage.createProduct(productData);
 
   // --- Product Routes ---
   app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {
@@ -540,6 +543,211 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to fetch product" });
     }
   });
+
+  // Public product verification route (no auth)
+  app.get("/api/verify/:productId", async (req: Request, res: Response) => {
+    try {
+      const identifier = req.params.productId;
+      // Reuse same lookup logic as product detail endpoint
+      let product = await storage.getProduct(identifier);
+      if (!product) {
+        product = await storage.getProductByBatchId(identifier);
+      }
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      // Filter out sensitive/internal fields
+      const {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      } = product as any;
+      const publicProduct = {
+        id,
+        name,
+        category,
+        description,
+        quantity,
+        unit,
+        farmName,
+        location,
+        harvestDate,
+        certifications,
+        price,
+        status,
+        distributorName,
+        storeName,
+        storeLocation,
+        averageRating,
+        ratingCount,
+      };
+      return res.json(publicProduct);
+    } catch (error) {
+      console.error("Error in public verify route:", error);
+      return res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  // Delete product route
+  app.delete(
+    "/api/products/:id",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const productId = req.params.id;
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Fetch product to verify ownership/role
+        const product = await storage.getProduct(productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Only the product owner or an admin can delete the product
+        if (product.ownerId !== user.id && user.role !== "admin") {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        const success = await storage.deleteProduct(productId);
+        if (!success) {
+          return res.status(500).json({ message: "Failed to delete product" });
+        }
+
+        return res.json({ message: "Product deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting product:", error);
+        return res.status(500).json({ message: "Failed to delete product" });
+      }
+    }
+  );
+
+  // Farmer produce export route
+  app.get(
+    "/api/farmer/export",
+    requireFirebaseAuth,
+    async (req: Request, res: Response) => {
+      try {
+        const firebaseUid = res.locals.firebaseUid as string;
+        const user = await storage.getUserByFirebaseUid(firebaseUid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can export produce records" });
+        }
+
+        const { from, to } = req.query;
+        let products = await storage.getProductsByOwner(user.id);
+
+        // Filter products by optional date range
+        if (from) {
+          const fromDate = new Date(from as string);
+          if (!isNaN(fromDate.getTime())) {
+            products = products.filter((p) => new Date(p.createdAt!) >= fromDate);
+          }
+        }
+        if (to) {
+          const toDate = new Date(to as string);
+          if (!isNaN(toDate.getTime())) {
+            toDate.setHours(23, 59, 59, 999);
+            products = products.filter((p) => new Date(p.createdAt!) <= toDate);
+          }
+        }
+
+        // Generate CSV rows
+        const db = await getDb();
+        const csvRows = [];
+        
+        // Header row
+        csvRows.push([
+          "Product Name",
+          "Category",
+          "Quantity",
+          "Registration Date",
+          "Current Status",
+          "Last Transaction Date",
+          "Buyer Name"
+        ]);
+
+        for (const product of products) {
+          // Find last completed transfer
+          const lastTransfer = await db
+            .collection("ownershiptransfers")
+            .find({ productId: product.id, status: "completed" })
+            .sort({ timestamp: -1 })
+            .limit(1)
+            .next();
+
+          let lastTxDate = "N/A";
+          let buyerName = "N/A";
+
+          if (lastTransfer) {
+            lastTxDate = new Date(lastTransfer.timestamp).toLocaleDateString("en-IN");
+            if (lastTransfer.toUserId) {
+              const buyer = await storage.getUser(lastTransfer.toUserId);
+              if (buyer) {
+                buyerName = buyer.name;
+              }
+            }
+          }
+
+          const regDate = product.createdAt
+            ? new Date(product.createdAt).toLocaleDateString("en-IN")
+            : "N/A";
+
+          // Helper to escape values for CSV
+          const escapeCsv = (val: string) => {
+            const str = String(val ?? "");
+            if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+              return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+          };
+
+          csvRows.push([
+            escapeCsv(product.name),
+            escapeCsv(product.category),
+            escapeCsv(`${product.quantity} ${product.unit}`),
+            escapeCsv(regDate),
+            escapeCsv(product.status),
+            escapeCsv(lastTxDate),
+            escapeCsv(buyerName)
+          ]);
+        }
+
+        const csvContent = csvRows.map((row) => row.join(",")).join("\n");
+
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader(
+          "Content-Disposition",
+          "attachment; filename=farmer-produce-export.csv"
+        );
+        return res.status(200).send(csvContent);
+      } catch (error) {
+        console.error("Error exporting farmer records:", error);
+        return res.status(500).json({ message: "Failed to export records" });
+      }
+    }
+  );
 
   // List all products - used by dashboard
   app.get("/api/products", async (req: Request, res: Response) => {
@@ -926,6 +1134,19 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
+
+        console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
         if (!transfer) return res.status(404).json({ message: "Transfer not found" });
 
@@ -1098,6 +1319,46 @@ export async function registerRoutes(app: Express) {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+
+      // Check for expiring products if user is retailer
+      if (user.role === "retailer") {
+        const products = await storage.getProductsByOwner(user.id);
+        const now = new Date();
+        const twoDaysFromNow = new Date();
+        twoDaysFromNow.setDate(now.getDate() + 2);
+
+        const expiringProducts = products.filter((p) => {
+          if (!p.expiryDate) return false;
+          const expDate = new Date(p.expiryDate);
+          return expDate <= twoDaysFromNow && expDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        });
+
+        if (expiringProducts.length > 0) {
+          const existingNotifications = await storage.getUserNotifications(user.id);
+          
+          for (const product of expiringProducts) {
+            const alreadyNotified = existingNotifications.some((n) => 
+              n.type === "product_event" && 
+              n.productId === product.id && 
+              n.title === "Product Expiring Soon" &&
+              (now.getTime() - new Date(n.createdAt).getTime() < 3 * 24 * 60 * 60 * 1000)
+            );
+
+            if (!alreadyNotified) {
+              await storage.createNotification({
+                userId: user.id,
+                title: "Product Expiring Soon",
+                message: `${product.name} is expiring soon (on ${new Date(product.expiryDate!).toLocaleDateString()}). Please take action.`,
+                type: "product_event",
+                productId: product.id,
+                read: false,
+                createdAt: new Date(),
+              });
+            }
+          }
+        }
+      }
+
       const notifications = await storage.getUserNotifications(user.id);
       return res.json(notifications);
     } catch (error) {

@@ -79,6 +79,12 @@ export default function ScannedProductsPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg font-semibold">{product.name}</span>
+                    {product.expiryDate && new Date(product.expiryDate).getTime() < new Date().getTime() && (
+                      <Badge variant="destructive" className="text-xs">Expired</Badge>
+                    )}
+                    {product.expiryDate && new Date(product.expiryDate).getTime() - new Date().getTime() <= 3 * 24 * 60 * 60 * 1000 && new Date(product.expiryDate).getTime() >= new Date().getTime() && (
+                      <Badge className="bg-orange-500 hover:bg-orange-600 text-white text-xs">Expires Soon</Badge>
+                    )}
                     <Badge>{product.category}</Badge>
                     <Badge variant="outline">{product.status}</Badge>
                   </div>
@@ -97,6 +103,12 @@ export default function ScannedProductsPage() {
                       ? new Date(product.harvestDate).toLocaleDateString()
                       : "N/A"}
                   </div>
+                  {product.expiryDate && (
+                    <div className="text-sm text-muted-foreground mb-1">
+                      <span className="font-medium">Expiry Date:</span>{" "}
+                      {new Date(product.expiryDate).toLocaleDateString()}
+                    </div>
+                  )}
                   {product.batchId && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <span className="font-medium shrink-0">Batch ID:</span>

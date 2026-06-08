@@ -229,3 +229,30 @@ export function useSubmitProductRating(productId: string) {
     },
   });
 }
+
+export function useDeleteProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`/api/products/${productId}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete product");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/products/combined"] });
+    },
+  });
+}
+
