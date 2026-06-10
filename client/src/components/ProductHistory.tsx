@@ -185,7 +185,7 @@ export function ProductHistory({ productId }: ProductHistoryProps) {
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
-            <div className="text-muted-foreground">
+            <div className="py-8">
               <EmptyState
                 title="No product history found"
                 description="Registration and ownership history will appear here."

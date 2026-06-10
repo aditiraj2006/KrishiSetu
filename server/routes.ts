@@ -12,6 +12,7 @@ import {
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { createServer } from "http";
 import multer from "multer";
+import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
@@ -251,15 +252,6 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({

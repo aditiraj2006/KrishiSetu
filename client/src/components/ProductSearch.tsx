@@ -4,6 +4,7 @@ import type { Product } from "@shared/schema";
 import { Calendar, Loader2, MapPin, Package, Search, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { getAuthHeaders } from "@/lib/authHeaders";
@@ -259,9 +260,11 @@ export function ProductSearch({
                     <span className="text-sm text-muted-foreground">Searching...</span>
                   </div>
                 ) : (
-                  <div className="text-sm text-muted-foreground">
-                    <p>No products found matching "{query}"</p>
-                    <p className="text-xs mt-1">Try different keywords</p>
+                  <div className="py-2">
+                    <EmptyState
+                      title={`No products found matching "${query}"`}
+                      description="Try different keywords"
+                    />
                   </div>
                 )}
               </div>

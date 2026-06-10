@@ -86,19 +86,18 @@ export function RecentProducts() {
 
       <CardContent className="p-0">
         {recentProducts.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <EmptyState
-                title="No products found"
-                description="Recently registered products will appear here."
-              />
-
-              <Link href="/product-registration">
-                <Button variant="default" data-testid="link-register-first">
-                  Register your first product
-                </Button>
-              </Link>
-            </div>
+          <div className="p-8">
+            <EmptyState
+              title="No products found"
+              description="Recently registered products will appear here."
+              action={
+                <Link href="/product-registration">
+                  <Button variant="default" data-testid="link-register-first">
+                    Register your first product
+                  </Button>
+                </Link>
+              }
+            />
           </div>
         ) : (
           <div className="divide-y divide-border">

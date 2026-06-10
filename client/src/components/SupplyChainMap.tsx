@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "@/components/ui/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useProductJourney, useProducts } from "@/hooks/useProducts";
 
@@ -210,13 +211,13 @@ export function SupplyChainMap({
       {/* Map & Steps */}
       <CardContent className="p-0">
         {journeySteps.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>
-              {selectedProductId
-                ? "No transfers yet — this product is currently with the original farmer."
+          <div className="p-8">
+            <EmptyState
+              title={selectedProductId ? "No transfers yet" : "Select a product"}
+              description={selectedProductId
+                ? "This product is currently with the original farmer."
                 : "Select a product to view its supply chain journey"}
-            </p>
+            />
           </div>
         ) : (
           <>
