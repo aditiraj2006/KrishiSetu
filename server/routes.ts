@@ -1118,6 +1118,108 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Respond to a notification (accept/reject ownership transfer)
+  app.post("/api/notifications/:id/respond", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const notificationId = req.params.id;
+      const { action } = req.body;
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!action || !["accepted", "rejected"].includes(action)) {
+        return res.status(400).json({ message: "Action must be 'accepted' or 'rejected'" });
+      }
+
+      // Find the notification
+      const db = await getDb();
+      const notification = await db.collection("notifications").findOne({ id: notificationId });
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      const transferId = notification.transferId;
+      if (!transferId) {
+        return res.status(400).json({ message: "No ownership transfer associated with this notification" });
+      }
+
+      // Get the transfer
+      const transfer = await storage.getOwnershipTransfer(transferId);
+      if (!transfer) {
+        return res.status(404).json({ message: "Transfer not found" });
+      }
+
+      if (transfer.toUserId !== user.id) {
+        return res.status(403).json({ message: "You are not the recipient of this transfer" });
+      }
+
+      if (transfer.status !== "pending") {
+        return res.status(400).json({ message: "Transfer is not pending" });
+      }
+
+      if (action === "accepted") {
+        // Update transfer status to completed
+        await storage.updateOwnershipTransfer(transferId, { status: "completed" });
+
+        // Update product ownership
+        const product = await storage.getProduct(transfer.productId);
+        if (product) {
+          await storage.updateProduct(product.id, { ownerId: user.id });
+
+          await storage.addProductOwner({
+            productId: product.id,
+            ownerId: user.id,
+            username: user.username,
+            name: user.name,
+            addedBy: transfer.fromUserId,
+            role: user.role,
+            canEditFields: ["quantity", "location"],
+            transferType: transfer.transferType,
+            createdAt: new Date(),
+          });
+
+          await storage.logProductEvent(
+            product.id,
+            "ownership_registration",
+            `${user.name} (${user.role}) accepted ownership transfer.`,
+            user.id,
+            {
+              transferId: transfer.id,
+              registrationType: user.role,
+              userName: user.username,
+              userRole: user.role,
+            },
+          );
+        }
+
+        return res.json({ message: "Ownership transfer accepted" });
+      } else {
+        // action === "rejected"
+        await storage.updateOwnershipTransfer(transferId, { status: "rejected" });
+
+        const product = await storage.getProduct(transfer.productId);
+        if (product) {
+          await storage.createNotification({
+            userId: transfer.fromUserId,
+            title: "Ownership Transfer Rejected",
+            message: `${user.name} has rejected the ownership transfer of ${product.name}.`,
+            type: "ownership_transfer_rejected",
+            productId: product.id,
+            read: false,
+            createdAt: new Date(),
+          });
+        }
+
+        return res.json({ message: "Ownership transfer rejected" });
+      }
+    } catch (error) {
+      console.error("Error responding to notification:", error);
+      return res.status(500).json({ message: "Failed to respond to notification" });
+    }
+  });
+
   // --- Product Owner Routes ---
   app.post("/api/product-owners", async (req: Request, res: Response) => {
     const parse = insertProductOwnerSchema.safeParse(req.body);
