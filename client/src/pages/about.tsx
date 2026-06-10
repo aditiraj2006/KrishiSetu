@@ -19,7 +19,7 @@ const About: React.FC = () => {
       ) : (
         <LandingNavbar />
       )}
-    <div className="about-container">
+    <div className="about-container pt-24 md:pt-28">
       <h1 className="fade-in">About KrishiSetu</h1>
       <p className="fade-in delay-1">
         KrishiSetu is a cutting-edge platform transforming the agricultural supply chain by
