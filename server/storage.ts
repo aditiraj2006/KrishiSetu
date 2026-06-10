@@ -200,9 +200,10 @@ export class MongoStorage {
     return await db.collection("ownershiptransfers").countDocuments();
   }
 
-  async getRecentScans(limit: number = 5): Promise<any[]> {
+  async getRecentScans(limit: number = 5, userId?: string): Promise<any[]> {
     const db = await getDb();
-    return db.collection("scans").find({}).sort({ timestamp: -1 }).limit(limit).toArray();
+    const filter = userId ? { userId } : {};
+    return db.collection("scans").find(filter).sort({ timestamp: -1 }).limit(limit).toArray();
   }
   async getUserScans(userId: string): Promise<Scan[]> {
     const db = await getDb();
