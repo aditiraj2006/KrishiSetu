@@ -30,7 +30,11 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-  const client = new MongoClient(process.env.MONGODB_URI!);
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("MONGODB_URI is not defined in your .env file. Please check your configuration.");
+  }
+  const client = new MongoClient(uri);
   await client.connect();
   db = client.db(process.env.MONGO_DB_NAME || "krishisetu");
   return db;

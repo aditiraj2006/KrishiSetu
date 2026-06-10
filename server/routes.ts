@@ -10,6 +10,7 @@ import {
   insertUserSchema,
 } from "@shared/schema";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
+import fs from "fs";
 import { createServer } from "http";
 import multer from "multer";
 import path, { dirname } from "path";
@@ -17,7 +18,7 @@ import { fileURLToPath } from "url";
 import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
-import { uploadPaymentProof } from "./firebaseStorage";
+import { uploadPaymentProof as firebaseAdminUpload } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -251,15 +252,6 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -275,8 +267,11 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
+
       // Validate required fields
-      if (!email || !name) {
+      if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -295,7 +290,6 @@ export async function registerRoutes(app: Express) {
       const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
         email: trimmedEmail,
         name: trimmedName,
         username,
@@ -908,11 +902,7 @@ export async function registerRoutes(app: Express) {
       // If you handle paymentProof file upload, upload it to Firebase Storage
       if (req.file && req.file.buffer) {
         try {
-          filledFields.paymentProofUrl = await uploadPaymentProof(
-            req.file.buffer,
-            req.file.originalname,
-            req.file.mimetype,
-          );
+          filledFields.paymentProofUrl = await uploadPaymentProof(req.file);
           if (!registeredFields.includes("paymentProofUrl")) {
             registeredFields.push("paymentProofUrl");
           }

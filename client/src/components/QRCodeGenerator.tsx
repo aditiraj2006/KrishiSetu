@@ -12,7 +12,10 @@ interface QRCodeGeneratorProps {
 export function QRCodeGenerator({ product }: QRCodeGeneratorProps) {
   const [copied, setCopied] = useState(false);
 
-  const qrValue = product.qrCode || `/product/${product.batchId || product.id}`;
+  const relativePath = product.qrCode || `/product/${product.batchId || product.id}`;
+  const qrValue = relativePath.startsWith("http")
+    ? relativePath
+    : `${window.location.origin}${relativePath}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(qrValue);
