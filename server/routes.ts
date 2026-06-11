@@ -349,15 +349,13 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "No valid fields to update" });
       }
 
-        if (user.role !== "farmer") {
-          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
-        }
-
-        const productData = {
-          ...parse.data,
-          ownerId: user.id,
-        };
-        const product = await storage.createProduct(productData);
+      const updatedUser = await storage.updateUser(id, updates);
+      return res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      return res.status(500).json({ message: "Failed to update user" });
+    }
+  });
 
   // --- Product Routes ---
   app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {

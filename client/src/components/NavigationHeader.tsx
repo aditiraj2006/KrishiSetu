@@ -271,27 +271,6 @@ useEffect(() => {
                 Registered Products
               </Link>
 
-              <Link
-                href="/how-it-works"
-                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
-              >
-                How It Works
-              </Link>
-
-              <Link
-                href="/about"
-                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
-              >
-                About
-              </Link>
-
-              <Link
-                href="/contact"
-                className="block px-3 py-2 rounded-md text-sm font-medium hover:bg-muted"
-              >
-                Contact
-              </Link>
-
               <Button
                 onClick={() => {
                   setLocation("/login");
@@ -338,24 +317,6 @@ useEffect(() => {
       label: "Request Product",
       show: user.role === "retailer" || user.role === "distributor",
       testid: "link-request-products",
-    },
-    {
-      href: "/how-it-works",
-      label: "How It Works",
-      show: true,
-      testid: "link-how-it-works",
-    },
-    {
-      href: "/about",
-      label: "About",
-      show: true,
-      testid: "link-about",
-    },
-    {
-      href: "/contact",
-      label: "Contact",
-      show: true,
-      testid: "link-contact",
     },
   ];
 
