@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import "./LandingPage.css";
 import UXMarquee from "../components/UXMarquee";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SupplyChainStep {
   id: string;
@@ -23,12 +24,19 @@ interface SupplyChainStep {
 
 const LandingPage = () => {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+
   const [showButton, setShowButton] = useState(false);
   const [activeStep, setActiveStep] = useState<string>("shipment");
 
   const handleGetStarted = () => {
+  if (isAuthenticated) {
     setLocation("/dashboard");
-  };
+  } else {
+    setLocation("/login");
+  }
+};
 
   useEffect(() => {
     const handleScroll = () => {
