@@ -666,6 +666,128 @@
   }
 }
 
+/* ====== Reviews & Feedback Section ====== */
+.reviews-section {
+  max-width: 1200px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
+
+.reviews-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 0 0 32px;
+  margin-bottom: 32px;
+}
+
+.reviews-header .section-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.reviews-header h2 {
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0 0 14px;
+}
+
+.reviews-header p {
+  margin: 0 auto;
+  max-width: 640px;
+  color: var(--muted-foreground);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.review-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.review-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.review-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 60%, var(--accent)));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.review-user {
+  flex: 1;
+}
+
+.review-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 4px;
+}
+
+.review-role {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.review-text {
+  margin: 0 0 18px;
+  font-size: 0.96rem;
+  line-height: 1.75;
+  color: var(--foreground);
+}
+
+.review-stars,
+.review-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-star,
+.star-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
+}
+
 /* ====== UX Marquee / Testimonials ====== */
 .ux-section {
   max-width: 1200px;
