@@ -19,6 +19,7 @@ import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
+import { sendEmailNotification } from "./email";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -784,14 +785,31 @@ export async function registerRoutes(app: Express) {
         notes ?? null,
       );
 
-      return res.status(201).json({
-        message: "Ownership request sent. Waiting for acceptance.",
-        transferId: transfer.id,
-      });
-    } catch (error) {
-      console.error("Error in /api/request-product:", error);
-      if (error instanceof Error && (error as any).status) {
-        return res.status((error as any).status).json({ message: error.message });
+        // Email notification to the recipient
+        const recipient = await storage.getUser(recipientUserId);
+        if (recipient && recipient.email && recipient.notificationsEnabled !== false) {
+          const emailSubject = "KrishiSetu - New Product Ownership Transfer Request";
+          const emailBody = `
+            <h2>New Ownership Transfer Request</h2>
+            <p>Hello <strong>${recipient.name}</strong>,</p>
+            <p><strong>${currentUser.name}</strong> has initiated a product ownership transfer request for <strong>${product.name}</strong> to you.</p>
+            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The KrishiSetu Team</p>
+          `;
+          await sendEmailNotification(recipient.email, emailSubject, emailBody);
+        }
+
+        return res.status(201).json({
+          message: "Transfer request sent. Waiting for acceptance.",
+          transferId: transfer.id,
+        });
+      } catch (error) {
+        console.error("Error transferring ownership:", error);
+        return res
+          .status(500)
+          .json({ message: "Failed to transfer ownership" });
       }
       return res.status(500).json({ message: "Failed to request product" });
     }
@@ -811,8 +829,78 @@ export async function registerRoutes(app: Express) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        const pendingTransfers = await storage.getPendingTransfersForUser(user.id);
-        return res.json(pendingTransfers);
+        const { productId, transferType, notes } = req.body;
+        if (!productId) {
+          return res.status(400).json({ message: "Product ID is required" });
+        }
+
+        const product = await storage.getProduct(productId);
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+
+        // Prevent requesting your own product
+        if (product.ownerId === requester.id) {
+          return res
+            .status(400)
+            .json({ message: "You already own this product" });
+        }
+
+        // Create a pending ownership transfer (from requester to owner)
+        const transfer = await storage.createOwnershipTransfer({
+          productId,
+          fromUserId: requester.id,
+          toUserId: product.ownerId,
+          transferType: transferType || "request",
+          notes: notes || null,
+          status: "pending",
+        });
+
+        // Log notification before creating it
+        console.log("Creating notification with type:", "product_request");
+
+        // Notify the product owner
+        await storage.createNotification({
+          userId: product.ownerId,
+          title: "Product Ownership Request",
+          message: `${requester.name} requested ownership of ${product.name}.`,
+          type: "product_request",
+          productId: product.id,
+          transferId: transfer.id,
+          fromUserId: requester.id,
+          read: false,
+          createdAt: new Date(),
+        });
+
+        // Optionally log the event
+        await storage.logProductEvent(
+          product.id,
+          "ownership_request",
+          `${requester.name} requested ownership.`,
+          requester.id,
+          { transferId: transfer.id },
+        );
+
+        // Email notification to the product owner
+        const owner = await storage.getUser(product.ownerId);
+        if (owner && owner.email && owner.notificationsEnabled !== false) {
+          const emailSubject = "KrishiSetu - Product Ownership Request";
+          const emailBody = `
+            <h2>Product Ownership Requested</h2>
+            <p>Hello <strong>${owner.name}</strong>,</p>
+            <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
+            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The KrishiSetu Team</p>
+          `;
+          await sendEmailNotification(owner.email, emailSubject, emailBody);
+        }
+
+        return res.status(201).json({
+          message: "Ownership request sent. Waiting for acceptance.",
+          transferId: transfer.id,
+        });
       } catch (error) {
         console.error("Error fetching pending transfers:", error);
         return res.status(500).json({ message: "Failed to fetch pending transfers" });
