@@ -1,4 +1,5 @@
 import jwt, { type JwtPayload } from "jsonwebtoken";
+import { FirebaseAuthError } from "./errors/FirebaseAuthError";
 
 const CERTS_URL =
   "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
@@ -25,9 +26,22 @@ const fetchCerts = async () => {
     return cachedCerts;
   }
 
-  const res = await fetch(CERTS_URL);
+  let res: Response;
+
+  try {
+    res = await fetch(CERTS_URL);
+  } catch {
+    throw new FirebaseAuthError(
+      "Failed to fetch Firebase certificates",
+      "CERT_FETCH_FAILED"
+    );
+  }
+
   if (!res.ok) {
-    throw new Error(`Failed to fetch Firebase certs: ${res.status}`);
+    throw new FirebaseAuthError(
+      `Failed to fetch Firebase certs: ${res.status}`,
+      "CERT_FETCH_FAILED"
+    );
   }
 
   const cacheControl = res.headers.get("cache-control");
@@ -50,7 +64,10 @@ const getTokenKid = (token: string) => {
 export const verifyFirebaseIdToken = async (token: string) => {
   const kid = getTokenKid(token);
   if (!kid) {
-    throw new Error("Missing token kid");
+    throw new FirebaseAuthError(
+      "Missing token kid",
+      "MISSING_KID"
+    );
   }
 
   const certs = await fetchCerts();
@@ -58,7 +75,11 @@ export const verifyFirebaseIdToken = async (token: string) => {
   if (!publicKey) {
     cachedCerts = null;
     certsExpireAt = 0;
-    throw new Error("Unknown token kid");
+
+    throw new FirebaseAuthError(
+      "Unknown token kid",
+      "UNKNOWN_KID"
+    );
   }
 
   const projectId = getProjectId();
@@ -72,7 +93,10 @@ export const verifyFirebaseIdToken = async (token: string) => {
 
   const uid = decoded.uid || decoded.user_id || decoded.sub;
   if (!uid) {
-    throw new Error("Token missing uid");
+    throw new FirebaseAuthError(
+      "Token missing uid",
+      "MISSING_UID"
+    );
   }
 
   return { ...decoded, uid };
