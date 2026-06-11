@@ -12,13 +12,8 @@
     "format": "echo \"No formatter configured (biome removed)\"",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck",
-<<<<<<< security/auth-rbac-tests
     "test": "vitest run --config server/vitest.config.ts",
-    "db:push": "drizzle-kit push"
-=======
     "db:push": "drizzle-kit push",
-    "test": "vitest"
->>>>>>> main
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
