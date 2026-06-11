@@ -1,3 +1,4 @@
+import fs from "fs";
 import {
   insertNotificationSchema,
   insertOwnershipTransferSchema,
@@ -17,7 +18,6 @@ import { fileURLToPath } from "url";
 import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
-import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
 
@@ -101,7 +101,7 @@ async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
   const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
   const filePath = path.join(uploadDir, uniqueFilename);
   await fs.promises.writeFile(filePath, file.buffer);
-  
+
   return `/uploads/payment-proofs/${uniqueFilename}`;
 }
 
@@ -252,15 +252,7 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
 
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -276,8 +268,13 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
+      // Fix: trim email and name before validation/storage to prevent duplicate
+      // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName = typeof name === "string" ? name.trim() : name;
+
       // Validate required fields
-      if (!email || !name) {
+      if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -296,7 +293,7 @@ export async function registerRoutes(app: Express) {
       const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
+
         email: trimmedEmail,
         name: trimmedName,
         username,
@@ -996,11 +993,7 @@ export async function registerRoutes(app: Express) {
       // If you handle paymentProof file upload, upload it to Firebase Storage
       if (req.file && req.file.buffer) {
         try {
-          filledFields.paymentProofUrl = await uploadPaymentProof(
-            req.file.buffer,
-            req.file.originalname,
-            req.file.mimetype,
-          );
+          filledFields.paymentProofUrl = await uploadPaymentProof(req.file);
           if (!registeredFields.includes("paymentProofUrl")) {
             registeredFields.push("paymentProofUrl");
           }
@@ -1389,9 +1382,9 @@ export async function registerRoutes(app: Express) {
       const userIds = Array.from(new Set(ratings.map((rating) => rating.userId)));
       const users = userIds.length
         ? await db
-            .collection("users")
-            .find({ id: { $in: userIds } })
-            .toArray()
+          .collection("users")
+          .find({ id: { $in: userIds } })
+          .toArray()
         : [];
       const userMap = new Map(users.map((user) => [user.id, user]));
 
@@ -1565,7 +1558,7 @@ export async function registerRoutes(app: Express) {
       const averageQualityScore =
         qualityChecks.length > 0
           ? qualityChecks.reduce((sum: number, qc: any) => sum + (parseFloat(qc.score) || 0), 0) /
-            qualityChecks.length
+          qualityChecks.length
           : 0;
 
       const result = {

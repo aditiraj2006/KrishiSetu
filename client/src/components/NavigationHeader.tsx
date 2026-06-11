@@ -179,15 +179,16 @@ useEffect(() => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4 min-w-0 overflow-hidden">
               <div className="flex-shrink-0">
-                <h1
-                  className="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:opacity-80"
-                  onClick={() => setLocation("/dashboard")}
-                  style={{ userSelect: "none" }}
-                  data-testid="logo-home"
-                >
-                  <Sprout className="w-6 h-6" />
-                  KrishiSetu
-                </h1>
+                <Link href="/">
+                  <h1
+                    className="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:opacity-80"
+                    style={{ userSelect: "none" }}
+                    data-testid="logo-home"
+                  >
+                    <Sprout className="w-6 h-6" />
+                    KrishiSetu
+                  </h1>
+                </Link>
               </div>
 
               <div className="hidden md:flex space-x-4 min-w-0 flex-shrink">
@@ -531,15 +532,16 @@ useEffect(() => {
             {/* nav links */}
             <div className="flex flex-wrap items-center gap-4 flex-grow min-w-0">
               <div className="flex-shrink-0">
-                <h1
-                  className="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:opacity-80"
-                  onClick={() => setLocation("/dashboard")}
-                  style={{ userSelect: "none" }}
-                  data-testid="logo-home"
-                >
-                  <Sprout className="w-6 h-6" />
-                  KrishiSetu
-                </h1>
+                <Link href="/">
+                  <h1
+                    className="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:opacity-80"
+                    style={{ userSelect: "none" }}
+                    data-testid="logo-home"
+                  >
+                    <Sprout className="w-6 h-6" />
+                    KrishiSetu
+                  </h1>
+                </Link>
               </div>
 
               <div className="hidden md:flex space-x-2 min-w-0 flex-shrink">

@@ -30,7 +30,11 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-  const client = new MongoClient(process.env.MONGODB_URI!);
+  const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/krishisetu";
+  if (!process.env.MONGODB_URI) {
+    console.warn("[MongoDB] MONGODB_URI is not set in environment variables. Falling back to default local URI:", mongoUri);
+  }
+  const client = new MongoClient(mongoUri);
   await client.connect();
   db = client.db(process.env.MONGO_DB_NAME || "krishisetu");
   return db;
