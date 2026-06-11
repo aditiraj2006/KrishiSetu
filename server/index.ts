@@ -16,6 +16,68 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+
+        scriptSrc: [
+          "'self'",
+          "https://www.gstatic.com",
+          "https://www.googleapis.com",
+        ],
+
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+        ],
+
+        fontSrc: [
+          "'self'",
+          "https://fonts.gstatic.com",
+          "data:",
+        ],
+
+        imgSrc: [
+          "'self'",
+          "data:",
+          "https:",
+        ],
+
+        connectSrc: [
+          "'self'",
+          "https://firestore.googleapis.com",
+          "https://identitytoolkit.googleapis.com",
+          "https://securetoken.googleapis.com",
+          "ws:",
+          "wss:",
+        ],
+
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+
+    hsts:
+      process.env.NODE_ENV === "production"
+        ? {
+            maxAge: 31536000,
+            includeSubDomains: true,
+            preload: true,
+          }
+        : false,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
