@@ -216,36 +216,40 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
-      // Validate required fields
-      if (!email || !name) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+      const trimmedEmail =
+        typeof email === "string" ? email.trim() : email;
 
-      // Fix: trim email and name before validation/storage to prevent duplicate
-      // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-      const trimmedEmail = typeof email === "string" ? email.trim() : email;
-      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
+      const trimmedName =
+        typeof name === "string" ? name.trim() : name;
+
+      if (!trimmedEmail || !trimmedName) {
+        return res.status(400).json({
+          message: "Missing required fields",
+        });
+      }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
       }
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByFirebaseUid(authFirebaseUid);
+      const existingUser =
+        await storage.getUserByFirebaseUid(authFirebaseUid);
 
       if (existingUser) {
-        return res.json(existingUser); // Return existing user if already registered
+        return res.json(existingUser);
       }
 
-      // Create new user with username derived from email
-      const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
+      const username =
+        trimmedEmail.split("@")[0] +
+        Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
         email: trimmedEmail,
         name: trimmedName,
         username,
-        role: "farmer", // default role
+        role: "farmer",
         firebaseUid: authFirebaseUid,
         profileImage,
         roleSelected: roleSelected || false,
@@ -256,7 +260,9 @@ export async function registerRoutes(app: Express) {
       return res.status(201).json(user);
     } catch (error) {
       console.error("Error registering user:", error);
-      return res.status(500).json({ message: "Failed to register user" });
+      return res.status(500).json({
+        message: "Failed to register user",
+      });
     }
   });
 
