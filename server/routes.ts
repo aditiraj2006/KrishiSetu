@@ -182,8 +182,9 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = await verifyFirebaseIdToken(token);
-    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    const headerUid =
+      req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -348,13 +349,15 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "No valid fields to update" });
       }
 
-      const updatedUser = await storage.updateUser(id, updates);
-      return res.json(updatedUser);
-    } catch (error) {
-      console.error("Error updating user:", error);
-      return res.status(500).json({ message: "Failed to update user" });
-    }
-  });
+        if (user.role !== "farmer") {
+          return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
+        }
+
+        const productData = {
+          ...parse.data,
+          ownerId: user.id,
+        };
+        const product = await storage.createProduct(productData);
 
   // --- Product Routes ---
   app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {
@@ -884,6 +887,19 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
+
+        console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
         if (!transfer) return res.status(404).json({ message: "Transfer not found" });
 
