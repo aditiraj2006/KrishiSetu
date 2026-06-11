@@ -1,13 +1,14 @@
-import { useUserProducts } from "@/hooks/useProducts";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "wouter";
-import { Eye, ShieldCheck, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { Clock, Eye, ShieldCheck } from "lucide-react";
+import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import EmptyState from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserProducts } from "@/hooks/useProducts";
+import CopyableText from "./ui/CopyableText";
 
 export function RecentProducts() {
   const { user } = useAuth();
@@ -41,40 +42,40 @@ export function RecentProducts() {
     );
   }
 
-  if (error) {
-    return (
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <h3 className="text-lg font-semibold text-foreground">
-            Recent Products
-          </h3>
-        </CardHeader>
-        <CardContent>
-          <div className="text-destructive text-sm">
-            Failed to load products. Please try again later.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+ if (error) {
+  return (
+    <Card className="lg:col-span-2">
+      <CardHeader>
+        <h3 className="text-lg font-semibold text-foreground">
+          Recent Products
+        </h3>
+      </CardHeader>
 
-  const recentProducts = products
-    ? [...products]
-        .sort((a, b) => {
-          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return bTime - aTime;
-        })
-        .slice(0, 5)
-    : [];
+      <CardContent className="py-10">
+        <EmptyState
+          title="Unable to Load Products"
+          description="We couldn't retrieve your recent products right now. Please refresh the page and try again."
+        />
+
+        <div className="flex justify-center mt-4">
+          <Button
+            onClick={() => window.location.reload()}
+            data-testid="button-retry-products"
+          >
+            Retry
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+const recentProducts: any[] = [];
 
   return (
     <Card className="lg:col-span-2 shadow-sm border border-border overflow-hidden">
       <CardHeader className="px-6 py-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-foreground">
-            Recent Products
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground">Recent Products</h3>
           <Link href="/registered-products">
             <Button
               variant="link"
@@ -89,23 +90,27 @@ export function RecentProducts() {
 
       <CardContent className="p-0">
         {recentProducts.length === 0 ? (
-          <div className="p-8 text-center">
-           <div className="flex flex-col items-center gap-4">
-            <EmptyState
-            title="No products found"
-            description="Recently registered products will appear here."
-              />
-
-          <Link href="/product-registration">
-          <Button
-           variant="default"
-            data-testid="link-register-first"
-            >
-            Register your first product
-          </Button>
-        </Link>
+        <div className="p-10">
+  <div className="flex flex-col items-center gap-5">
+    <div className="text-6xl">
+      🌾
     </div>
-          </div>
+
+    <EmptyState
+      title="No Products Registered Yet"
+      description="Start tracking your agricultural products by registering your first item. Once added, products will appear here."
+    />
+
+    <Link href="/product-registration">
+      <Button
+        className="bg-primary hover:bg-primary/90"
+        data-testid="button-register-first-product"
+      >
+        Register First Product
+      </Button>
+    </Link>
+  </div>
+</div>
         ) : (
           <div className="divide-y divide-border">
             {recentProducts.map((product) => (
@@ -127,12 +132,15 @@ export function RecentProducts() {
                       >
                         {product.name}
                       </h4>
-                      <p
+                      <div
                         className="text-sm text-muted-foreground"
                         data-testid={`text-product-batch-${product.id}`}
                       >
-                        Batch #{product.batchId}
-                      </p>
+                        <CopyableText text={`Batch #${product.batchId}`} />
+                      </div>
+                      <div className="mt-1">
+                        <CopyableText text={product.id} />
+                      </div>
                       <div className="flex items-center gap-4 mt-1">
                         <Badge
                           variant="secondary"

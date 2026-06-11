@@ -1,15 +1,29 @@
 // components/OwnershipManagementPanel.tsx
-import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Shield, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -20,12 +34,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Shield, Users, AlertCircle } from "lucide-react";
-import { UserSearch } from "./UserSearch";
+import { useAuth } from "@/hooks/useAuth";
+import { getAuthHeaders } from "@/lib/authHeaders";
 import { ProductSearch } from "./ProductSearch";
+import { UserSearch } from "./UserSearch";
 
 const transferFormSchema = z.object({
   productId: z.string().min(1, "Product is required"),
@@ -55,6 +67,8 @@ export function OwnershipManagementPanel({
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(isOpen);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingData, setPendingData] = useState<z.infer<typeof transferFormSchema> | null>(null);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const { toast } = useToast();
@@ -130,12 +144,15 @@ export function OwnershipManagementPanel({
 
   const onSubmit = async (data: z.infer<typeof transferFormSchema>) => {
     if (!user) return;
+    setPendingData(data);
+    setShowConfirmDialog(true);
+  };
 
+  const handleConfirmedTransfer = async () => {
+    if (!user || !pendingData) return;
+    const data = pendingData;
+    setShowConfirmDialog(false);
     setIsSubmitting(true);
-
-    console.log("[FRONTEND] Form data:", data);
-    console.log("[FRONTEND] toUserId:", data.toUserId);
-    console.log("[FRONTEND] selectedUser:", selectedUser);
 
     try {
       const requestBody = {
@@ -144,14 +161,12 @@ export function OwnershipManagementPanel({
         transferType: data.transferType,
         notes: data.notes,
       };
-      console.log("[FRONTEND] Request body:", requestBody);
 
       const response = await fetch("/api/ownership-transfers", {
         method: "POST",
-        headers: {
+        headers: await getAuthHeaders({
           "Content-Type": "application/json",
-          "firebase-uid": user.firebaseUid,
-        },
+        }),
         body: JSON.stringify(requestBody),
       });
 
@@ -160,7 +175,7 @@ export function OwnershipManagementPanel({
         throw new Error(errorData.message || "Failed to transfer ownership");
       }
 
-      const result = await response.json();
+      await response.json();
 
       toast({
         title: "Ownership Transfer Request Sent",
@@ -169,9 +184,11 @@ export function OwnershipManagementPanel({
       });
 
       setIsDialogOpen(false);
+      setShowConfirmDialog(false);
       form.reset();
       setSelectedUser(null);
       setSelectedProduct(null);
+      setPendingData(null);
     } catch (error: any) {
       toast({
         title: "Transfer Failed",
@@ -224,16 +241,13 @@ export function OwnershipManagementPanel({
           <DialogHeader>
             <DialogTitle>Transfer Product Ownership</DialogTitle>
             <DialogDescription>
-              Transfer ownership of your product to another user. They will need
-              to accept the transfer.
+              Transfer ownership of your product to another user. They will need to accept the
+              transfer.
             </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 py-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
               <FormItem>
                 <FormLabel>Your Product</FormLabel>
                 {user && (
@@ -268,11 +282,7 @@ export function OwnershipManagementPanel({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Transfer Type</FormLabel>
-                    <select
-                      {...field}
-                      className="w-full p-2 border rounded-md"
-                      required
-                    >
+                    <select {...field} className="w-full p-2 border rounded-md" required>
                       <option value="transfer">Standard Transfer</option>
                       <option value="sale">Sale</option>
                       <option value="distribution">Distribution</option>
@@ -318,11 +328,7 @@ export function OwnershipManagementPanel({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    isSubmitting ||
-                    !form.watch("toUserId") ||
-                    !form.watch("productId")
-                  }
+                  disabled={isSubmitting || !form.watch("toUserId") || !form.watch("productId")}
                 >
                   {isSubmitting ? "Processing..." : "Send Transfer Request"}
                 </Button>
@@ -331,6 +337,25 @@ export function OwnershipManagementPanel({
           </Form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Ownership Transfer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to transfer ownership of <strong>{selectedProduct?.name}</strong> to <strong>{selectedUser?.name}</strong>? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmedTransfer}>
+              Confirm Transfer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
