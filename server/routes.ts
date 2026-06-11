@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { createServer } from "http";
+import fs from "fs";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -50,60 +51,7 @@ const upload = multer({
   },
 });
 
-async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
-  const isFirebaseConfigured = [
-    process.env.VITE_FIREBASE_API_KEY,
-    process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    process.env.VITE_FIREBASE_PROJECT_ID,
-    process.env.VITE_FIREBASE_STORAGE_BUCKET,
-    process.env.VITE_FIREBASE_APP_ID,
-  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
 
-  if (isFirebaseConfigured) {
-    try {
-      console.log("Uploading payment proof to Firebase Storage...");
-      const { initializeApp, getApps } = await import("firebase/app");
-      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-
-      const firebaseConfig = {
-        apiKey: process.env.VITE_FIREBASE_API_KEY,
-        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.VITE_FIREBASE_APP_ID,
-      };
-
-      const apps = getApps();
-      const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
-      const storage = getStorage(app);
-
-      const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-      const storageRef = ref(storage, `payment-proofs/${uniqueFilename}`);
-      const metadata = { contentType: file.mimetype };
-
-      await uploadBytes(storageRef, file.buffer, metadata);
-      const downloadUrl = await getDownloadURL(storageRef);
-      console.log("Uploaded successfully to Firebase Storage:", downloadUrl);
-      return downloadUrl;
-    } catch (e) {
-      console.error("Failed to upload to Firebase Storage, falling back to local storage:", e);
-    }
-  }
-
-  // Fallback: Save to local directory
-  console.log("Falling back to local storage for payment proof...");
-  const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-  const filePath = path.join(uploadDir, uniqueFilename);
-  await fs.promises.writeFile(filePath, file.buffer);
-  
-  return `/uploads/payment-proofs/${uniqueFilename}`;
-}
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -252,15 +200,6 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -280,6 +219,11 @@ export async function registerRoutes(app: Express) {
       if (!email || !name) {
         return res.status(400).json({ message: "Missing required fields" });
       }
+
+      // Fix: trim email and name before validation/storage to prevent duplicate
+      // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -785,32 +729,28 @@ export async function registerRoutes(app: Express) {
         notes ?? null,
       );
 
-        // Email notification to the recipient
-        const recipient = await storage.getUser(recipientUserId);
-        if (recipient && recipient.email && recipient.notificationsEnabled !== false) {
-          const emailSubject = "KrishiSetu - New Product Ownership Transfer Request";
-          const emailBody = `
-            <h2>New Ownership Transfer Request</h2>
-            <p>Hello <strong>${recipient.name}</strong>,</p>
-            <p><strong>${currentUser.name}</strong> has initiated a product ownership transfer request for <strong>${product.name}</strong> to you.</p>
-            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
-            <br/>
-            <p>Best regards,</p>
-            <p>The KrishiSetu Team</p>
-          `;
-          await sendEmailNotification(recipient.email, emailSubject, emailBody);
-        }
-
-        return res.status(201).json({
-          message: "Transfer request sent. Waiting for acceptance.",
-          transferId: transfer.id,
-        });
-      } catch (error) {
-        console.error("Error transferring ownership:", error);
-        return res
-          .status(500)
-          .json({ message: "Failed to transfer ownership" });
+      // Email notification to the product owner
+      const owner = await storage.getUser(product.ownerId);
+      if (owner && owner.email && owner.notificationsEnabled !== false) {
+        const emailSubject = "KrishiSetu - Product Ownership Request";
+        const emailBody = `
+          <h2>Product Ownership Requested</h2>
+          <p>Hello <strong>${owner.name}</strong>,</p>
+          <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
+          <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+          <br/>
+          <p>Best regards,</p>
+          <p>The KrishiSetu Team</p>
+        `;
+        await sendEmailNotification(owner.email, emailSubject, emailBody);
       }
+
+      return res.status(201).json({
+        message: "Transfer request sent. Waiting for acceptance.",
+        transferId: transfer.id,
+      });
+    } catch (error) {
+      console.error("Error requesting product:", error);
       return res.status(500).json({ message: "Failed to request product" });
     }
   });
@@ -829,78 +769,8 @@ export async function registerRoutes(app: Express) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        const { productId, transferType, notes } = req.body;
-        if (!productId) {
-          return res.status(400).json({ message: "Product ID is required" });
-        }
-
-        const product = await storage.getProduct(productId);
-        if (!product) {
-          return res.status(404).json({ message: "Product not found" });
-        }
-
-        // Prevent requesting your own product
-        if (product.ownerId === requester.id) {
-          return res
-            .status(400)
-            .json({ message: "You already own this product" });
-        }
-
-        // Create a pending ownership transfer (from requester to owner)
-        const transfer = await storage.createOwnershipTransfer({
-          productId,
-          fromUserId: requester.id,
-          toUserId: product.ownerId,
-          transferType: transferType || "request",
-          notes: notes || null,
-          status: "pending",
-        });
-
-        // Log notification before creating it
-        console.log("Creating notification with type:", "product_request");
-
-        // Notify the product owner
-        await storage.createNotification({
-          userId: product.ownerId,
-          title: "Product Ownership Request",
-          message: `${requester.name} requested ownership of ${product.name}.`,
-          type: "product_request",
-          productId: product.id,
-          transferId: transfer.id,
-          fromUserId: requester.id,
-          read: false,
-          createdAt: new Date(),
-        });
-
-        // Optionally log the event
-        await storage.logProductEvent(
-          product.id,
-          "ownership_request",
-          `${requester.name} requested ownership.`,
-          requester.id,
-          { transferId: transfer.id },
-        );
-
-        // Email notification to the product owner
-        const owner = await storage.getUser(product.ownerId);
-        if (owner && owner.email && owner.notificationsEnabled !== false) {
-          const emailSubject = "KrishiSetu - Product Ownership Request";
-          const emailBody = `
-            <h2>Product Ownership Requested</h2>
-            <p>Hello <strong>${owner.name}</strong>,</p>
-            <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
-            <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
-            <br/>
-            <p>Best regards,</p>
-            <p>The KrishiSetu Team</p>
-          `;
-          await sendEmailNotification(owner.email, emailSubject, emailBody);
-        }
-
-        return res.status(201).json({
-          message: "Ownership request sent. Waiting for acceptance.",
-          transferId: transfer.id,
-        });
+        const transfers = await storage.getPendingTransfersForUser(user.id);
+        return res.json(transfers);
       } catch (error) {
         console.error("Error fetching pending transfers:", error);
         return res.status(500).json({ message: "Failed to fetch pending transfers" });
