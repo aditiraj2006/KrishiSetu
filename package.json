@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck",
     "test": "vitest run --config server/vitest.config.ts",
-    "db:push": "drizzle-kit push",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
