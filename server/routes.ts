@@ -21,6 +21,7 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { marketPricingService } from "./marketPricing";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1830,6 +1831,187 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Quality analysis failed" });
     }
   });
+
+  // Market Pricing API Endpoints
+  // Get real-time market prices for a crop
+  app.get("/api/market/prices", async (req: Request, res: Response) => {
+    try {
+      const { crop, market } = req.query;
+
+      if (!crop || typeof crop !== "string") {
+        return res.status(400).json({ message: "Crop parameter is required" });
+      }
+
+      const prices = await marketPricingService.fetchRealtimePrices(
+        crop,
+        market && typeof market === "string" ? market : undefined,
+      );
+
+      return res.json({
+        crop,
+        market: market || "all",
+        prices,
+        last_updated: new Date(),
+        data_freshness: "Real-time (updated every 4 hours)",
+      });
+    } catch (error) {
+      console.error("Error fetching market prices:", error);
+      return res.status(500).json({ message: "Failed to fetch market prices" });
+    }
+  });
+
+  // Get 7-day price trend for trend analysis
+  app.get("/api/market/trend/:crop/:market", async (req: Request, res: Response) => {
+    try {
+      const { crop, market } = req.params;
+      const days = req.query.days ? parseInt(req.query.days as string) : 7;
+
+      if (days < 1 || days > 30) {
+        return res.status(400).json({ message: "Days must be between 1 and 30" });
+      }
+
+      const trend = await marketPricingService.getPriceTrend(crop, market, days);
+
+      return res.json({
+        crop,
+        market,
+        days,
+        trend_data: trend,
+        analysis: trend.length > 1 ? calculateTrendAnalysis(trend) : null,
+      });
+    } catch (error) {
+      console.error("Error fetching price trend:", error);
+      return res.status(500).json({ message: "Failed to fetch price trend" });
+    }
+  });
+
+  // Get nearby market prices for comparison
+  app.post("/api/market/nearby-prices", async (req: Request, res: Response) => {
+    try {
+      const { crop, latitude, longitude, radius } = req.body;
+
+      if (!crop || latitude === undefined || longitude === undefined) {
+        return res.status(400).json({
+          message: "Crop, latitude, and longitude are required",
+        });
+      }
+
+      const nearbyPrices = await marketPricingService.getNearbyMarketPrices(
+        crop,
+        { latitude, longitude },
+        radius || 50,
+      );
+
+      return res.json({
+        crop,
+        user_location: { latitude, longitude },
+        search_radius_km: radius || 50,
+        nearby_market_prices: nearbyPrices.slice(0, 10), // Top 10 markets
+        best_price: nearbyPrices[0]?.price_per_unit,
+        price_range: {
+          min: Math.min(...nearbyPrices.map((p) => p.price_per_unit)),
+          max: Math.max(...nearbyPrices.map((p) => p.price_per_unit)),
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching nearby market prices:", error);
+      return res.status(500).json({ message: "Failed to fetch nearby market prices" });
+    }
+  });
+
+  // Subscribe to price alerts
+  app.post("/api/market/alerts/subscribe", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const { crop, target_price, alert_type } = req.body;
+
+      if (!crop || !target_price || !alert_type) {
+        return res.status(400).json({
+          message: "Crop, target_price, and alert_type are required",
+        });
+      }
+
+      if (!["above", "below"].includes(alert_type)) {
+        return res.status(400).json({
+          message: "alert_type must be 'above' or 'below'",
+        });
+      }
+
+      const alertId = await marketPricingService.subscribePriceAlert(
+        firebaseUid,
+        crop,
+        target_price,
+        alert_type,
+      );
+
+      return res.json({
+        alert_id: alertId,
+        crop,
+        target_price,
+        alert_type,
+        status: "active",
+        message: "Price alert subscription successful. You will receive notifications when prices cross your target.",
+      });
+    } catch (error) {
+      console.error("Error setting up price alert:", error);
+      return res.status(500).json({ message: "Failed to set up price alert" });
+    }
+  });
+
+  // Predict next day's price
+  app.get("/api/market/predict/:crop/:market", async (req: Request, res: Response) => {
+    try {
+      const { crop, market } = req.params;
+
+      const prediction = await marketPricingService.predictNextDayPrice(crop, market);
+
+      return res.json({
+        crop,
+        market,
+        prediction: {
+          predicted_price: prediction.predicted_price,
+          trend: prediction.trend,
+          confidence: `${(prediction.confidence * 100).toFixed(0)}%`,
+        },
+        recommendation:
+          prediction.trend === "up"
+            ? "Prices are expected to rise. Consider waiting to sell for better returns."
+            : prediction.trend === "down"
+              ? "Prices are expected to fall. Consider selling soon to avoid losses."
+              : "Prices are expected to remain stable.",
+      });
+    } catch (error) {
+      console.error("Error predicting price:", error);
+      return res.status(500).json({ message: "Failed to predict price" });
+    }
+  });
+
+  // Helper function for trend analysis
+  function calculateTrendAnalysis(priceData: any[]) {
+    if (priceData.length < 2) return null;
+
+    const prices = priceData.map((p) => p.price_per_unit);
+    const firstPrice = prices[0];
+    const lastPrice = prices[prices.length - 1];
+    const percentageChange = ((lastPrice - firstPrice) / firstPrice) * 100;
+
+    return {
+      percentage_change: percentageChange.toFixed(2),
+      direction: percentageChange > 0 ? "up" : percentageChange < 0 ? "down" : "stable",
+      average_price: (prices.reduce((a, b) => a + b) / prices.length).toFixed(2),
+      highest_price: Math.max(...prices),
+      lowest_price: Math.min(...prices),
+      volatility: calculateVolatility(prices),
+    };
+  }
+
+  // Helper function for calculating price volatility
+  function calculateVolatility(prices: number[]) {
+    const mean = prices.reduce((a, b) => a + b) / prices.length;
+    const variance = prices.reduce((acc, price) => acc + Math.pow(price - mean, 2), 0) / prices.length;
+    const stdDev = Math.sqrt(variance);
+    return (stdDev / mean * 100).toFixed(2);
+  }
 
   const server = createServer(app);
   return server;
