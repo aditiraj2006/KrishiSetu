@@ -23,6 +23,7 @@ import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
 import { marketPricingService } from "./marketPricing";
 import { farmerCommunityService } from "./farmerCommunity";
+import { climateYieldPredictionService } from "./climateYieldPrediction";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
