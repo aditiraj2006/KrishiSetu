@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { Link } from "wouter";
 import { NavigationHeader } from "@/components/NavigationHeader";
 import { ProductSearch } from "@/components/ProductSearch";
+import EmptyState from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -229,8 +230,11 @@ export default function RequestProductsPage() {
         )}
 
         {!isLoading && !isError && filteredProducts.length === 0 && (
-          <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground">
-            No products available for request at this time.
+          <div className="w-full">
+            <EmptyState
+              title="No products available"
+              description="No products available for request at this time."
+            />
           </div>
         )}
 

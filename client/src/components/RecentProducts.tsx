@@ -90,27 +90,22 @@ const recentProducts: any[] = [];
 
       <CardContent className="p-0">
         {recentProducts.length === 0 ? (
-        <div className="p-10">
-  <div className="flex flex-col items-center gap-5">
-    <div className="text-6xl">
-      🌾
-    </div>
-
-    <EmptyState
-      title="No Products Registered Yet"
-      description="Start tracking your agricultural products by registering your first item. Once added, products will appear here."
-    />
-
-    <Link href="/product-registration">
-      <Button
-        className="bg-primary hover:bg-primary/90"
-        data-testid="button-register-first-product"
-      >
-        Register First Product
-      </Button>
-    </Link>
-  </div>
-</div>
+          <div className="p-10">
+            <EmptyState
+              title="No Products Registered Yet"
+              description="Start tracking your agricultural products by registering your first item. Once added, products will appear here."
+              action={
+                <Link href="/product-registration">
+                  <Button 
+                    className="bg-primary hover:bg-primary/90"
+                    data-testid="button-register-first-product"
+                  >
+                    Register First Product
+                  </Button>
+                </Link>
+              }
+            />
+          </div>
         ) : (
           <div className="divide-y divide-border">
             {recentProducts.map((product) => (

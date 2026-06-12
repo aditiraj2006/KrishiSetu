@@ -381,6 +381,10 @@ export async function registerRoutes(app: Express) {
         return res.status(404).json({ message: "User not found" });
       }
 
+      if (user.role !== "farmer") {
+        return res.status(403).json({ message: "Forbidden: Only farmers can register products" });
+      }
+
       const productData = {
         ...parse.data,
         ownerId: user.id,

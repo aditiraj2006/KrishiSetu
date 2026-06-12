@@ -4,6 +4,7 @@ import { NavigationHeader } from "@/components/NavigationHeader";
 import { QRCodeGenerator } from "@/components/QRCodeGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import EmptyState from "@/components/ui/EmptyState";
 import CopyableText from "@/components/ui/CopyableText";
 import { useAuth } from "@/hooks/useAuth";
 import { getAuthHeaders } from "@/lib/authHeaders";
@@ -57,8 +58,11 @@ export default function ScannedProductsPage() {
         )}
         {error && <div className="text-center text-red-500">{error}</div>}
         {!isLoading && !error && products.length === 0 && (
-          <div className="bg-muted p-4 rounded-lg text-center text-muted-foreground">
-            No scanned products yet.
+          <div className="w-full py-4">
+            <EmptyState
+              title="No scanned products"
+              description="No scanned products yet."
+            />
           </div>
         )}
         <div className="space-y-6">

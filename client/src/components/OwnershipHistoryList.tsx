@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { ArrowUpRight, Calendar, Shield, User } from "lucide-react";
+import { ArrowUpRight, Calendar, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -95,8 +95,7 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
 
   if (owners.length === 0) {
     return (
-      <div className="text-center py-6">
-        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+      <div className="py-6">
         <EmptyState
           title="No ownership history found"
           description="Ownership records will appear here once available."

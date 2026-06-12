@@ -11,9 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "@/components/ui/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useProductJourney, useProducts } from "@/hooks/useProducts";
-import EmptyState from "@/components/ui/EmptyState";
 
 interface JourneyStep {
   id: string;
@@ -211,31 +211,28 @@ export function SupplyChainMap({
       {/* Map & Steps */}
       <CardContent className="p-0">
         {journeySteps.length === 0 ? (
-  <div className="p-10">
-    <div className="flex flex-col items-center gap-5">
-      <div className="text-6xl">🚚</div>
-
-      <EmptyState
-        title={
-          selectedProductId
-            ? "No Journey Data Available"
-            : "No Product Selected"
-        }
-        description={
-          selectedProductId
-            ? "This product has not been transferred yet. Its journey will appear here once ownership or location updates are recorded."
-            : "Choose a product from the dropdown above to visualize its complete supply chain journey."
-        }
-      />
-
-      {!selectedProductId && (
-        <p className="text-sm text-muted-foreground">
-          Select a product to begin tracking its route.
-        </p>
-      )}
-    </div>
-  </div>
-) : (
+          <div className="p-10">
+            <div className="flex flex-col items-center gap-5">
+              <EmptyState
+                title={
+                  selectedProductId
+                    ? "No Journey Data Available"
+                    : "No Product Selected"
+                }
+                description={
+                  selectedProductId
+                    ? "This product has not been transferred yet. Its journey will appear here once ownership or location updates are recorded."
+                    : "Choose a product from the dropdown above to visualize its complete supply chain journey."
+                }
+              />
+              {!selectedProductId && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Select a product to begin tracking its route.
+                </p>
+              )}
+            </div>
+          </div>
+        ) : (
           <>
             <div className="relative bg-gradient-to-b from-blue-50/50 to-green-50/50 dark:from-blue-950/20 dark:to-green-950/20">
               {/* Mobile: Vertical layout with arrows for ALL items */}
