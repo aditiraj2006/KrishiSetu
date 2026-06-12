@@ -223,17 +223,6 @@ export async function registerRoutes(app: Express) {
       // Validate required fields
       if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
-      const trimmedEmail =
-        typeof email === "string" ? email.trim() : email;
-
-      const trimmedName =
-        typeof name === "string" ? name.trim() : name;
-
-      if (!trimmedEmail || !trimmedName) {
-        return res.status(400).json({
-          message: "Missing required fields",
-        });
-      }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
         return res.status(401).json({
