@@ -12,6 +12,7 @@ import {
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import fs from "fs";
 import { createServer } from "http";
+import fs from "fs";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -20,6 +21,7 @@ import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof as firebaseAdminUpload } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
+import { sendEmailNotification } from "./email";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -50,60 +52,7 @@ const upload = multer({
   },
 });
 
-async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
-  const isFirebaseConfigured = [
-    process.env.VITE_FIREBASE_API_KEY,
-    process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    process.env.VITE_FIREBASE_PROJECT_ID,
-    process.env.VITE_FIREBASE_STORAGE_BUCKET,
-    process.env.VITE_FIREBASE_APP_ID,
-  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
 
-  if (isFirebaseConfigured) {
-    try {
-      console.log("Uploading payment proof to Firebase Storage...");
-      const { initializeApp, getApps } = await import("firebase/app");
-      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-
-      const firebaseConfig = {
-        apiKey: process.env.VITE_FIREBASE_API_KEY,
-        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.VITE_FIREBASE_APP_ID,
-      };
-
-      const apps = getApps();
-      const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
-      const storage = getStorage(app);
-
-      const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-      const storageRef = ref(storage, `payment-proofs/${uniqueFilename}`);
-      const metadata = { contentType: file.mimetype };
-
-      await uploadBytes(storageRef, file.buffer, metadata);
-      const downloadUrl = await getDownloadURL(storageRef);
-      console.log("Uploaded successfully to Firebase Storage:", downloadUrl);
-      return downloadUrl;
-    } catch (e) {
-      console.error("Failed to upload to Firebase Storage, falling back to local storage:", e);
-    }
-  }
-
-  // Fallback: Save to local directory
-  console.log("Falling back to local storage for payment proof...");
-  const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-  const filePath = path.join(uploadDir, uniqueFilename);
-  await fs.promises.writeFile(filePath, file.buffer);
-  
-  return `/uploads/payment-proofs/${uniqueFilename}`;
-}
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -234,8 +183,9 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = await verifyFirebaseIdToken(token);
-    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    const headerUid =
+      req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -273,27 +223,40 @@ export async function registerRoutes(app: Express) {
       // Validate required fields
       if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
+      const trimmedEmail =
+        typeof email === "string" ? email.trim() : email;
+
+      const trimmedName =
+        typeof name === "string" ? name.trim() : name;
+
+      if (!trimmedEmail || !trimmedName) {
+        return res.status(400).json({
+          message: "Missing required fields",
+        });
       }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
       }
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByFirebaseUid(authFirebaseUid);
+      const existingUser =
+        await storage.getUserByFirebaseUid(authFirebaseUid);
 
       if (existingUser) {
-        return res.json(existingUser); // Return existing user if already registered
+        return res.json(existingUser);
       }
 
-      // Create new user with username derived from email
-      const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
+      const username =
+        trimmedEmail.split("@")[0] +
+        Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
         email: trimmedEmail,
         name: trimmedName,
         username,
-        role: "farmer", // default role
+        role: "farmer",
         firebaseUid: authFirebaseUid,
         profileImage,
         roleSelected: roleSelected || false,
@@ -304,7 +267,9 @@ export async function registerRoutes(app: Express) {
       return res.status(201).json(user);
     } catch (error) {
       console.error("Error registering user:", error);
-      return res.status(500).json({ message: "Failed to register user" });
+      return res.status(500).json({
+        message: "Failed to register user",
+      });
     }
   });
 
@@ -778,15 +743,28 @@ export async function registerRoutes(app: Express) {
         notes ?? null,
       );
 
+      // Email notification to the product owner
+      const owner = await storage.getUser(product.ownerId);
+      if (owner && owner.email && owner.notificationsEnabled !== false) {
+        const emailSubject = "KrishiSetu - Product Ownership Request";
+        const emailBody = `
+          <h2>Product Ownership Requested</h2>
+          <p>Hello <strong>${owner.name}</strong>,</p>
+          <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
+          <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+          <br/>
+          <p>Best regards,</p>
+          <p>The KrishiSetu Team</p>
+        `;
+        await sendEmailNotification(owner.email, emailSubject, emailBody);
+      }
+
       return res.status(201).json({
-        message: "Ownership request sent. Waiting for acceptance.",
+        message: "Transfer request sent. Waiting for acceptance.",
         transferId: transfer.id,
       });
     } catch (error) {
-      console.error("Error in /api/request-product:", error);
-      if (error instanceof Error && (error as any).status) {
-        return res.status((error as any).status).json({ message: error.message });
-      }
+      console.error("Error requesting product:", error);
       return res.status(500).json({ message: "Failed to request product" });
     }
   });
@@ -805,8 +783,8 @@ export async function registerRoutes(app: Express) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        const pendingTransfers = await storage.getPendingTransfersForUser(user.id);
-        return res.json(pendingTransfers);
+        const transfers = await storage.getPendingTransfersForUser(user.id);
+        return res.json(transfers);
       } catch (error) {
         console.error("Error fetching pending transfers:", error);
         return res.status(500).json({ message: "Failed to fetch pending transfers" });
@@ -916,6 +894,19 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
+
+        console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
         if (!transfer) return res.status(404).json({ message: "Transfer not found" });
 

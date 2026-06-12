@@ -34,8 +34,17 @@ export async function getDb(): Promise<Db> {
   if (!uri) {
     throw new Error("MONGODB_URI is not defined in your .env file. Please check your configuration.");
   }
+
+  const uri = process.env.MONGODB_URI?.trim();
+  if (!uri) {
+    throw new Error(
+      "MONGODB_URI is not set. Copy .env.example to .env and configure your MongoDB connection string.",
+    );
+  }
+
   const client = new MongoClient(uri);
   await client.connect();
+
   db = client.db(process.env.MONGO_DB_NAME || "krishisetu");
   return db;
 }
@@ -260,6 +269,7 @@ export class MongoStorage {
           { farmName: { $regex: query, $options: "i" } },
         ],
       })
+      .limit(50)
       .toArray();
   }
 
@@ -347,6 +357,7 @@ export class MongoStorage {
         ],
       })
       .sort({ createdAt: -1 }) // Newest first
+      .limit(50)
       .toArray();
   }
 

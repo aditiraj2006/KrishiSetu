@@ -187,12 +187,40 @@ npm install
 
 ### Configure Environment Variables
 
-1. Create a `.env` file in the root directory.
-2. Copy values from `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
-3. Fill in your API keys and configuration strings in `.env`.
+1. Create a `.env` file in the root directory
+2. Copy values from `.env.example`
+3. Add your Firebase, MongoDB, Gemini, and Email credentials:
+
+```env
+# Firebase Configuration
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
+VITE_FIREBASE_PROJECT_ID=your_project_id_here
+VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id_here
+VITE_FIREBASE_APP_ID=your_app_id_here
+FIREBASE_PROJECT_ID=your_project_id_here
+
+# MongoDB Connection
+MONGODB_URI=your_mongodb_connection_string_here
+MONGO_DB_NAME=mongo_db_name
+
+# Gemini Api key
+GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+
+# Nodemailer / SMTP Email Alerts Configuration
+EMAIL_SERVICE=gmail
+EMAIL_USER=your-email-address@gmail.com
+EMAIL_PASS=your-16-character-app-password
+```
+
+#### How to get Gmail SMTP Credentials:
+To get a valid `EMAIL_PASS` App Password for Google:
+1. Go to your **[Google Account Security Settings](https://myaccount.google.com/security)**.
+2. Under the *"How you sign in to Google"* section, ensure **2-Step Verification** is turned ON.
+3. Search for **"App passwords"** in the top settings search bar, or navigate directly to **[App Passwords](https://myaccount.google.com/apppasswords)**.
+4. Enter a name for the app (e.g., `"KrishiSetu Alert"`).
+5. Click **Create**. Copy the generated **16-character passcode** (shown in a yellow box) and paste it into the `EMAIL_PASS` field of your `.env` file without spaces.
 
 > ⚠️ **IMPORTANT**: Never commit your `.env` file. It contains sensitive credentials!
 
