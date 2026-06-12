@@ -661,7 +661,8 @@ export async function registerRoutes(app: Express) {
   app.get("/api/scans/recent", async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
-      const recentScans = await storage.getRecentScans(limit);
+      const userId = req.query.userId as string | undefined;
+      const recentScans = await storage.getRecentScans(limit, userId);
       return res.json(recentScans);
     } catch (error) {
       console.error("Error fetching recent scans:", error);
