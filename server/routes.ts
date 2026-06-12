@@ -303,6 +303,7 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to update profile" });
     }
   });
+  
   app.get("/api/users/search", requireFirebaseAuth, async (req, res) => {
     try {
       const firebaseUid = res.locals.firebaseUid as string;

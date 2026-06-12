@@ -25,47 +25,48 @@ app.use(
       policy: "cross-origin",
     },
 
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
+    contentSecurityPolicy:
+      process.env.NODE_ENV === "production"
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
 
-        scriptSrc: [
-          "'self'",
-          "https://www.gstatic.com",
-          "https://www.googleapis.com",
-        ],
+              scriptSrc: [
+                "'self'",
+                "https://www.gstatic.com",
+                "https://www.googleapis.com",
+              ],
 
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "https://fonts.googleapis.com",
-        ],
+              styleSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "https://fonts.googleapis.com",
+              ],
 
-        fontSrc: [
-          "'self'",
-          "https://fonts.gstatic.com",
-          "data:",
-        ],
+              fontSrc: [
+                "'self'",
+                "https://fonts.gstatic.com",
+                "data:",
+              ],
 
-        imgSrc: [
-          "'self'",
-          "data:",
-          "https:",
-        ],
+              imgSrc: [
+                "'self'",
+                "data:",
+                "https:",
+              ],
 
-        connectSrc: [
-          "'self'",
-          "https://firestore.googleapis.com",
-          "https://identitytoolkit.googleapis.com",
-          "https://securetoken.googleapis.com",
-          "ws:",
-          "wss:",
-        ],
+              connectSrc: [
+                "'self'",
+                "https://firestore.googleapis.com",
+                "https://identitytoolkit.googleapis.com",
+                "https://securetoken.googleapis.com",
+              ],
 
-        objectSrc: ["'none'"],
-        frameAncestors: ["'none'"],
-      },
-    },
+              objectSrc: ["'none'"],
+              frameAncestors: ["'none'"],
+            },
+          }
+        : false,
 
     hsts:
       process.env.NODE_ENV === "production"
