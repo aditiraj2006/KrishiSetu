@@ -21,6 +21,8 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { weatherService, weatherDataSchema } from "./weather";
+import { soilValidationService, soilTestSchema } from "./soil";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1830,6 +1832,94 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Quality analysis failed" });
     }
   });
+
+  // Weather forecast endpoints
+  app.get("/api/weather", async (req: Request, res: Response) => {
+    try {
+      const { location, latitude, longitude, region } = req.query;
+
+      if (!location || !latitude || !longitude) {
+        return res.status(400).json({
+          message: "Location, latitude, and longitude are required",
+        });
+      }
+
+      const weather = await weatherService.getWeather(
+        location as string,
+        parseFloat(latitude as string),
+        parseFloat(longitude as string),
+        region as string || "NORTH"
+      );
+
+      if (!weather) {
+        return res.status(503).json({
+          message: "Unable to fetch weather data. Try again later.",
+        });
+      }
+
+      return res.json(weather);
+    } catch (error) {
+      console.error("Weather API error:", error);
+      return res.status(500).json({ message: "Failed to fetch weather data" });
+    }
+  });
+
+  app.post("/api/weather/clear-cache", async (req: Request, res: Response) => {
+    try {
+      weatherService.clearCache();
+      return res.json({ message: "Weather cache cleared" });
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to clear weather cache" });
+    }
+  });
+
+  // Soil test validation endpoints
+  app.post("/api/soil/validate", async (req: Request, res: Response) => {
+    try {
+      const soilData = req.body;
+
+      // Validate against schema
+      const validatedData = soilTestSchema.parse({
+        ...soilData,
+        collectionDate: new Date(soilData.collectionDate),
+      });
+
+      // Validate soil test results
+      const validationResult =
+        soilValidationService.validateSoilTest(validatedData);
+
+      return res.json(validationResult);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          message: "Invalid soil test data",
+          errors: error.errors.map((e) => ({
+            path: e.path.join("."),
+            message: e.message,
+          })),
+        });
+      }
+
+      console.error("Soil validation error:", error);
+      return res.status(500).json({ message: "Soil validation failed" });
+    }
+  });
+
+  app.get(
+    "/api/soil/audit-log/:farmerId",
+    async (req: Request, res: Response) => {
+      try {
+        const { farmerId } = req.params;
+
+        const auditLog = soilValidationService.getAuditLog(farmerId);
+
+        return res.json({ farmerId, auditLog });
+      } catch (error) {
+        console.error("Audit log error:", error);
+        return res.status(500).json({ message: "Failed to fetch audit log" });
+      }
+    }
+  );
 
   const server = createServer(app);
   return server;
