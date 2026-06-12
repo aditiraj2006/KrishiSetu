@@ -9,8 +9,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProductByBatch } from "@/hooks/useProducts";
 import { getAuthHeaders } from "@/lib/authHeaders";
 
-// Secure pattern to validate clean tracking batch IDs (Hex/UUID alphanumeric formats)
-const BATCH_ID_REGEX = /^[a-f0-9-]+$/i;
+// Secure pattern to validate clean tracking batch IDs (Alphanumeric formats)
+const BATCH_ID_REGEX = /^[a-z0-9-]+$/i;
 
 export function QRCodeScanner() {
   const [isScanning, setIsScanning] = useState(false);

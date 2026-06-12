@@ -30,7 +30,6 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-
   const uri = process.env.MONGODB_URI?.trim();
   if (!uri) {
     throw new Error(

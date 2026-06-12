@@ -10,8 +10,8 @@ import {
   insertUserSchema,
 } from "@shared/schema";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
-import { createServer } from "http";
 import fs from "fs";
+import { createServer } from "http";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -216,16 +216,12 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
-      const trimmedEmail =
-        typeof email === "string" ? email.trim() : email;
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
 
-      const trimmedName =
-        typeof name === "string" ? name.trim() : name;
-
+      // Validate required fields
       if (!trimmedEmail || !trimmedName) {
-        return res.status(400).json({
-          message: "Missing required fields",
-        });
+        return res.status(400).json({ message: "Missing required fields" });
       }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
