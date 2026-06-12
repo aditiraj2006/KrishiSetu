@@ -51,14 +51,6 @@ const upload = multer({
   },
 });
 
-
-
-const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("Created upload directory:", uploadDir);
-}
-
 const allowedUserUpdateFields = new Set([
   "name",
   "profileImage",
