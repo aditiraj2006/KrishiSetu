@@ -19,6 +19,7 @@ import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -48,61 +49,6 @@ const upload = multer({
     }
   },
 });
-
-async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
-  const isFirebaseConfigured = [
-    process.env.VITE_FIREBASE_API_KEY,
-    process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    process.env.VITE_FIREBASE_PROJECT_ID,
-    process.env.VITE_FIREBASE_STORAGE_BUCKET,
-    process.env.VITE_FIREBASE_APP_ID,
-  ].every((val) => val && val.trim().length > 0 && !val.startsWith("your_") && val !== "placeholder-api-key");
-
-  if (isFirebaseConfigured) {
-    try {
-      console.log("Uploading payment proof to Firebase Storage...");
-      const { initializeApp, getApps } = await import("firebase/app");
-      const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
-
-      const firebaseConfig = {
-        apiKey: process.env.VITE_FIREBASE_API_KEY,
-        authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.VITE_FIREBASE_APP_ID,
-      };
-
-      const apps = getApps();
-      const app = apps.length === 0 ? initializeApp(firebaseConfig) : apps[0];
-      const storage = getStorage(app);
-
-      const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-      const storageRef = ref(storage, `payment-proofs/${uniqueFilename}`);
-      const metadata = { contentType: file.mimetype };
-
-      await uploadBytes(storageRef, file.buffer, metadata);
-      const downloadUrl = await getDownloadURL(storageRef);
-      console.log("Uploaded successfully to Firebase Storage:", downloadUrl);
-      return downloadUrl;
-    } catch (e) {
-      console.error("Failed to upload to Firebase Storage, falling back to local storage:", e);
-    }
-  }
-
-  // Fallback: Save to local directory
-  console.log("Falling back to local storage for payment proof...");
-  const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  const uniqueFilename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
-  const filePath = path.join(uploadDir, uniqueFilename);
-  await fs.promises.writeFile(filePath, file.buffer);
-  
-  return `/uploads/payment-proofs/${uniqueFilename}`;
-}
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -250,16 +196,6 @@ export async function registerRoutes(app: Express) {
     "/uploads/payment-proofs",
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
-
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -275,8 +211,13 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
+      // Fix: trim email and name before validation/storage to prevent duplicate
+      // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
+
       // Validate required fields
-      if (!email || !name) {
+      if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
