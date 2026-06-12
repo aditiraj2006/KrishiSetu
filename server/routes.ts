@@ -12,14 +12,13 @@ import {
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import fs from "fs";
 import { createServer } from "http";
-import fs from "fs";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
-import { uploadPaymentProof as firebaseAdminUpload } from "./firebaseStorage";
+import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
 
@@ -223,6 +222,7 @@ export async function registerRoutes(app: Express) {
       // Validate required fields
       if (!trimmedEmail || !trimmedName) {
         return res.status(400).json({ message: "Missing required fields" });
+      }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
         return res.status(401).json({
@@ -869,7 +869,11 @@ export async function registerRoutes(app: Express) {
       // If you handle paymentProof file upload, upload it to Firebase Storage
       if (req.file && req.file.buffer) {
         try {
-          filledFields.paymentProofUrl = await uploadPaymentProof(req.file);
+          filledFields.paymentProofUrl = await uploadPaymentProof(
+            req.file.buffer,
+            req.file.originalname,
+            req.file.mimetype,
+          );
           if (!registeredFields.includes("paymentProofUrl")) {
             registeredFields.push("paymentProofUrl");
           }

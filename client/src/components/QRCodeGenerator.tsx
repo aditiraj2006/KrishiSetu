@@ -17,7 +17,6 @@ export function QRCodeGenerator({ product }: QRCodeGeneratorProps) {
     ? relativePath
     : `${window.location.origin}${relativePath}`;
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
-  const qrValue = product.qrCode || `/product/${product.batchId || product.id}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(qrValue);

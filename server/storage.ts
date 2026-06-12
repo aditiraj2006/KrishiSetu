@@ -30,11 +30,6 @@ let db: Db | null = null;
 
 export async function getDb(): Promise<Db> {
   if (db) return db;
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    throw new Error("MONGODB_URI is not defined in your .env file. Please check your configuration.");
-  }
-
   const uri = process.env.MONGODB_URI?.trim();
   if (!uri) {
     throw new Error(
