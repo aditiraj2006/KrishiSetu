@@ -211,13 +211,26 @@ export function SupplyChainMap({
       {/* Map & Steps */}
       <CardContent className="p-0">
         {journeySteps.length === 0 ? (
-          <div className="p-8">
-            <EmptyState
-              title={selectedProductId ? "No transfers yet" : "Select a product"}
-              description={selectedProductId
-                ? "This product is currently with the original farmer."
-                : "Select a product to view its supply chain journey"}
-            />
+          <div className="p-10">
+            <div className="flex flex-col items-center gap-5">
+              <EmptyState
+                title={
+                  selectedProductId
+                    ? "No Journey Data Available"
+                    : "No Product Selected"
+                }
+                description={
+                  selectedProductId
+                    ? "This product has not been transferred yet. Its journey will appear here once ownership or location updates are recorded."
+                    : "Choose a product from the dropdown above to visualize its complete supply chain journey."
+                }
+              />
+              {!selectedProductId && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Select a product to begin tracking its route.
+                </p>
+              )}
+            </div>
           </div>
         ) : (
           <>

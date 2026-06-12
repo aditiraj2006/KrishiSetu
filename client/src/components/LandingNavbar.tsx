@@ -5,6 +5,7 @@ import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import "./LandingNavbar.css";
 
+
 const LandingNavbar = () => {
   const [location, setLocation] = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,18 +13,26 @@ const LandingNavbar = () => {
   const navRef = useRef<HTMLElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
+const { user, logout } = useAuth();
+const isAuthenticated = !!user;
+  
 
-  const handleGetStarted = () => {
-    setMenuOpen(false);
+ const handleGetStarted = () => {
+  setMenuOpen(false);
+
+  if (isAuthenticated) {
     setLocation("/dashboard");
-  };
+  } else {
+    setLocation("/login");
+  }
+};
 
-  const navigateTo = (path: string) => {
-    setMenuOpen(false);
-    setLocation(path);
-  };
+const navigateTo = (path: string) => {
+  setMenuOpen(false);
+  setLocation(path);
+};
 
-  const scrollToFeatures = () => {
+const scrollToFeatures = () => {
     const element = document.getElementById("features");
     if (!element) return;
     const navHeight = navRef.current?.offsetHeight ?? 0;
@@ -43,9 +52,7 @@ const LandingNavbar = () => {
     setLocation("/");
   };
 
-  const { user, logout } = useAuth();
-  const isAuthenticated = !!user;
-
+  
   const handleLogout = () => {
     setMenuOpen(false);
     logout();

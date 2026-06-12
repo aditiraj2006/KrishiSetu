@@ -1,8 +1,18 @@
-import { ArrowRightLeft, Medal, Package, ShieldCheck, TrendingUp, Truck } from "lucide-react";
+import {
+  ArrowRightLeft,
+  Medal,
+  Package,
+  ShieldCheck,
+  TrendingUp,
+  Truck,
+  BarChart3,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useStats } from "@/hooks/useProducts";
+import { EmptyState } from "./EmptyState";
+
 
 export function StatsOverview() {
   const { user } = useAuth();
@@ -27,22 +37,39 @@ export function StatsOverview() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="hover-lift">
-          <CardContent className="p-6">
-            <div className="text-destructive text-sm">Failed to load stats</div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+if (error) {
+  return (
+    <Card className="mb-8">
+      <CardContent>
+        <EmptyState
+          icon={<BarChart3 size={64} />}
+          title="Statistics Unavailable"
+          description="We couldn't load dashboard analytics right now. Try refreshing the page or check again later."
+          actionText="Refresh"
+          onAction={() => window.location.reload()}
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
-  if (!stats) {
-    return null;
-  }
-
+ if (!stats) {
+  return (
+    <Card className="mb-8">
+      <CardContent>
+        <EmptyState
+          icon={<BarChart3 size={64} />}
+          title="No Analytics Available"
+          description="Add products and transactions to start generating dashboard insights."
+          actionText="Scan QR"
+          onAction={() => {
+            window.location.href = "/qr-scanner";
+          }}
+        />
+      </CardContent>
+    </Card>
+  );
+}
 
 
   const statCards =
