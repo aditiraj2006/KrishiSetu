@@ -22,6 +22,7 @@ import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
 import { marketPricingService } from "./marketPricing";
+import { farmerCommunityService } from "./farmerCommunity";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -2012,6 +2013,228 @@ export async function registerRoutes(app: Express) {
     const stdDev = Math.sqrt(variance);
     return (stdDev / mean * 100).toFixed(2);
   }
+
+  // Farmer Community API Endpoints
+  // Create forum discussion
+  app.post("/api/community/forum", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const { category, topic, title, content, tags } = req.body;
+
+      const post = await farmerCommunityService.createForumPost({
+        author_id: user.id,
+        author_name: user.name,
+        category,
+        topic,
+        title,
+        content,
+        tags: tags || [],
+      });
+
+      return res.status(201).json({
+        message: "Forum post created successfully",
+        post,
+      });
+    } catch (error) {
+      console.error("Error creating forum post:", error);
+      return res.status(500).json({ message: "Failed to create forum post" });
+    }
+  });
+
+  // Get forum discussions
+  app.get("/api/community/forum", async (req: Request, res: Response) => {
+    try {
+      const { category, topic } = req.query;
+
+      if (!category || typeof category !== "string") {
+        return res.status(400).json({ message: "Category parameter is required" });
+      }
+
+      const discussions = await farmerCommunityService.getForumDiscussions(
+        category,
+        topic && typeof topic === "string" ? topic : undefined,
+      );
+
+      return res.json({
+        category,
+        topic: topic || "all",
+        discussions_count: discussions.length,
+        discussions,
+      });
+    } catch (error) {
+      console.error("Error fetching forum discussions:", error);
+      return res.status(500).json({ message: "Failed to fetch forum discussions" });
+    }
+  });
+
+  // Add reply to discussion
+  app.post("/api/community/forum/:postId/reply", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const { postId } = req.params;
+      const { content } = req.body;
+
+      const reply = await farmerCommunityService.addDiscussionReply({
+        post_id: postId,
+        author_id: user.id,
+        author_name: user.name,
+        content,
+      });
+
+      return res.status(201).json({
+        message: "Reply added successfully",
+        reply,
+      });
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      return res.status(500).json({ message: "Failed to add reply" });
+    }
+  });
+
+  // Share farming experience
+  app.post("/api/community/experiences", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const { crop, region, technique, description, results, yield_improvement, cost_savings, difficulty_level, tags } = req.body;
+
+      const experience = await farmerCommunityService.shareExperience({
+        author_id: user.id,
+        author_name: user.name,
+        crop,
+        region,
+        technique,
+        description,
+        results,
+        yield_improvement,
+        cost_savings,
+        difficulty_level,
+        tags: tags || [],
+      });
+
+      return res.status(201).json({
+        message: "Experience shared successfully",
+        experience,
+      });
+    } catch (error) {
+      console.error("Error sharing experience:", error);
+      return res.status(500).json({ message: "Failed to share experience" });
+    }
+  });
+
+  // Get success stories
+  app.get("/api/community/experiences", async (req: Request, res: Response) => {
+    try {
+      const { crop, region } = req.query;
+
+      const stories = await farmerCommunityService.getSuccessStories(
+        crop && typeof crop === "string" ? crop : undefined,
+        region && typeof region === "string" ? region : undefined,
+      );
+
+      return res.json({
+        crop: crop || "all",
+        region: region || "all",
+        stories_count: stories.length,
+        stories,
+      });
+    } catch (error) {
+      console.error("Error fetching success stories:", error);
+      return res.status(500).json({ message: "Failed to fetch success stories" });
+    }
+  });
+
+  // Get best practices
+  app.get("/api/community/best-practices", async (req: Request, res: Response) => {
+    try {
+      const { category, crop, region } = req.query;
+
+      if (!category || typeof category !== "string") {
+        return res.status(400).json({ message: "Category parameter is required" });
+      }
+
+      const practices = await farmerCommunityService.getBestPractices(
+        category,
+        crop && typeof crop === "string" ? crop : undefined,
+        region && typeof region === "string" ? region : undefined,
+      );
+
+      return res.json({
+        category,
+        crop: crop || "all",
+        region: region || "all",
+        practices_count: practices.length,
+        practices,
+      });
+    } catch (error) {
+      console.error("Error fetching best practices:", error);
+      return res.status(500).json({ message: "Failed to fetch best practices" });
+    }
+  });
+
+  // Find regional experts
+  app.get("/api/community/experts/:region", async (req: Request, res: Response) => {
+    try {
+      const { region } = req.params;
+
+      const experts = await farmerCommunityService.findRegionalExperts(region);
+
+      return res.json({
+        region,
+        experts_count: experts.length,
+        experts: experts.slice(0, 10), // Top 10 experts
+      });
+    } catch (error) {
+      console.error("Error finding regional experts:", error);
+      return res.status(500).json({ message: "Failed to find regional experts" });
+    }
+  });
+
+  // Get farmer profile
+  app.get("/api/community/profile/:userId", async (req: Request, res: Response) => {
+    try {
+      const { userId } = req.params;
+
+      const profile = await farmerCommunityService.getFarmerProfile(userId);
+
+      return res.json({
+        profile,
+      });
+    } catch (error) {
+      console.error("Error fetching farmer profile:", error);
+      return res.status(500).json({ message: "Failed to fetch farmer profile" });
+    }
+  });
+
+  // Search community discussions
+  app.get("/api/community/search", async (req: Request, res: Response) => {
+    try {
+      const { q } = req.query;
+
+      if (!q || typeof q !== "string") {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      const results = await farmerCommunityService.searchDiscussions(q);
+
+      return res.json({
+        query: q,
+        results_count: results.length,
+        results,
+      });
+    } catch (error) {
+      console.error("Error searching discussions:", error);
+      return res.status(500).json({ message: "Failed to search discussions" });
+    }
+  });
 
   const server = createServer(app);
   return server;
