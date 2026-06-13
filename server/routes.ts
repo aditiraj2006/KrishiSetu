@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { createServer } from "http";
+import fs from "fs";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -19,7 +20,7 @@ import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
-import fs from "fs";
+import { sendEmailNotification } from "./email";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,6 +50,7 @@ const upload = multer({
     }
   },
 });
+
 
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
@@ -179,8 +181,9 @@ const requireFirebaseAuth = async (req: Request, res: Response, next: NextFuncti
 
   try {
     const decoded = await verifyFirebaseIdToken(token);
-    const headerUid = req.header("firebase-uid") || req.header("x-firebase-uid");
-    if (headerUid && headerUid !== decoded.uid) {
+    const headerUid =
+      req.header("firebase-uid") || req.header("x-firebase-uid");
+    if (!headerUid || headerUid !== decoded.uid) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     res.locals.firebaseUid = decoded.uid;
@@ -196,6 +199,7 @@ export async function registerRoutes(app: Express) {
     "/uploads/payment-proofs",
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
+
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -222,25 +226,27 @@ export async function registerRoutes(app: Express) {
       }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({
+          message: "Unauthorized",
+        });
       }
 
-      // Check if user already exists
-      const existingUser = await storage.getUserByFirebaseUid(authFirebaseUid);
+      const existingUser =
+        await storage.getUserByFirebaseUid(authFirebaseUid);
 
       if (existingUser) {
-        return res.json(existingUser); // Return existing user if already registered
+        return res.json(existingUser);
       }
 
-      // Create new user with username derived from email
-      const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
+      const username =
+        trimmedEmail.split("@")[0] +
+        Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
         email: trimmedEmail,
         name: trimmedName,
         username,
-        role: "farmer", // default role
+        role: "farmer",
         firebaseUid: authFirebaseUid,
         profileImage,
         roleSelected: roleSelected || false,
@@ -251,7 +257,9 @@ export async function registerRoutes(app: Express) {
       return res.status(201).json(user);
     } catch (error) {
       console.error("Error registering user:", error);
-      return res.status(500).json({ message: "Failed to register user" });
+      return res.status(500).json({
+        message: "Failed to register user",
+      });
     }
   });
 
@@ -292,6 +300,7 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to update profile" });
     }
   });
+  
   app.get("/api/users/search", requireFirebaseAuth, async (req, res) => {
     try {
       const firebaseUid = res.locals.firebaseUid as string;
@@ -649,7 +658,8 @@ export async function registerRoutes(app: Express) {
   app.get("/api/scans/recent", async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
-      const recentScans = await storage.getRecentScans(limit);
+      const userId = req.query.userId as string | undefined;
+      const recentScans = await storage.getRecentScans(limit, userId);
       return res.json(recentScans);
     } catch (error) {
       console.error("Error fetching recent scans:", error);
@@ -725,15 +735,28 @@ export async function registerRoutes(app: Express) {
         notes ?? null,
       );
 
+      // Email notification to the product owner
+      const owner = await storage.getUser(product.ownerId);
+      if (owner && owner.email && owner.notificationsEnabled !== false) {
+        const emailSubject = "KrishiSetu - Product Ownership Request";
+        const emailBody = `
+          <h2>Product Ownership Requested</h2>
+          <p>Hello <strong>${owner.name}</strong>,</p>
+          <p><strong>${requester.name}</strong> has requested ownership of your product <strong>${product.name}</strong>.</p>
+          <p>Please log in to your KrishiSetu dashboard to review and accept/reject this request.</p>
+          <br/>
+          <p>Best regards,</p>
+          <p>The KrishiSetu Team</p>
+        `;
+        await sendEmailNotification(owner.email, emailSubject, emailBody);
+      }
+
       return res.status(201).json({
-        message: "Ownership request sent. Waiting for acceptance.",
+        message: "Transfer request sent. Waiting for acceptance.",
         transferId: transfer.id,
       });
     } catch (error) {
-      console.error("Error in /api/request-product:", error);
-      if (error instanceof Error && (error as any).status) {
-        return res.status((error as any).status).json({ message: error.message });
-      }
+      console.error("Error requesting product:", error);
       return res.status(500).json({ message: "Failed to request product" });
     }
   });
@@ -752,8 +775,8 @@ export async function registerRoutes(app: Express) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        const pendingTransfers = await storage.getPendingTransfersForUser(user.id);
-        return res.json(pendingTransfers);
+        const transfers = await storage.getPendingTransfersForUser(user.id);
+        return res.json(transfers);
       } catch (error) {
         console.error("Error fetching pending transfers:", error);
         return res.status(500).json({ message: "Failed to fetch pending transfers" });
@@ -867,6 +890,19 @@ export async function registerRoutes(app: Express) {
         const user = await storage.getUserByFirebaseUid(firebaseUid);
         if (!user) return res.status(404).json({ message: "User not found" });
 
+        // RBAC validation: restrict updates based on user role
+        if (filledFields.distributorName || filledFields.warehouseLocation || filledFields.dispatchDate) {
+          if (user.role !== "distributor") {
+            return res.status(403).json({ message: "Forbidden: Only distributors can register distributor details." });
+          }
+        }
+        if (filledFields.storeName || filledFields.storeLocation || filledFields.arrivalDate) {
+          if (user.role !== "retailer") {
+            return res.status(403).json({ message: "Forbidden: Only retailers can register retailer details." });
+          }
+        }
+
+        console.log("Getting transfer by id");
         const transfer = await storage.getOwnershipTransfer(transferId);
         if (!transfer) return res.status(404).json({ message: "Transfer not found" });
 
@@ -1056,6 +1092,108 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Error marking notification as read:", error);
       return res.status(500).json({ message: "Failed to update notification" });
+    }
+  });
+
+  // Respond to a notification (accept/reject ownership transfer)
+  app.post("/api/notifications/:id/respond", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const notificationId = req.params.id;
+      const { action } = req.body;
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (!action || !["accepted", "rejected"].includes(action)) {
+        return res.status(400).json({ message: "Action must be 'accepted' or 'rejected'" });
+      }
+
+      // Find the notification
+      const db = await getDb();
+      const notification = await db.collection("notifications").findOne({ id: notificationId });
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+
+      const transferId = notification.transferId;
+      if (!transferId) {
+        return res.status(400).json({ message: "No ownership transfer associated with this notification" });
+      }
+
+      // Get the transfer
+      const transfer = await storage.getOwnershipTransfer(transferId);
+      if (!transfer) {
+        return res.status(404).json({ message: "Transfer not found" });
+      }
+
+      if (transfer.toUserId !== user.id) {
+        return res.status(403).json({ message: "You are not the recipient of this transfer" });
+      }
+
+      if (transfer.status !== "pending") {
+        return res.status(400).json({ message: "Transfer is not pending" });
+      }
+
+      if (action === "accepted") {
+        // Update transfer status to completed
+        await storage.updateOwnershipTransfer(transferId, { status: "completed" });
+
+        // Update product ownership
+        const product = await storage.getProduct(transfer.productId);
+        if (product) {
+          await storage.updateProduct(product.id, { ownerId: user.id });
+
+          await storage.addProductOwner({
+            productId: product.id,
+            ownerId: user.id,
+            username: user.username,
+            name: user.name,
+            addedBy: transfer.fromUserId,
+            role: user.role,
+            canEditFields: ["quantity", "location"],
+            transferType: transfer.transferType,
+            createdAt: new Date(),
+          });
+
+          await storage.logProductEvent(
+            product.id,
+            "ownership_registration",
+            `${user.name} (${user.role}) accepted ownership transfer.`,
+            user.id,
+            {
+              transferId: transfer.id,
+              registrationType: user.role,
+              userName: user.username,
+              userRole: user.role,
+            },
+          );
+        }
+
+        return res.json({ message: "Ownership transfer accepted" });
+      } else {
+        // action === "rejected"
+        await storage.updateOwnershipTransfer(transferId, { status: "rejected" });
+
+        const product = await storage.getProduct(transfer.productId);
+        if (product) {
+          await storage.createNotification({
+            userId: transfer.fromUserId,
+            title: "Ownership Transfer Rejected",
+            message: `${user.name} has rejected the ownership transfer of ${product.name}.`,
+            type: "ownership_transfer_rejected",
+            productId: product.id,
+            read: false,
+            createdAt: new Date(),
+          });
+        }
+
+        return res.json({ message: "Ownership transfer rejected" });
+      }
+    } catch (error) {
+      console.error("Error responding to notification:", error);
+      return res.status(500).json({ message: "Failed to respond to notification" });
     }
   });
 

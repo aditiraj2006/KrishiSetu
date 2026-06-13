@@ -51,6 +51,7 @@ export function useAuth() {
     const idToken = await firebaseUser.getIdToken();
     const headers = {
       Authorization: `Bearer ${idToken}`,
+      "firebase-uid": firebaseUser.uid,
     };
 
     try {
