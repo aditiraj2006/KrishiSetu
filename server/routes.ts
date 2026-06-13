@@ -52,7 +52,6 @@ const upload = multer({
 });
 
 
-
 const uploadDir = path.join(__dirname, "../uploads/payment-proofs");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -216,16 +215,14 @@ export async function registerRoutes(app: Express) {
       const { email, name, firebaseUid, profileImage, roleSelected } = req.body;
       const authFirebaseUid = res.locals.firebaseUid as string;
 
-      const trimmedEmail =
-        typeof email === "string" ? email.trim() : email;
+      // Fix: trim email and name before validation/storage to prevent duplicate
+      // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName  = typeof name  === "string" ? name.trim()  : name;
 
-      const trimmedName =
-        typeof name === "string" ? name.trim() : name;
-
+      // Validate required fields
       if (!trimmedEmail || !trimmedName) {
-        return res.status(400).json({
-          message: "Missing required fields",
-        });
+        return res.status(400).json({ message: "Missing required fields" });
       }
 
       if (firebaseUid && firebaseUid !== authFirebaseUid) {
