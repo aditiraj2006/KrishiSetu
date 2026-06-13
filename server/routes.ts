@@ -1,3 +1,4 @@
+import fs from "fs";
 import {
   insertNotificationSchema,
   insertOwnershipTransferSchema,
@@ -17,7 +18,6 @@ import { fileURLToPath } from "url";
 import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
-import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -251,15 +251,6 @@ export async function registerRoutes(app: Express) {
     express.static(path.join(__dirname, "../uploads/payment-proofs")),
   );
 
-        // Fix: trim email and name before validation/storage to prevent duplicate
-        // accounts caused by leading/trailing whitespace (e.g. "alice " vs "alice").
-        const trimmedEmail = typeof email === "string" ? email.trim() : email;
-        const trimmedName  = typeof name  === "string" ? name.trim()  : name;
-
-        // Validate required fields
-        if (!trimmedEmail || !trimmedName) {
-          return res.status(400).json({ message: "Missing required fields" });
-        }
   // Health check — used by the self-ping mechanism to prevent Render cold starts
   app.get("/api/health", (_req: Request, res: Response) => {
     res.status(200).json({
@@ -292,10 +283,11 @@ export async function registerRoutes(app: Express) {
       }
 
       // Create new user with username derived from email
+      const trimmedEmail = typeof email === "string" ? email.trim() : email;
+      const trimmedName = typeof name === "string" ? name.trim() : name;
       const username = trimmedEmail.split("@")[0] + Math.floor(Math.random() * 1000);
 
       const user = await storage.createUser({
-        
         email: trimmedEmail,
         name: trimmedName,
         username,
@@ -908,10 +900,7 @@ export async function registerRoutes(app: Express) {
       // If you handle paymentProof file upload, upload it to Firebase Storage
       if (req.file && req.file.buffer) {
         try {
-          filledFields.paymentProofUrl = await uploadPaymentProof(
-            req.file.buffer,
-            req.file.originalname,
-            req.file.mimetype,
+         filledFields.paymentProofUrl = await uploadPaymentProof(req.file);s
           );
           if (!registeredFields.includes("paymentProofUrl")) {
             registeredFields.push("paymentProofUrl");
@@ -1746,6 +1735,38 @@ export async function registerRoutes(app: Express) {
       return res.json(analysis);
     } catch (error) {
       return res.status(500).json({ message: "Quality analysis failed" });
+    }
+  });
+  app.post("/api/assistant/chat", async (req: Request, res: Response) => {
+    try {
+      const { messages, system } = req.body;
+      
+      const geminiMessages = messages.map((m: any) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+
+      const response = await fetch(
+       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GOOGLE_GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: system }] },
+            contents: geminiMessages,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("GEMINI RESPONSE:", JSON.stringify(data, null, 2));
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I could not get a response.";
+      return res.json({
+        content: [{ type: "text", text }],
+      });
+    } catch (error) {
+      console.error("AI assistant error:", error);
+      return res.status(500).json({ message: "AI request failed" });
     }
   });
 

@@ -19,6 +19,7 @@ import RequestProductsPage from "@/pages/request-products";
 import ScannedProductsPage from "@/pages/scanned-products";
 import { LanguageProvider } from "@/hooks/useLanguage";
 import { queryClient } from "./lib/queryClient";
+import AIAssistant from "@/components/AIAssistant";
 
 function App() {
   return (
@@ -60,6 +61,14 @@ function App() {
             </main>
             <Footer />
           </div>
+
+          {/* ✅ AI Assistant — floats on every page */}
+          <AIAssistant
+            user={null}
+            products={[]}
+            language="en"
+          />
+
         </LanguageProvider>
       </TooltipProvider>
     </QueryClientProvider>
