@@ -11,13 +11,14 @@ import {
 } from "@shared/schema";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import { createServer } from "http";
+import fs from "fs";
 import multer from "multer";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
 import { analyzeProductQuality, improveGrammar, translateText } from "./ai";
 import { verifyFirebaseIdToken } from "./firebaseJwt";
-import { uploadPaymentProof } from "./firebaseStorage";
+import { uploadPaymentProof as uploadPaymentProofFirebase } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,7 +50,7 @@ const upload = multer({
   },
 });
 
-async function uploadPaymentProof(file: Express.Multer.File): Promise<string> {
+async function uploadPaymentProofLocal(file: Express.Multer.File): Promise<string> {
   const isFirebaseConfigured = [
     process.env.VITE_FIREBASE_API_KEY,
     process.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -908,7 +909,7 @@ export async function registerRoutes(app: Express) {
       // If you handle paymentProof file upload, upload it to Firebase Storage
       if (req.file && req.file.buffer) {
         try {
-          filledFields.paymentProofUrl = await uploadPaymentProof(
+          filledFields.paymentProofUrl = await uploadPaymentProofFirebase(
             req.file.buffer,
             req.file.originalname,
             req.file.mimetype,
