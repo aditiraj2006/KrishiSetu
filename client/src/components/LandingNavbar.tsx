@@ -213,7 +213,11 @@ const scrollToFeatures = () => {
         <div className="drawer-header">
           <div className="logo-container" onClick={() => navigateTo("/")}>
             <div className="logo-icon">
-              <img src="/logo.svg" alt="KrishiSetu Logo" className="w-6 h-6 object-contain" />
+              <img
+  src="/logo.svg"
+  alt="KrishiSetu Logo"
+  className="w-6 h-6 object-contain dark:invert"
+/>
             </div>
             <span className="logo">
               <span className="logo1">Krishi</span>

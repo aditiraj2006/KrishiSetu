@@ -60,6 +60,9 @@
   height: 28px;
   width: auto;
 }
+.dark .logo-icon img {
+  filter: brightness(0) invert(1);
+}
 
 .logo1 {
   color: var(--primary);
