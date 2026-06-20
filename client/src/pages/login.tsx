@@ -4,33 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import toast, { Toaster } from "react-hot-toast";
 import { useLocation } from "wouter";
-import { useAuth, UserRole } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth, isFirebaseConfigured } from "@/lib/firebase";
-
-// ─── Role options ─────────────────────────────────────────────────────────────
-const ROLES: { value: UserRole; label: string; icon: string; desc: string }[] = [
-  { value: "farmer",      label: "Farmer",      icon: "🌾", desc: "Register & track produce"  },
-  { value: "distributor", label: "Distributor",  icon: "🚚", desc: "Manage supply chain"       },
-  { value: "retailer",    label: "Retailer",     icon: "🏪", desc: "Source verified products"  },
-  { value: "consumer",    label: "Consumer",     icon: "🧑", desc: "Verify product origin"     },
-];
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const { user, loginWithGoogle, loginWithEmail, registerWithEmail, loading } = useAuth();
 
   const [tab, setTab]                   = useState<"email" | "google">("google");
   const [isSignUp, setIsSignUp]         = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(() => {
-    return sessionStorage.getItem("krishisetu_pending_role") as UserRole | null;
-  });
   const [name, setName]                 = useState("");
   const [email, setEmail]               = useState("");
   const [password, setPassword]         = useState("");
   const [resetEmail, setResetEmail]     = useState("");
   const [showReset, setShowReset]       = useState(false);
-  const [error, setError]               = useState<string | null>(null);
   const [submitting, setSubmitting]     = useState(false);
+
+  // these just track whether each password box shows dots or plain text
+  const [showPassword, setShowPassword]           = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   const [, setLocation] = useLocation();
 
@@ -40,50 +33,40 @@ export default function LoginPage() {
     }
   }, [user, loading, setLocation]);
 
-  // ── Validate role selected before any auth attempt ────────────────────────
-  const requireRole = (): boolean => {
-    if (!selectedRole) {
-      setError("Please select your role before continuing.");
-      toast.error("Please select your role first.");
-      return false;
-    }
-    return true;
-  };
-
-  // ── Google sign-in ────────────────────────────────────────────────────────
+  // Google Sign In
   const handleGoogleLogin = async () => {
-    if (!requireRole()) return;
-    setError(null);
     setSubmitting(true);
     try {
-        await loginWithGoogle(selectedRole!);
+        // We pass undefined as any because role selection is now handled on the dashboard
+        await loginWithGoogle(undefined as any);
         toast.success("Successfully logged in with Google!");
         setLocation("/dashboard");
       } catch (err: any) {
-        setError(err.message || "Google login failed");
-        toast.error(err.message || "Google login failed");
+        if (err.code && err.code.includes("auth/invalid-credential")) {
+          toast.error("Incorrect email or password.");
+        } else if (err.code && err.code.includes("auth/email-already-in-use")) {
+          toast.error("This email is already registered. Please sign in.");
+        } else {
+          toast.error("Authentication failed. Please try again.");
+        }
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Email sign-in / sign-up ───────────────────────────────────────────────
+  // Email signin/signup
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignUp && !requireRole()) return;
-    setError(null);
     setSubmitting(true);
 
-    // Fix: trim whitespace from all text fields before submitting to prevent
-    // duplicate accounts (e.g. "alice " vs "alice") and login mismatches.
     const trimmedEmail    = email.trim();
-    
     const trimmedName     = name.trim();
 
     try {
       if (isSignUp) {
         if (!trimmedName) throw new Error("Name is required for sign up.");
-        await registerWithEmail(trimmedEmail, password, trimmedName, selectedRole!);
+        // We pass undefined as any because role selection is now handled on the dashboard
+        await registerWithEmail(trimmedEmail, password, trimmedName, undefined as any);
         toast.success("Account created successfully!");
       } else {
         await loginWithEmail(trimmedEmail, password);
@@ -91,26 +74,28 @@ export default function LoginPage() {
       }
       setLocation("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
-      toast.error(err.message || "Authentication failed");
+      const errorText = (err.code || "") + " " + (err.message || "");
+      if (errorText.includes("auth/invalid-credential")) {
+        toast.error("Incorrect email or password.");
+      } else if (errorText.includes("auth/email-already-in-use")) {
+        toast.error("This email is already registered. Please sign in.");
+      } else {
+        toast.error("Authentication failed. Please try again.");
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Password reset ────────────────────────────────────────────────────────
+  // Password reset
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFirebaseConfigured || !auth) {
-      setError("Firebase is not configured yet. Set the VITE_FIREBASE_* values in .env first.");
       toast.error("Firebase is not configured yet.");
       return;
     }
 
-    setError(null);
     setSubmitting(true);
-
-    // Fix: trim email before sending reset link.
     const trimmedResetEmail = resetEmail.trim();
 
     try {
@@ -118,14 +103,13 @@ export default function LoginPage() {
       toast.success("Password reset email sent!");
       setShowReset(false);
     } catch (err: any) {
-      setError(err.message || "Failed to send reset email");
       toast.error(err.message || "Failed to send reset email");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Loading guard — shows while getRedirectResult() resolves ─────────────
+  // Loading guard shows while getRedirectResult() resolves
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
@@ -145,49 +129,17 @@ export default function LoginPage() {
         {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
         <button
           className="text-primary font-semibold hover:underline"
-          onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
+          onClick={() => setIsSignUp(!isSignUp)}
         >
           {isSignUp ? "Sign In" : "Sign Up"}
         </button>
       </p>
 
       <Card className="w-full max-w-md bg-card text-card-foreground shadow-md rounded-md">
-
-        {/* ── Step 1: Role selection ── */}
-        <CardContent className="pt-6 pb-2">
-          <p className="text-sm font-semibold text-foreground mb-2">
-            1. Select your role
-            {!selectedRole && (
-              <span className="ml-2 text-xs text-muted-foreground font-normal">(required)</span>
-            )}
+        <CardHeader className="pb-0 pt-4">
+          <p className="text-sm font-semibold text-foreground mb-2 text-center">
+            {isSignUp ? "Sign Up" : "Sign In"}
           </p>
-          <div className="grid grid-cols-2 gap-2 mb-1">
-            {ROLES.map((r) => (
-              <button
-                key={r.value}
-                type="button"
-                onClick={() => {
-                  setSelectedRole(r.value);
-                  sessionStorage.setItem("krishisetu_pending_role", r.value);
-                  setError(null);
-                }}
-                className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm transition-colors
-                  ${selectedRole === r.value
-                    ? "border-primary bg-primary/10 text-primary font-semibold"
-                    : "border-border text-muted-foreground hover:border-primary/50"
-                  }`}
-              >
-                <span className="text-xl">{r.icon}</span>
-                <span className="font-medium">{r.label}</span>
-                <span className="text-xs text-muted-foreground leading-tight text-center">{r.desc}</span>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-
-        {/* ── Step 2: Sign-in method ── */}
-        <CardHeader className="pb-0 pt-2">
-          <p className="text-sm font-semibold text-foreground mb-2">2. Sign in</p>
           <div className="flex">
             <button
               className={`flex-1 py-2 font-medium border-b-2 transition-colors ${tab === "google"
@@ -211,8 +163,6 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="pt-4">
-
-          {/* ── Forgot password form ── */}
           {showReset && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <p className="text-sm text-muted-foreground">
@@ -241,21 +191,18 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* ── Google tab ── */}
           {tab === "google" && !showReset && (
             <Button
               type="button"
               variant="outline"
               className="w-full flex items-center justify-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
               onClick={handleGoogleLogin}
-              disabled={submitting || !selectedRole}
-              title={!selectedRole ? "Select a role above first" : undefined}
+              disabled={submitting}
             >
               🌐 Sign {isSignUp ? "Up" : "In"} with Google
             </Button>
           )}
 
-          {/* ── Email tab ── */}
           {tab === "email" && !showReset && (
             <form onSubmit={handleEmailAuth} className="space-y-4">
               {isSignUp && (
@@ -274,17 +221,29 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-primary text-primary-foreground hover:bg-green-700 transition-colors rounded-md py-2 font-semibold"
-                disabled={submitting || (isSignUp && !selectedRole)}
+                disabled={submitting}
               >
                 {submitting ? "Please wait…" : isSignUp ? "Sign Up" : "Sign In"}
               </Button>
@@ -299,13 +258,8 @@ export default function LoginPage() {
               )}
             </form>
           )}
-
         </CardContent>
       </Card>
-
-      {error && (
-        <div className="text-destructive mt-4 text-center text-sm max-w-md">{error}</div>
-      )}
     </div>
   );
 }
