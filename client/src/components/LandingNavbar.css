@@ -393,6 +393,34 @@
 
 /* ─── Responsive breakpoint ───────────────────────────── */
 
+
+@media (min-width: 769px) {
+  
+  .nav-links {
+    display: flex !important;
+  }
+
+  .desktop-only {
+    display: inline-flex !important;
+  }
+
+
+  .mobile-only {
+    display: none !important;
+  }
+
+
+  .mobile-overlay {
+    display: none !important;
+  }
+
+
+  .mobile-drawer {
+    display: none !important;
+  }
+}
+
+
 @media (max-width: 768px) {
   /* Hide desktop nav links */
   .nav-links {
