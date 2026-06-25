@@ -2,6 +2,13 @@ import { describe, it, expect, beforeAll, beforeEach } from "vitest";
 import request from "supertest";
 import { createTestApp, mockDb } from "./setup";
 
+// Minimal valid JPEG (FF D8 FF E0 ... FF D9) – just enough magic bytes to pass
+// the server-side file-signature check without a real image payload.
+const MINIMAL_JPEG = Buffer.from([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+  0xff, 0xd9,
+]);
+
 describe("Role-Based Access Control (RBAC) Integration Tests", () => {
   let app: any;
 
@@ -76,11 +83,10 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
         .put("/api/ownership-transfers/transfer-123/accept")
         .set("Authorization", "Bearer valid-token-distributor")
         .set("firebase-uid", "uid-distributor")
-        .send({
-          distributorName: "Fast Logistical Services",
-          warehouseLocation: "Sector 5, Delhi",
-          dispatchDate: new Date().toISOString(),
-        });
+        .attach("paymentProof", MINIMAL_JPEG, { filename: "proof.jpg", contentType: "image/jpeg" })
+        .field("distributorName", "Fast Logistical Services")
+        .field("warehouseLocation", "Sector 5, Delhi")
+        .field("dispatchDate", new Date().toISOString());
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe("Ownership transfer completed successfully");
@@ -98,11 +104,10 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
         .put("/api/ownership-transfers/transfer-123/accept")
         .set("Authorization", "Bearer valid-token-retailer")
         .set("firebase-uid", "uid-retailer")
-        .send({
-          distributorName: "Fast Logistical Services",
-          warehouseLocation: "Sector 5, Delhi",
-          dispatchDate: new Date().toISOString(),
-        });
+        .attach("paymentProof", MINIMAL_JPEG, { filename: "proof.jpg", contentType: "image/jpeg" })
+        .field("distributorName", "Fast Logistical Services")
+        .field("warehouseLocation", "Sector 5, Delhi")
+        .field("dispatchDate", new Date().toISOString());
 
       expect(res.status).toBe(403);
       expect(res.body.message).toContain("Forbidden: Only distributors can register distributor details.");
@@ -120,11 +125,10 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
         .put("/api/ownership-transfers/transfer-123/accept")
         .set("Authorization", "Bearer valid-token-retailer")
         .set("firebase-uid", "uid-retailer")
-        .send({
-          storeName: "City Supermarket",
-          storeLocation: "Connaught Place, Delhi",
-          arrivalDate: new Date().toISOString(),
-        });
+        .attach("paymentProof", MINIMAL_JPEG, { filename: "proof.jpg", contentType: "image/jpeg" })
+        .field("storeName", "City Supermarket")
+        .field("storeLocation", "Connaught Place, Delhi")
+        .field("arrivalDate", new Date().toISOString());
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe("Ownership transfer completed successfully");
@@ -135,11 +139,10 @@ describe("Role-Based Access Control (RBAC) Integration Tests", () => {
         .put("/api/ownership-transfers/transfer-123/accept")
         .set("Authorization", "Bearer valid-token-distributor")
         .set("firebase-uid", "uid-distributor")
-        .send({
-          storeName: "City Supermarket",
-          storeLocation: "Connaught Place, Delhi",
-          arrivalDate: new Date().toISOString(),
-        });
+        .attach("paymentProof", MINIMAL_JPEG, { filename: "proof.jpg", contentType: "image/jpeg" })
+        .field("storeName", "City Supermarket")
+        .field("storeLocation", "Connaught Place, Delhi")
+        .field("arrivalDate", new Date().toISOString());
 
       expect(res.status).toBe(403);
       expect(res.body.message).toContain("Forbidden: Only retailers can register retailer details.");
