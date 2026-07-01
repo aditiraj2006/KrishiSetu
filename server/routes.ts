@@ -21,6 +21,7 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { forecastNextDay, getHistory, getMarketPrices } from "./marketPrices";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1830,6 +1831,38 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Quality analysis failed" });
     }
   });
+
+  app.get("/api/market-prices", async (req: Request, res: Response) => {
+    const commodity = String(req.query.commodity ?? "").trim();
+    const state = req.query.state ? String(req.query.state).trim() : undefined;
+    if (!commodity) {
+      return res.status(400).json({ message: "commodity query parameter is required" });
+    }
+    try {
+      const result = await getMarketPrices(commodity, state);
+      if (!result) {
+        return res.status(503).json({
+          message: "Market price feed is currently unavailable. Please try again later.",
+        });
+      }
+      return res.json(result);
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to fetch market prices" });
+    }
+  });
+
+  app.get(
+    "/api/market-prices/:commodity/history",
+    async (req: Request, res: Response) => {
+      const market = String(req.query.market ?? "").trim();
+      if (!market) {
+        return res.status(400).json({ message: "market query parameter is required" });
+      }
+      const history = getHistory(req.params.commodity, market);
+      const forecast = forecastNextDay(history);
+      return res.json({ history, forecastNextDay: forecast });
+    },
+  );
 
   const server = createServer(app);
   return server;
