@@ -141,4 +141,8 @@
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
   }
+  "scripts": {
+  "predev":   "node scripts/validate-env.js",
+  "prestart": "node scripts/validate-env.js"
+}
 }
