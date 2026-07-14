@@ -80,7 +80,8 @@ export function ProductSearch({
   // Search logic
   const searchProducts = useCallback(
     async (searchQuery: string) => {
-      if (!searchQuery.trim()) {
+      const normalizedQuery = searchQuery.trim();
+      if (!normalizedQuery) {
         setResults([]);
         setIsOpen(false);
         return;
@@ -90,9 +91,9 @@ export function ProductSearch({
       try {
         let url: string;
         if (searchEndpoint) {
-          url = `${searchEndpoint}?q=${encodeURIComponent(searchQuery)}`;
+          url = `${searchEndpoint}?q=${encodeURIComponent(normalizedQuery)}`;
         } else if (ownerId) {
-          url = `/api/user/products/owned?q=${encodeURIComponent(searchQuery)}&ownerId=${ownerId}`;
+          url = `/api/user/products/owned?q=${encodeURIComponent(normalizedQuery)}&ownerId=${ownerId}`;
         } else {
           setResults([]);
           setIsOpen(false);
