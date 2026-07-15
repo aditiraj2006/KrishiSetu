@@ -101,7 +101,10 @@ const recentProducts: any[] = [];
       description="Start tracking your agricultural products by registering your first item. Once added, products will appear here."
     />
 
-    <Link href="/product-registration">
+    <Link
+      href="/product-registration"
+      onClick={() => window.scrollTo({ top: 0, behavior: "auto" })}
+    >
       <Button
         className="bg-primary hover:bg-primary/90"
         data-testid="button-register-first-product"
