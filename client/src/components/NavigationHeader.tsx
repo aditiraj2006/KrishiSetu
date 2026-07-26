@@ -533,6 +533,7 @@ useEffect(() => {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label="Toggle theme"
                 data-testid="button-theme-toggle"
               >
                 {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -543,6 +544,7 @@ useEffect(() => {
                     variant="ghost"
                     size="icon"
                     className="relative"
+                    aria-label="View notifications"
                     data-testid="button-notifications"
                   >
                     <Bell className="h-5 w-5" />
@@ -646,6 +648,7 @@ useEffect(() => {
                   <Button
                     variant="ghost"
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted"
+                    aria-label="Open user menu"
                     data-testid="button-user-menu"
                   >
                     <Avatar className="w-8 h-8">
