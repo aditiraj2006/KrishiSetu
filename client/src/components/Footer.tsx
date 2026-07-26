@@ -135,21 +135,25 @@ export function Footer() {
                 {
                   icon: Github,
                   href: "https://github.com/aditiraj2006/KrishiSetu",
+                  label: "Visit KrishiSetu on GitHub",
                 },
                 {
                   icon: Linkedin,
                   href: "https://linkedin.com",
+                  label: "Visit KrishiSetu on LinkedIn",
                 },
                 {
                   icon: Twitter,
                   href: "https://twitter.com",
+                  label: "Visit KrishiSetu on Twitter",
                 },
-              ].map(({ icon: Icon, href }, index) => (
+              ].map(({ icon: Icon, href, label }, index) => (
                 <a
                   key={index}
                   href={href}
                   target="_blank"
                   rel="noreferrer"
+                  aria-label={label}
                   className="
                     group
                     relative
