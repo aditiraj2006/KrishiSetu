@@ -422,7 +422,7 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {roles.map((role) => (
+                                  {(roles ?? []).map((role) => (
                                     <SelectItem key={role.id} value={role.id}>
                                       <div className="flex items-center gap-2">
                                         <role.icon className="w-4 h-4" />
