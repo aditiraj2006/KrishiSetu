@@ -38,7 +38,7 @@ export function QRCodeScanner() {
 
   // Helper helper to validate and extract the tracking layout parameters safely
   const processAndValidatePayload = (text: string | null): string | null => {
-    if (!text || text.trim() === "") return null;
+    if (!text || text.trim().length === 0) return null;
     
     const trimmedText = text.trim();
     let extractedId = trimmedText;
