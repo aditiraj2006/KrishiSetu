@@ -454,7 +454,7 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {supportedLanguages.map((lang) => (
+                                  {(supportedLanguages ?? []).map((lang) => (
                                     <SelectItem key={lang.id} value={lang.id}>
                                       <div className="flex flex-col">
                                       <span>{lang.nativeName}</span>
