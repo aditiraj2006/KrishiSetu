@@ -107,7 +107,7 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
 
   return (
     <div className="space-y-4">
-      {owners.map((owner, index) => (
+      {(owners ?? []).map((owner, index) => (
         <Card
           key={owner._id}
           className={`overflow-hidden ${index === owners.length - 1 ? "border-primary/50" : ""}`}
