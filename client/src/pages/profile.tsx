@@ -187,7 +187,7 @@ export default function ProfilePage() {
                 <Avatar className="w-24 h-24 mx-auto mb-4">
                   <AvatarImage src={firebaseUser.photoURL || undefined} alt={user.name} />
                   <AvatarFallback className="text-2xl">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user.name[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <h3
