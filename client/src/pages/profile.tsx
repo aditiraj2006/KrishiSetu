@@ -187,7 +187,7 @@ export default function ProfilePage() {
                 <Avatar className="w-24 h-24 mx-auto mb-4">
                   <AvatarImage src={firebaseUser.photoURL || undefined} alt={user.name} />
                   <AvatarFallback className="text-2xl">
-                    {user.name.charAt(0).toUpperCase()}
+                    {user.name[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <h3
@@ -422,7 +422,7 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {roles.map((role) => (
+                                  {(roles ?? []).map((role) => (
                                     <SelectItem key={role.id} value={role.id}>
                                       <div className="flex items-center gap-2">
                                         <role.icon className="w-4 h-4" />
@@ -454,7 +454,7 @@ export default function ProfilePage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {supportedLanguages.map((lang) => (
+                                  {(supportedLanguages ?? []).map((lang) => (
                                     <SelectItem key={lang.id} value={lang.id}>
                                       <div className="flex flex-col">
                                       <span>{lang.nativeName}</span>
