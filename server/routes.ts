@@ -1239,7 +1239,7 @@ export async function registerRoutes(app: Express) {
 
       // Enrich with user details
       const enrichedOwners = await Promise.all(
-        owners.map(async (owner) => {
+        (owners ?? []).map(async (owner) => {
           const user = await storage.getUser(owner.ownerId);
           return {
             ...owner,
