@@ -126,7 +126,7 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
                   <span className="text-xs text-muted-foreground">@{owner.username}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {owner.role.charAt(0).toUpperCase() + owner.role.slice(1)}
+                  {owner.role[0].toUpperCase() + owner.role.slice(1)}
                 </p>
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
@@ -137,7 +137,7 @@ export function OwnershipHistoryList({ productId }: OwnershipHistoryListProps) {
                     variant={index === 0 ? "default" : "outline"}
                     className={index === 0 ? "bg-primary" : ""}
                   >
-                    {owner.transferType.charAt(0).toUpperCase() + owner.transferType.slice(1)}
+                    {owner.transferType[0].toUpperCase() + owner.transferType.slice(1)}
                   </Badge>
                 </div>
               </div>
