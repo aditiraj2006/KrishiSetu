@@ -1380,7 +1380,7 @@ export async function registerRoutes(app: Express) {
       }
       const db = await getDb();
       const ratings = await storage.getProductRatings(productId);
-      const userIds = Array.from(new Set(ratings.map((rating) => rating.userId)));
+      const userIds = Array.from(new Set((ratings ?? []).map((rating) => rating.userId)));
       const users = userIds.length
         ? await db
             .collection("users")
