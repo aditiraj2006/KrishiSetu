@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatDate(date: Date | string, locale = "en-IN"): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "Invalid date";
+  if (Number.isNaN(d.getTime())) return "Invalid date";
   return d.toLocaleDateString(locale, { year: "numeric", month: "long", day: "numeric" });
 }
 
