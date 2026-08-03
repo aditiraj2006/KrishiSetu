@@ -498,7 +498,7 @@ export async function registerRoutes(app: Express) {
   app.get("/api/products", async (req: Request, res: Response) => {
     try {
       const ownerId = req.query.ownerId as string | undefined;
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
       let products;
       if (ownerId) {
