@@ -229,3 +229,5 @@ export function useSubmitProductRating(productId: string) {
     },
   });
 }
+
+.catch(err => console.error("Promise.all failed:", err));
