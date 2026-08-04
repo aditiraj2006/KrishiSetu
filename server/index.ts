@@ -165,7 +165,7 @@ app.use((req, res, next) => {
       if (app.get("env") === "production" && renderUrl) {
         const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
 
-        setInterval(async () => {
+        clearInterval(window.__interval); window.__interval = setInterval(async () => {
           try {
             const res = await fetch(`${renderUrl}/api/health`);
             console.log(`[self-ping] status: ${res.status} at ${new Date().toISOString()}`);

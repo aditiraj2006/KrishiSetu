@@ -436,7 +436,7 @@ useEffect(() => {
       notif.type === "ownership_request" ||
       notif.type === "product_request" ||
       notif.requestType === "ownership" ||
-      notif.ownershipRequest === true;
+      notif.ownershipRequest ;
 
     if (isOwnership) {
       // keep it until explicit Accept/Reject
