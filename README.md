@@ -572,7 +572,7 @@ We're grateful to all our wonderful contributors! 💖
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - See the [LICENSE.md](LICENSE.md) file for details.
 
 **MIT License Summary:**
 - ✅ You can use this code commercially
