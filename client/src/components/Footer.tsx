@@ -135,14 +135,17 @@ export function Footer() {
                 {
                   icon: Github,
                   href: "https://github.com/aditiraj2006/KrishiSetu",
+                  ariaLabel: "Visit KrishiSetu on GitHub",
                 },
                 {
                   icon: Linkedin,
                   href: "https://linkedin.com",
+                  ariaLabel: "Visit KrishiSetu on LinkedIn",
                 },
                 {
                   icon: Twitter,
                   href: "https://twitter.com",
+                  ariaLabel: "Visit KrishiSetu on Twitter",
                 },
               ].map(({ icon: Icon, href }, index) => (
                 <a
