@@ -1793,6 +1793,60 @@ export async function registerRoutes(app: Express) {
 
 
   // --- AI Routes ---
+  // --- Disease Detection (mock) ---
+  app.post(
+    "/api/detect-disease",
+    (req: Request, res: Response, next: NextFunction) => {
+      upload.single("image")(req, res, (err: any) => {
+        if (err instanceof multer.MulterError) {
+          if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(400).json({ message: "File size exceeds the 5MB limit." });
+          }
+          return res.status(400).json({ message: err.message });
+        } else if (err) {
+          return res.status(400).json({ message: err.message });
+        }
+        next();
+      });
+    },
+    async (req: Request, res: Response) => {
+      try {
+        // This is a lightweight mock implementation to allow the frontend to integrate.
+        // In a production setup this would call a real ML inference service.
+        if (!req.file || !req.file.buffer) {
+          return res.status(400).json({ message: "Image file is required" });
+        }
+
+        const DISEASE_LABELS = [
+          "Healthy",
+          "Powdery mildew",
+          "Rust",
+          "Leaf spot",
+          "Blight",
+        ];
+
+        // Simple deterministic pseudo-random based on first byte to make results reproducible per file
+        const seed = req.file.buffer[0] || 0;
+        const idx = seed % DISEASE_LABELS.length;
+        const confidence = 0.6 + (seed % 40) / 100; // 0.6 - 0.99
+
+        const disease = DISEASE_LABELS[idx];
+        const treatmentMap: Record<string, string[]> = {
+          "Healthy": ["No action needed"],
+          "Powdery mildew": ["Apply sulfur-based fungicide", "Improve air circulation"],
+          "Rust": ["Remove affected leaves", "Use copper fungicide"],
+          "Leaf spot": ["Use appropriate bactericide", "Rotate crops"],
+          "Blight": ["Remove infected plants", "Apply recommended fungicide"],
+        };
+
+        return res.json({ disease, confidence: Number(confidence.toFixed(2)), treatments: treatmentMap[disease] || [] });
+      } catch (error) {
+        console.error("Disease detection error:", error);
+        return res.status(500).json({ message: "Failed to detect disease" });
+      }
+    },
+  );
+
   app.post("/api/ai/translate", async (req: Request, res: Response) => {
     try {
       const { text, targetLanguage } = req.body;
