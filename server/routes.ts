@@ -21,6 +21,7 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { fetchMandiPrices } from "./mandi";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1828,6 +1829,21 @@ export async function registerRoutes(app: Express) {
       return res.json(analysis);
     } catch (error) {
       return res.status(500).json({ message: "Quality analysis failed" });
+    }
+  });
+
+  // --- Mandi Price Tracker ---
+  app.get("/api/mandi-prices", async (req: Request, res: Response) => {
+    try {
+      const state = (req.query.state as string) || undefined;
+      const commodity = (req.query.commodity as string) || undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
+
+      const records = await fetchMandiPrices(state, commodity, limit);
+      return res.json(records);
+    } catch (error: any) {
+      console.error("Error fetching mandi prices route:", error?.message || error);
+      return res.status(500).json({ message: "Failed to fetch mandi prices" });
     }
   });
 
