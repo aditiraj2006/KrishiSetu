@@ -22,6 +22,7 @@ import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
 import { fetchMandiPrices } from "./mandi";
+import { fetchWeatherForecast } from "./weather";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1898,6 +1899,19 @@ export async function registerRoutes(app: Express) {
     } catch (error: any) {
       console.error("Error fetching mandi prices route:", error?.message || error);
       return res.status(500).json({ message: "Failed to fetch mandi prices" });
+    }
+  });
+
+  // --- Weather Forecast (OpenWeatherMap proxy) ---
+  app.get("/api/weather", async (req: Request, res: Response) => {
+    try {
+      const { lat, lon } = req.query;
+      if (!lat || !lon) return res.status(400).json({ message: "lat and lon are required" });
+      const data = await fetchWeatherForecast(lat as string, lon as string);
+      return res.json(data);
+    } catch (error: any) {
+      console.error("Error in /api/weather:", error?.message || error);
+      return res.status(500).json({ message: "Failed to fetch weather" });
     }
   });
 
