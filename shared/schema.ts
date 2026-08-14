@@ -16,6 +16,7 @@ export const userSchema = z.object({
   website: z.string().nullable().optional(),
   roleSelected: z.boolean().default(false),
   language: z.string().default("en"),
+  preferredDistrict: z.string().nullable().optional(),
   notificationsEnabled: z.boolean().default(true),
   createdAt: z.date(),
 });
