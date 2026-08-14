@@ -56,6 +56,7 @@ const profileSchema = z.object({
   phone: z.string().optional(),
   company: z.string().optional(),
   location: z.string().optional(),
+  preferredDistrict: z.string().optional(),
   bio: z.string().optional(),
   website: z.string().url("Invalid website URL").or(z.literal("")),
   role: z.string(),
@@ -80,6 +81,7 @@ export default function ProfilePage() {
       phone: user?.phone || "",
       company: user?.company || "",
       location: user?.location || "",
+      preferredDistrict: user?.preferredDistrict || "",
       bio: user?.bio || "",
       website: user?.website || "",
       role: user?.role || "farmer",
@@ -96,6 +98,7 @@ export default function ProfilePage() {
         phone: user.phone || "",
         company: user.company || "",
         location: user.location || "",
+        preferredDistrict: user.preferredDistrict || "",
         bio: user.bio || "",
         website: user.website || "",
         role: user.role || "farmer",
@@ -347,6 +350,25 @@ export default function ProfilePage() {
                                 disabled={!isEditing}
                                 placeholder="City, State/Country"
                                 data-testid="input-location"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="preferredDistrict"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preferred Agricultural District</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                disabled={!isEditing}
+                                placeholder="e.g. Pune, Ludhiana, Nashik"
+                                data-testid="input-preferred-district"
                               />
                             </FormControl>
                             <FormMessage />

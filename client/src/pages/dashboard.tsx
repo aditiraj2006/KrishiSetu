@@ -10,6 +10,7 @@ import { RoleDashboard } from "@/components/RoleDashboard";
 import { RoleSelection } from "@/components/RoleSelection";
 import { StatsOverview } from "@/components/StatsOverview";
 import { SupplyChainMap } from "@/components/SupplyChainMap";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { DistributorProductForm } from "../components/DistributorProductForm";
@@ -143,6 +144,9 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+            </div>
+            <div className="mt-6">
+              <WeatherWidget />
             </div>
           </div>
         )}

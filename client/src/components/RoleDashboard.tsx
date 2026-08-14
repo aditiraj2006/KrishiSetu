@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { OwnershipManagementPanel } from "@/components/OwnershipManagementPanel";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +76,10 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
   const stats = mockStats[role as keyof typeof mockStats] || mockStats.farmer;
 
   const renderFarmerDashboard = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+    <div className="space-y-4 md:space-y-6">
+      <WeatherWidget />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       {/* Active Harvests */}
       <Card className="col-span-1 overflow-hidden">
         <CardHeader className="pb-3">
@@ -138,6 +142,7 @@ export function RoleDashboard({ user, onRegisterProduct, onScanQR }: RoleDashboa
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 
