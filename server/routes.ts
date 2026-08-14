@@ -21,6 +21,7 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { getWeatherForLocation } from "./services/weatherService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -68,6 +69,7 @@ const allowedUserUpdateFields = new Set([
   "bio",
   "website",
   "language",
+  "preferredDistrict",
   "notificationsEnabled",
 ]);
 
@@ -303,7 +305,46 @@ export async function registerRoutes(app: Express) {
       return res.status(500).json({ message: "Failed to update profile" });
     }
   });
-  
+
+  // --- Weather & Crop Advisory Routes ---
+  app.get("/api/weather", async (req: Request, res: Response) => {
+    try {
+      const district = req.query.district as string | undefined;
+      const lat = req.query.lat ? parseFloat(req.query.lat as string) : undefined;
+      const lon = req.query.lon ? parseFloat(req.query.lon as string) : undefined;
+
+      const weatherData = await getWeatherForLocation(district, lat, lon);
+      return res.json(weatherData);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+      return res.status(500).json({ message: "Failed to fetch weather data" });
+    }
+  });
+
+  // Update user preferred district
+  app.patch("/api/user/preferred-district", requireFirebaseAuth, async (req: Request, res: Response) => {
+    try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const { district } = req.body || {};
+      if (typeof district !== "string" || !district.trim()) {
+        return res.status(400).json({ message: "District name is required" });
+      }
+
+      const updatedUser = await storage.updateUser(user.id, {
+        preferredDistrict: district.trim(),
+      });
+      return res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating preferred district:", error);
+      return res.status(500).json({ message: "Failed to update preferred district" });
+    }
+  });
+
   app.get("/api/users/search", requireFirebaseAuth, async (req, res) => {
     try {
       const firebaseUid = res.locals.firebaseUid as string;

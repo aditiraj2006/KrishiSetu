@@ -141,6 +141,7 @@ export class MongoStorage {
       website: insertUser.website || null,
       roleSelected: insertUser.roleSelected || false,
       language: insertUser.language || "en",
+      preferredDistrict: insertUser.preferredDistrict || null,
       notificationsEnabled: insertUser.notificationsEnabled !== false,
       createdAt: new Date(),
     };
