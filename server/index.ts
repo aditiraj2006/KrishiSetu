@@ -20,7 +20,7 @@ const app = express();
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
-
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     crossOriginResourcePolicy: {
       policy: "cross-origin",
     },

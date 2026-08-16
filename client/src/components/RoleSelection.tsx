@@ -1,18 +1,18 @@
-import { Check, Sprout, Store, Truck, Users } from "lucide-react";
 import { useState } from "react";
-import { useLocation } from "wouter";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Sprout, Truck, Store, Users, Check } from "lucide-react";
 
 const roles = [
   {
     id: "farmer",
     title: "Farmer",
-    description: "Register products, track harvests, and manage supply chain origins",
+    description:
+      "Register products, track harvests, and manage supply chain origins",
     icon: Sprout,
     features: [
       "Product Registration",
@@ -25,7 +25,8 @@ const roles = [
   {
     id: "distributor",
     title: "Distributor",
-    description: "Manage transportation and logistics between supply chain stages",
+    description:
+      "Manage transportation and logistics between supply chain stages",
     icon: Truck,
     features: [
       "QR Code Scanning",
@@ -71,9 +72,8 @@ interface RoleSelectionProps {
 export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps) {
   const [selectedRole, setSelectedRole] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
-  const { user, firebaseUser, refreshUser } = useAuth();
+  const { user, firebaseUser } = useAuth();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
 
   if (!isVisible || !user || !firebaseUser) return null;
 
@@ -82,16 +82,11 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
 
     setIsUpdating(true);
     try {
-      // Use the correct endpoint that exists in your routes
       await apiRequest(
         "PUT",
         "/api/user/role",
-        {
-          role: roleId,
-        },
-        {
-          "firebase-uid": firebaseUser.uid,
-        },
+        { role: roleId },
+        { "firebase-uid": firebaseUser.uid }
       );
 
       toast({
@@ -111,10 +106,9 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      {/* Mobile: Full height scrollable container */}
-      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <Card className="shadow-lg border border-border mx-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card/95 shadow-2xl">
+        <Card className="border-0 bg-transparent shadow-none">
           <CardHeader className="text-center pb-4 sm:pb-6">
             <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
               <Sprout className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
@@ -129,7 +123,6 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
           </CardHeader>
 
           <CardContent className="p-4 sm:p-6">
-            {/* Mobile: Single column, Tablet+: 2 columns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {roles.map((role) => {
                 const IconComponent = role.icon;
@@ -138,7 +131,7 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
                 return (
                   <Card
                     key={role.id}
-                    className={`cursor-pointer transition-all duration-200 border-2 hover:scale-105 ${
+                    className={`cursor-pointer transition-all duration-200 border-2 bg-card hover:scale-[1.01] ${
                       isSelected
                         ? "border-primary ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50"
@@ -163,7 +156,11 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
                           </p>
                           <div className="flex flex-wrap gap-1 sm:gap-2">
                             {role.features.map((feature) => (
-                              <Badge key={feature} variant="secondary" className="text-xs">
+                              <Badge
+                                key={feature}
+                                variant="secondary"
+                                className="text-xs bg-muted text-muted-foreground"
+                              >
                                 {feature}
                               </Badge>
                             ))}
@@ -192,3 +189,4 @@ export function RoleSelection({ isVisible, onRoleSelected }: RoleSelectionProps)
     </div>
   );
 }
+
