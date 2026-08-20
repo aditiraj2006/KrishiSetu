@@ -4,6 +4,7 @@ import { ModeToggle } from "./mode-toggle";
 import { QuickLanguageSwitcher } from "./QuickLanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import "./LandingNavbar.css";
+import { useTheme } from "next-themes";
 
 
 const LandingNavbar = () => {
@@ -14,6 +15,7 @@ const LandingNavbar = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 const { user, logout } = useAuth();
+const { theme } = useTheme();
 const isAuthenticated = !!user;
   
 
@@ -120,7 +122,11 @@ const scrollToFeatures = () => {
         onKeyDown={(e) => e.key === "Enter" && navigateTo("/")}
       >
         <div className="logo-icon">
-          <img src="/logo.svg" alt="KrishiSetu Logo" className="w-6 h-6 object-contain" />
+          <img
+             src="/logo.svg"
+             alt="KrishiSetu Logo"
+             className={`w-6 h-6 object-contain ${theme === "dark" ? "invert" : ""}`}
+           />
         </div>
         <span className="logo">
           <span className="logo1">Krishi</span>
