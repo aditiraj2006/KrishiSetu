@@ -21,6 +21,7 @@ import { verifyFirebaseIdToken } from "./firebaseJwt";
 import { uploadPaymentProof } from "./firebaseStorage";
 import { getDb, MongoStorage } from "./storage";
 import { sendEmailNotification } from "./email";
+import { predictYield, yieldPredictionRequestSchema } from "./yieldModel";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1828,6 +1829,21 @@ export async function registerRoutes(app: Express) {
       return res.json(analysis);
     } catch (error) {
       return res.status(500).json({ message: "Quality analysis failed" });
+    }
+  });
+
+  app.post("/api/yield-prediction", async (req: Request, res: Response) => {
+    const parsed = yieldPredictionRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Invalid yield prediction request",
+        errors: parsed.error.flatten().fieldErrors,
+      });
+    }
+    try {
+      return res.json(predictYield(parsed.data));
+    } catch (error) {
+      return res.status(500).json({ message: "Yield prediction failed" });
     }
   });
 
