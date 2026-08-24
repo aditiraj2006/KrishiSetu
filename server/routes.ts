@@ -367,18 +367,24 @@ export async function registerRoutes(app: Express) {
   // --- Product Routes ---
   app.post("/api/products", requireFirebaseAuth, async (req: Request, res: Response) => {
     try {
+      const firebaseUid = res.locals.firebaseUid as string;
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if (user.role !== "farmer") {
+        return res
+          .status(403)
+          .json({ message: "Forbidden: Only farmers can register products" });
+      }
+
       const parse = insertProductSchema.safeParse(req.body);
       if (!parse.success) {
         return res.status(400).json({
           message: "Invalid product data",
           errors: parse.error.format(),
         });
-      }
-
-      const firebaseUid = res.locals.firebaseUid as string;
-      const user = await storage.getUserByFirebaseUid(firebaseUid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
       }
 
       const productData = {
