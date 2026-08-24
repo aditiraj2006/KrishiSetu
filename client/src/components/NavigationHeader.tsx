@@ -318,6 +318,12 @@ useEffect(() => {
       show: user.role === "retailer" || user.role === "distributor",
       testid: "link-request-products",
     },
+    {
+      href: "/mini-game",
+      label: "Mini Game 🌾",
+      show: true,
+      testid: "link-mini-game",
+    },
   ];
 
   // Remove notification locally (we assume server has been notified already)
