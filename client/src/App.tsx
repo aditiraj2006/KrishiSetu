@@ -14,6 +14,7 @@ import ProductDetails from "@/pages/product-details";
 import ProductRegistration from "@/pages/product-registration";
 import ProfilePage from "@/pages/profile";
 import QRScannerPage from "@/pages/qr-scanner";
+import MiniGamePage from "@/pages/mini-game";
 import RegisteredProductsPage from "@/pages/registered-products";
 import RequestProductsPage from "@/pages/request-products";
 import ScannedProductsPage from "@/pages/scanned-products";
@@ -55,6 +56,7 @@ function App() {
                 <Route path="/registered-products" component={RegisteredProductsPage} />
                 <Route path="/scanned-products" component={ScannedProductsPage} />
                 <Route path="/request-products" component={RequestProductsPage} />
+                <Route path="/mini-game" component={MiniGamePage} />
                 <Route component={NotFound} />
               </Switch>
             </main>

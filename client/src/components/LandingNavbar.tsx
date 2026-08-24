@@ -153,6 +153,12 @@ const scrollToFeatures = () => {
           onKeyDown={(e) => e.key === "Enter" && navigateTo("/contact")}>
           Contact
         </li>
+        <li role="menuitem" tabIndex={0}
+          className={location === "/mini-game" ? "active-link" : ""}
+          onClick={() => navigateTo("/mini-game")}
+          onKeyDown={(e) => e.key === "Enter" && navigateTo("/mini-game")}>
+          Mini Game 🌾
+        </li>
         {isAuthenticated ? (
           <li role="menuitem" tabIndex={0}
             onClick={handleLogout}
@@ -258,6 +264,14 @@ const scrollToFeatures = () => {
               className={`drawer-link${location === "/contact" ? " active-link" : ""}`}
             >
               <span className="drawer-link-icon">✉️</span> Contact
+            </button>
+          </li>
+          <li role="menuitem">
+            <button
+              onClick={() => navigateTo("/mini-game")}
+              className={`drawer-link${location === "/mini-game" ? " active-link" : ""}`}
+            >
+              <span className="drawer-link-icon">🎮</span> Mini Game
             </button>
           </li>
           {isAuthenticated ? (
